@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Text to LaTeX Image Converter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 10px;
+      font-family: monospace;
+    }
+    img {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>Normal Text to LaTeX Image</h2>
+  <textarea id="inputText" placeholder="Enter text with $...$ or $$...$$ here"></textarea>
+  <button onclick="convertToImage()">Convert & Show Image</button>
+
+  <h3>Rendered LaTeX Image:</h3>
+  <div id="outputImageContainer">
+    <img id="latexImage" src="" alt="LaTeX Output will appear here">
+  </div>
+
+  <script>
+    function escapeForLaTeX(text) {
+      const escapeMap = {
+        '\\': '\\textbackslash{}',
+        '{': '\\{',
+        '}': '\\}',
+        '#': '\\#',
+        '$': '\\$',
+        '%': '\\%',
+        '&': '\\&',
+        '_': '\\_',
+        '^': '\\textasciicircum{}',
+        '~': '\\textasciitilde{}'
+      };
+
+      const escapeText = str =>
+        str.replace(/([\\{}#$%&_^\~])/g, match => escapeMap[match] || match);
+
+      const parts = [];
+      let regex = /(\$\$.*?\$\$|\$.*?\$)/gs;
+      let lastIndex = 0;
+
+      for (const match of text.matchAll(regex)) {
+        const [full] = match;
+        const index = match.index;
+
+        if (index > lastIndex) {
+          parts.push({ type: 'text', value: text.slice(lastIndex, index) });
+        }
+        parts.push({
+          type: full.startsWith('$$') ? 'block-math' : 'inline-math',
+          value: full
+        });
+
+        lastIndex = index + full.length;
+      }
+
+      if (lastIndex < text.length) {
+        parts.push({ type: 'text', value: text.slice(lastIndex) });
+      }
+
+      return parts
+        .map(part => {
+          if (part.type === 'text') {
+            return `\\text{${escapeText(part.value)}}`;
+          } else {
+            return part.value;
+          }
+        })
+        .join(' ');
+    }
+
+    function convertToImage() {
+      const input = document.getElementById('inputText').value;
+      const latex = escapeForLaTeX(input);
+      const encoded = encodeURIComponent(latex);
+      const imageUrl = `https://latex.codecogs.com/gif.image?${encoded}`;
+      document.getElementById('latexImage').src = imageUrl;
+    }
+  </script>
+</body>
+</html>
