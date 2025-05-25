@@ -1,48 +1,21 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Level Schema
-interface ILevel extends Document {
+// Chapter Schema
+interface IChapter extends Document {
   name: string;
   description: string;
-  requiredXP: number;
+  gameName: string;
   topics: string[];
+  status: boolean;
 }
 
-const LevelSchema = new Schema<ILevel>({
+const ChapterSchema = new Schema<IChapter>({
   name: { 
     type: String, 
     required: true,
     trim: true
   },
   description: { 
-    type: String, 
-    required: true,
-    trim: true
-  },
-  requiredXP: { 
-    type: Number, 
-    required: true,
-    min: 0
-  },
-  topics: [{ 
-    type: String,
-    required: true,
-    trim: true
-  }]
-});
-
-// Chapter Schema
-interface IChapter extends Document {
-  name: string;
-  gameName: string;
-  topics: string[];
-  levels: ILevel[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const ChapterSchema = new Schema<IChapter>({
-  name: { 
     type: String, 
     required: true,
     trim: true
@@ -57,21 +30,10 @@ const ChapterSchema = new Schema<IChapter>({
     required: true,
     trim: true
   }],
-  levels: [LevelSchema],
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
+  status: {
+    type: Boolean,
+    default: false  
   },
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
-  }
-});
-
-// Update the updatedAt timestamp before saving
-ChapterSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
-});
+}, { timestamps: true });
 
 export const Chapter = mongoose.model<IChapter>('Chapter', ChapterSchema);

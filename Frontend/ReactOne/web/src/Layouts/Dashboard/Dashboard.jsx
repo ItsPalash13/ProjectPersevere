@@ -4,7 +4,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import { authClient } from '../../lib/auth-client';
-import PingButton from '../../components/PingButton';
 import UserStatsCard from '../../components/UserStatsCard';
 import SkillProgressionCard from '../../components/SkillProgressionCard';
 import AccuracyCard from '../../components/AccuracyCard';
@@ -27,8 +26,8 @@ import {
   QuizButton,
   PingSection,
 } from '../../theme/dashboardTheme';
-import { Typography, Grid } from '@mui/material';
-import { PlayArrow as PlayArrowIcon } from '@mui/icons-material';
+import { Typography, Grid, Button } from '@mui/material';
+import { PlayArrow as PlayArrowIcon, MenuBook as MenuBookIcon } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';  
 import { logout } from '../../features/auth/authSlice';
 
@@ -58,6 +57,10 @@ const Dashboard = () => {
 
   const handleStartQuiz = () => {
     navigate('/quiz');
+  };
+
+  const handleViewChapters = () => {
+    navigate('/chapters');
   };
 
   return (
@@ -95,28 +98,50 @@ const Dashboard = () => {
               <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
                 Your Learning Journey
               </Typography>
-              <IslandsScene />
+              
             </Box>
 
-            <QuizSection>
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Ready to Test Your Skills?
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Take a quiz to improve your skill rating and track your progress
-                </Typography>
-              </Box>
-              <QuizButton
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleStartQuiz}
-                startIcon={<PlayArrowIcon />}
-              >
-                Start Quiz
-              </QuizButton>
-            </QuizSection>
+            <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+              <QuizSection>
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Ready to Test Your Skills?
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Take a quiz to improve your skill rating and track your progress
+                  </Typography>
+                </Box>
+                <QuizButton
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={handleStartQuiz}
+                  startIcon={<PlayArrowIcon />}
+                >
+                  Start Quiz
+                </QuizButton>
+              </QuizSection>
+
+              <QuizSection>
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Explore Chapters
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Browse through our learning chapters and start your journey
+                  </Typography>
+                </Box>
+                <QuizButton
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  onClick={handleViewChapters}
+                  startIcon={<MenuBookIcon />}
+                >
+                  View Chapters
+                </QuizButton>
+              </QuizSection>
+            </Box>
 
             <Box sx={{ mt: 4, mb: 4 }}>
               <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
@@ -125,12 +150,6 @@ const Dashboard = () => {
               <Report />
             </Box>
 
-            <PingSection>
-              <Typography variant="h6" gutterBottom>
-                Server Status
-              </Typography>
-              <PingButton />
-            </PingSection>
           </DashboardContent>
         </Box>
       </Box>

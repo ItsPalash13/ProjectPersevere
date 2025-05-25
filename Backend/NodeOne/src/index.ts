@@ -8,6 +8,7 @@ import { initializeApp } from './config/init';
 import { toNodeHandler } from "better-auth/node";
 import { getAuthInstance } from './config/auth';
 import routes from './routes/index';
+import { createServer } from 'http';
 
 // Import TrueSkill
 import { TrueSkill } from 'ts-trueskill';
@@ -31,7 +32,11 @@ app.use((req: Request, _res: Response, next) => {
 
 const startServer = async () => {
     try {
-        await initializeApp();
+        // Create HTTP server
+        const server = createServer(app);
+        app.set('server', server);
+
+        await initializeApp(app);
 
         // --- Create TrueSkill environment ---
         const trueskillEnv = new TrueSkill(
@@ -62,7 +67,7 @@ const startServer = async () => {
         app.use(errorHandler);
 
         const PORT = config.port || 3000;
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             logger.info(`Server is running on port ${PORT}`);
             logger.info(`Environment: ${config.env}`);
         });

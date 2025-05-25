@@ -8,6 +8,9 @@ import Login from './Layouts/Auth/Login';
 import Register from './Layouts/Auth/Register';
 import Dashboard from './Layouts/Dashboard/Dashboard';
 import Quiz from './Layouts/Quiz/Quiz';
+import Quiz1 from './Layouts/Quiz/Quiz1';
+import Chapters from './Layouts/Chapters/Chapter';
+import Levels from './Layouts/Levels/Levels';
 import './App.css';
 
 // Helper function to serialize dates in an object
@@ -48,11 +51,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-    
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        
-      
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/dashboard"
           element={
@@ -62,6 +62,9 @@ function App() {
           }
         />
         <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+        <Route path="/quiz1/:levelId" element={<ProtectedRoute><Quiz1 /></ProtectedRoute>} />
+        <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
+        <Route path="/levels/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

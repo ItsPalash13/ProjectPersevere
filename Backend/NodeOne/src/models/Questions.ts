@@ -4,7 +4,7 @@ interface IQuestion extends Document {
   ques: string;
   options: string[];
   correct: number;
-  topic: string;
+  chapterId: mongoose.Types.ObjectId;
 }
 
 const QuestionSchema = new Schema<IQuestion>({
@@ -22,9 +22,10 @@ const QuestionSchema = new Schema<IQuestion>({
     min: 0,
     max: 3  // Since options are 0-based index
   },
-  topic: { 
-    type: String, 
-    required: true 
+  chapterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Chapter',
+    required: true
   }
 });
 

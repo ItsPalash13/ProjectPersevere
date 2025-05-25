@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@redis/client": "^5.1.0"
+  }
+}
