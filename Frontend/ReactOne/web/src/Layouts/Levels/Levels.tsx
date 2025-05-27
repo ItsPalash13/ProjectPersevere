@@ -10,7 +10,9 @@ import {
   Chip,
   Box,
   LinearProgress,
-  IconButton
+  IconButton,
+  Backdrop,
+  CircularProgress
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -31,6 +33,7 @@ export interface Level {
 
 const Levels: React.FC = () => {
   const [levels, setLevels] = useState<Level[]>([]);
+  const [isStarting, setIsStarting] = useState(false);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -45,11 +48,13 @@ const Levels: React.FC = () => {
 
   const handleLevelClick = async (levelId: string) => {
     try {
+      setIsStarting(true);
       const result = await startLevel(levelId).unwrap();
       dispatch(setLevelSession(result.data.session));
-      navigate(`/quiz1/${levelId}`);
+      navigate(`/quiz/${levelId}`);
     } catch (error) {
       console.error('Failed to start level:', error);
+      setIsStarting(false);
     }
   };
 
@@ -59,6 +64,27 @@ const Levels: React.FC = () => {
 
   return (
     <Box sx={{minHeight: '100vh'}}>
+      <Backdrop
+        sx={{ 
+          color: '#fff', 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)'
+        }}
+        open={isStarting}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          gap: 2
+        }}>
+          <CircularProgress color="primary" size={60} />
+          <Typography variant="h6">
+            Starting Level...
+          </Typography>
+        </Box>
+      </Backdrop>
+
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Levels

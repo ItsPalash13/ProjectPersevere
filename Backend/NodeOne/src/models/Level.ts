@@ -9,6 +9,9 @@ export interface ILevel extends Document {
   status: boolean;
   totalTime: number;
   chapterId: mongoose.Types.ObjectId;
+  expression: string;
+  xMin: number;
+  xMax: number;
 }
 
 export const LevelSchema = new Schema<ILevel>({
@@ -50,8 +53,22 @@ export const LevelSchema = new Schema<ILevel>({
     type: String,
     required: true,
     trim: true
-  }]
-
+  }],
+  expression: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  xMin: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  xMax: {
+    type: Number,
+    required: true,
+    min: 0
+  }
 }, { timestamps: true });
 
 // Index for faster queries

@@ -61,8 +61,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
-        <Route path="/quiz1/:levelId" element={<ProtectedRoute><Quiz1 /></ProtectedRoute>} />
+        <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz1 /></ProtectedRoute>} />
         <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
         <Route path="/levels/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
