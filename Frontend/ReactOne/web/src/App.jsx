@@ -3,6 +3,7 @@ import { authClient } from './lib/auth-client';
 import { useDispatch } from 'react-redux';
 import { setSession } from './features/auth/authSlice';
 import { useEffect } from 'react';
+import { io } from 'socket.io-client';
 import Home from './components/Home';
 import Login from './Layouts/Auth/Login';
 import Register from './Layouts/Auth/Register';
@@ -11,6 +12,12 @@ import Quiz from './Layouts/Quiz/Quiz';
 import Chapters from './Layouts/Chapters/Chapter';
 import Levels from './Layouts/Levels/Levels';
 import './App.css';
+
+// Create socket instance outside component
+export const socket = io(import.meta.env.VITE_BACKEND_URL, {
+  withCredentials: true,
+  autoConnect: false // Prevent auto-connection
+});
 
 // Helper function to serialize dates in an object
 const serializeDates = (obj) => {
@@ -60,7 +67,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
+        <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz socket={socket} /></ProtectedRoute>} />
         <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
         <Route path="/levels/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />

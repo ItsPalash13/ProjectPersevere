@@ -4,7 +4,7 @@ export interface ILevel extends Document {
   name: string;
   levelNumber: number;
   description: string;
-  requiredXP: number;
+  requiredXp: number;
   topics: string[];
   status: boolean;
   totalTime: number;
@@ -30,7 +30,7 @@ export const LevelSchema = new Schema<ILevel>({
     required: true,
     trim: true
   },
-  requiredXP: { 
+  requiredXp: { 
     type: Number, 
     required: true,
     min: 0

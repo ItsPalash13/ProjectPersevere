@@ -140,7 +140,6 @@ const Levels: React.FC = () => {
                     cursor: level.status ? 'pointer' : 'not-allowed'
                   }
                 }}
-                onClick={() => level.status && !level.activeSession && handleLevelClick(level._id)}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -204,9 +203,9 @@ const Levels: React.FC = () => {
                         size="small" 
                         color="warning"
                         variant="contained"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          dispatch(setLevelSession(level.activeSession));
+                          await dispatch(setLevelSession(level.activeSession));
                           navigate(`/quiz/${level._id}`);
                         }}
                       >
@@ -225,17 +224,17 @@ const Levels: React.FC = () => {
                       </Button>
                     </Box>
                   ) : (
-                    <Button 
-                      size="small" 
-                      color="primary"
-                      disabled={!level.status}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        level.status && handleLevelClick(level._id);
-                      }}
-                    >
-                      {level.status ? 'Start Level' : 'Locked'}
-                    </Button>
+                  <Button 
+                    size="small" 
+                    color="primary"
+                    disabled={!level.status}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      level.status && handleLevelClick(level._id);
+                    }}
+                  >
+                    {level.status ? 'Start Level' : 'Locked'}
+                  </Button>
                   )}
                 </CardActions>
               </Card>

@@ -18,7 +18,7 @@ interface ILevel extends Document {
   _id: string;
   name: string;
   description: string;
-  requiredXP: number;
+  requiredXp: number;
   topics: string[];
   status: boolean;
 }
@@ -77,7 +77,7 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       userId,
       chapterId: level.chapterId,
       levelId: level._id,
-      requiredXp: level.requiredXP,
+      requiredXp: level.requiredXp,
       maxXp: userChapterLevel?.maxXp,
       status: 0,
       currentXp: 0,
@@ -122,7 +122,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     const userId = req.user.id;
     
     const levels = await Level.find({ chapterId })
-      .select('name description requiredXP topics status')
+      .select('name description requiredXp topics status')
       .sort({ createdAt: 1 }) as ILevel[];
 
     if (!levels.length) {
