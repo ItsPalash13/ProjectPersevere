@@ -101,34 +101,14 @@ const Dashboard = () => {
               
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
-              <QuizSection>
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Ready to Test Your Skills?
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Take a quiz to improve your skill rating and track your progress
-                  </Typography>
-                </Box>
-                <QuizButton
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={handleStartQuiz}
-                  startIcon={<PlayArrowIcon />}
-                >
-                  Start Quiz
-                </QuizButton>
-              </QuizSection>
-
+            <Box sx={{ display: 'block', gap: 2, mb: 4 }}>
               <QuizSection>
                 <Box>
                   <Typography variant="h6" gutterBottom>
                     Explore Chapters
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Browse through our learning chapters and start your journey
+                    Browse through our learning chapters and start your journey. 
                   </Typography>
                 </Box>
                 <QuizButton

@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
-import { Userts } from '../models/UserTs';
-import { QuestionTs } from '../models/QuestionTs';
-import { Question } from '../models/Questions';
-import { UserQuesAnsLog } from '../models/UserQuesAnsLog';
-import { getQuestionMuForWinProb} from '../utils/math';
+import { Userts } from '../Backend/NodeOne/src/models/UserTs';
+import { QuestionTs } from '../Backend/NodeOne/src/models/QuestionTs';
+import { Question } from '../Backend/NodeOne/src/models/Questions';
+import { UserQuesAnsLog } from '../Backend/NodeOne/src/models/UserQuesAnsLog';
+import { getQuestionMuForWinProb} from '../Backend/NodeOne/src/utils/math';
 import { Rating, rate_1vs1 } from 'ts-trueskill';
-import authMiddleware from '../middleware/authMiddleware';
+import authMiddleware from '../Backend/NodeOne/src/middleware/authMiddleware';
 
 const router = express.Router();
 router.use(authMiddleware);

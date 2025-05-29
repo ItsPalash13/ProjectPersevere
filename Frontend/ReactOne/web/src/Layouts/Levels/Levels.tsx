@@ -29,6 +29,11 @@ export interface Level {
   requiredXP: number;
   topics: string[];
   status: boolean;
+  activeSession?: {
+    _id: string;
+    currentTime: number;
+    currentXp: number;
+  } | null;
 }
 
 const Levels: React.FC = () => {
@@ -37,8 +42,16 @@ const Levels: React.FC = () => {
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data: levelsData, isLoading } = useGetLevelsQuery(chapterId || '');
+  const { data: levelsData, isLoading, refetch } = useGetLevelsQuery(chapterId || '', {
+    skip: !chapterId
+  });
   const [startLevel] = useStartLevelMutation();
+
+  useEffect(() => {
+    if (chapterId) {
+      refetch();
+    }
+  }, [chapterId, refetch]);
 
   useEffect(() => {
     if (levelsData?.data) {
@@ -59,7 +72,30 @@ const Levels: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Box sx={{minHeight: '100vh'}}>
+        <Backdrop
+          sx={{ 
+            color: '#fff', 
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)'
+          }}
+          open={true}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <CircularProgress color="primary" size={60} />
+            <Typography variant="h6">
+              Loading Levels...
+            </Typography>
+          </Box>
+        </Backdrop>
+      </Box>
+    );
   }
 
   return (
@@ -104,7 +140,7 @@ const Levels: React.FC = () => {
                     cursor: level.status ? 'pointer' : 'not-allowed'
                   }
                 }}
-                onClick={() => level.status && handleLevelClick(level._id)}
+                onClick={() => level.status && !level.activeSession && handleLevelClick(level._id)}
               >
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -140,19 +176,67 @@ const Levels: React.FC = () => {
                       sx={{ height: 8, borderRadius: 4 }}
                     />
                   </Box>
+                  {level.activeSession && (
+                    <Box sx={{ 
+                      mt: 2, 
+                      p: 2, 
+                      bgcolor: 'warning.light', 
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'warning.main'
+                    }}>
+                      <Typography variant="body2" color="warning.dark" gutterBottom>
+                        Active Session
+                      </Typography>
+                      <Typography variant="body2" color="warning.dark">
+                        Time Remaining: {Math.floor(level.activeSession.currentTime / 60)}:{(level.activeSession.currentTime % 60).toString().padStart(2, '0')}
+                      </Typography>
+                      <Typography variant="body2" color="warning.dark">
+                        Current XP: {level.activeSession.currentXp}
+                      </Typography>
+                    </Box>
+                  )}
                 </CardContent>
                 <CardActions>
-                  <Button 
-                    size="small" 
-                    color="primary"
-                    disabled={!level.status}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      level.status && handleLevelClick(level._id);
-                    }}
-                  >
-                    {level.status ? 'Start Level' : 'Locked'}
-                  </Button>
+                  {level.activeSession ? (
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button 
+                        size="small" 
+                        color="warning"
+                        variant="contained"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(setLevelSession(level.activeSession));
+                          navigate(`/quiz/${level._id}`);
+                        }}
+                      >
+                        Reconnect
+                      </Button>
+                      <Button 
+                        size="small" 
+                        color="error"
+                        variant="outlined"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLevelClick(level._id);
+                        }}
+                      >
+                        Start Fresh
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Button 
+                      size="small" 
+                      color="primary"
+                      disabled={!level.status}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        level.status && handleLevelClick(level._id);
+                      }}
+                    >
+                      {level.status ? 'Start Level' : 'Locked'}
+                    </Button>
+                  )}
                 </CardActions>
               </Card>
             </Grid>

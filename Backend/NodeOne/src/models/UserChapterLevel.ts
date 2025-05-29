@@ -8,7 +8,6 @@ export interface IUserChapterLevel extends Document {
   status: 'not_started' | 'in_progress' | 'completed';
   maxXp: number;
   completedAt?: Date;
-  startedAt: Date;
   lastAttemptedAt: Date;
   attempts: number;
 }
@@ -47,11 +46,6 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
   },
   completedAt: {
     type: Date
-  },
-  startedAt: {
-    type: Date,
-    default: Date.now,
-    required: true
   },
   lastAttemptedAt: {
     type: Date,

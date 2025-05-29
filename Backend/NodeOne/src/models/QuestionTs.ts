@@ -8,6 +8,7 @@ interface IDifficulty {
 interface IQuestionTs extends Document {
   quesId: mongoose.Types.ObjectId;
   difficulty: IDifficulty;
+  xp: {correct: number, incorrect: number};
 }
 
 const DifficultySchema = new Schema<IDifficulty>({
@@ -24,6 +25,11 @@ const QuestionTsSchema = new Schema<IQuestionTs>({
   difficulty: { 
     type: DifficultySchema, 
     required: true 
+  },
+  xp: {
+    type: {correct: Number, incorrect: Number},
+    required: true,
+    default: {correct: 0, incorrect: 0}
   }
 });
 

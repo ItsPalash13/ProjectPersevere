@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Card,
@@ -10,21 +12,21 @@ import {
   CircularProgress,
   ThemeProvider,
   createTheme,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
   Grid,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-} from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Star as StarIcon, Close as CloseIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
-import axios from 'axios';
-import { ProgressBar } from "react-progressbar-fancy";
+
+// Create socket instance outside component
+const socket = io(import.meta.env.VITE_BACKEND_URL, {
+  withCredentials: true,
+  autoConnect: false // Prevent auto-connection
+});
 
 const quizTheme = createTheme({
   palette: {
@@ -67,33 +69,6 @@ const quizTheme = createTheme({
   shape: {
     borderRadius: 12,
   },
-  shadows: [
-    'none',
-    '0px 2px 4px rgba(0,0,0,0.1)',
-    '0px 4px 8px rgba(0,0,0,0.1)',
-    '0px 8px 16px rgba(0,0,0,0.1)',
-    '0px 16px 24px rgba(0,0,0,0.1)',
-    '0px 24px 32px rgba(0,0,0,0.1)',
-    '0px 32px 40px rgba(0,0,0,0.1)',
-    '0px 40px 48px rgba(0,0,0,0.1)',
-    '0px 48px 56px rgba(0,0,0,0.1)',
-    '0px 56px 64px rgba(0,0,0,0.1)',
-    '0px 64px 72px rgba(0,0,0,0.1)',
-    '0px 72px 80px rgba(0,0,0,0.1)',
-    '0px 80px 88px rgba(0,0,0,0.1)',
-    '0px 88px 96px rgba(0,0,0,0.1)',
-    '0px 96px 104px rgba(0,0,0,0.1)',
-    '0px 104px 112px rgba(0,0,0,0.1)',
-    '0px 112px 120px rgba(0,0,0,0.1)',
-    '0px 120px 128px rgba(0,0,0,0.1)',
-    '0px 128px 136px rgba(0,0,0,0.1)',
-    '0px 136px 144px rgba(0,0,0,0.1)',
-    '0px 144px 152px rgba(0,0,0,0.1)',
-    '0px 152px 160px rgba(0,0,0,0.1)',
-    '0px 160px 168px rgba(0,0,0,0.1)',
-    '0px 168px 176px rgba(0,0,0,0.1)',
-    '0px 176px 184px rgba(0,0,0,0.1)',
-  ],
 });
 
 const QuizContainer = styled(Box)(({ theme }) => ({
@@ -101,18 +76,7 @@ const QuizContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
   backgroundColor: theme.palette.background.default,
   backgroundImage: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
-}));
-
-const TopicChip = styled(Box)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.light,
-  color: theme.palette.common.white,
-  padding: theme.spacing(0.5, 2),
-  borderRadius: theme.shape.borderRadius * 2,
-  fontSize: '0.9rem',
-  fontWeight: 600,
-  textTransform: 'capitalize',
-  display: 'inline-block',
-  marginBottom: theme.spacing(2),
+  position: 'relative',
 }));
 
 const QuestionCard = styled(Card)(({ theme }) => ({
@@ -134,11 +98,12 @@ const OptionCard = styled(Card)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius * 2,
   boxShadow: theme.shadows[1],
   backgroundColor: theme.palette.background.paper,
-  height: '250px',
+  minHeight: '160px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   border: '1px solid rgba(0,0,0,0.1)',
+  padding: theme.spacing(2, 0),
   '&:hover': {
     transform: 'translateY(-2px)',
     boxShadow: theme.shadows[4],
@@ -155,7 +120,6 @@ const OptionCard = styled(Card)(({ theme }) => ({
     border: `2px solid ${theme.palette.success.main}`,
     backgroundColor: theme.palette.success.main,
     color: 'white',
-    transform: 'scale(1.02)',
     '& .MuiTypography-root': {
       color: 'white',
     }
@@ -164,7 +128,6 @@ const OptionCard = styled(Card)(({ theme }) => ({
     border: `2px solid ${theme.palette.error.main}`,
     backgroundColor: theme.palette.error.main,
     color: 'white',
-    transform: 'scale(1.02)',
     '& .MuiTypography-root': {
       color: 'white',
     }
@@ -173,7 +136,6 @@ const OptionCard = styled(Card)(({ theme }) => ({
     border: `2px solid ${theme.palette.success.main}`,
     backgroundColor: theme.palette.success.main,
     color: 'white',
-    animation: 'pulse 1s infinite',
     '& .MuiTypography-root': {
       color: 'white',
     }
@@ -199,314 +161,349 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const SecretDrawer = styled(Drawer)(({ theme }) => ({
-  '& .MuiDrawer-paper': {
-    width: 240,
-    backgroundColor: theme.palette.background.paper,
-    borderLeft: `1px solid ${theme.palette.divider}`,
-    boxShadow: theme.shadows[4],
-  },
-}));
-
-const SecretButton = styled(IconButton)(({ theme }) => ({
-  position: 'fixed',
-  right: 16,
-  top: '10%',
-  transform: 'translateY(-50%)',
-  backgroundColor: theme.palette.background.paper,
-  boxShadow: theme.shadows[2],
-  '&:hover': {
-    backgroundColor: theme.palette.primary.main,
-    color: 'white',
-  },
-}));
-
-const SkillProgressBar = styled(Box)(({ theme }) => ({
-  width: '100%',
-  marginBottom: theme.spacing(4),
-  padding: theme.spacing(2),
+const TimeDisplay = styled(Box)(({ theme }) => ({
+  fontSize: '1.2rem',
+  fontWeight: 'bold',
+  textAlign: 'center',
+  marginBottom: theme.spacing(2),
+  padding: theme.spacing(1, 3),
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[1],
+  display: 'inline-block',
+  margin: '0 auto',
 }));
 
-const ProgressLabel = styled(Typography)(({ theme }) => ({
+const XpDisplay = styled(Box)(({ theme }) => ({
   display: 'flex',
-  justifyContent: 'space-between',
-  marginBottom: theme.spacing(1),
-  color: theme.palette.text.secondary,
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(1, 2),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[1],
+  '& .MuiSvgIcon-root': {
+    color: theme.palette.warning.main,
+    animation: 'pulse 2s infinite',
+  },
+  '@keyframes pulse': {
+    '0%': {
+      transform: 'scale(1)',
+    },
+    '50%': {
+      transform: 'scale(1.1)',
+    },
+    '100%': {
+      transform: 'scale(1)',
+    },
+  },
 }));
 
-const escapeForLaTeX = (text) => {
-  const escapeMap = {
-    '\\': '\\textbackslash{}',
-    '{': '\\{',
-    '}': '\\}',
-    '#': '\\#',
-    '$': '\\$',
-    '%': '\\%',
-    '&': '\\&',
-    '_': '\\_',
-    '^': '\\textasciicircum{}',
-    '~': '\\textasciitilde{}'
+const CongratsDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    borderRadius: theme.shape.borderRadius * 2,
+    padding: theme.spacing(3),
+    textAlign: 'center',
+    maxWidth: '400px',
+    width: '100%',
+  },
+}));
+
+const EmojiDisplay = styled(Box)(({ theme }) => ({
+  fontSize: '4rem',
+  marginBottom: theme.spacing(2),
+  animation: 'bounce 1s infinite',
+  '@keyframes bounce': {
+    '0%, 100%': {
+      transform: 'translateY(0)',
+    },
+    '50%': {
+      transform: 'translateY(-20px)',
+    },
+  },
+}));
+
+const DialogMigrate = ({
+  children,
+  disableBackdropClick,
+  disableEscapeKeyDown,
+  onClose,
+  ...rest
+}) => {
+  const handleClose = (event, reason) => {
+    if (disableBackdropClick && reason === "backdropClick") {
+      return false;
+    }
+
+    if (disableEscapeKeyDown && reason === "escapeKeyDown") {
+      return false;
+    }
+
+    if (typeof onClose === "function") {
+      onClose();
+    }
   };
 
-  const escapeText = str =>
-    str.replace(/([\\{}#$%&_^\~])/g, match => escapeMap[match] || match);
-
-  const parts = [];
-  let regex = /(\$\$.*?\$\$|\$.*?\$)/gs;
-  let lastIndex = 0;
-
-  for (const match of text.matchAll(regex)) {
-    const [full] = match;
-    const index = match.index;
-
-    if (index > lastIndex) {
-      parts.push({ type: 'text', value: text.slice(lastIndex, index) });
-    }
-    parts.push({
-      type: full.startsWith('$$') ? 'block-math' : 'inline-math',
-      value: full
-    });
-
-    lastIndex = index + full.length;
-  }
-
-  if (lastIndex < text.length) {
-    parts.push({ type: 'text', value: text.slice(lastIndex) });
-  }
-
-  return parts
-    .map(part => {
-      if (part.type === 'text') {
-        return `\\text{${escapeText(part.value)}}`;
-      } else {
-        return part.value;
-      }
-    })
-    .join(' ');
+  return (
+    <Dialog onClose={handleClose} {...rest}>
+      {children}
+    </Dialog>
+  );
 };
 
-const renderLatexText = (text) => {
-  const latex = escapeForLaTeX(text);
-  const encoded = encodeURIComponent(latex);
-  return `https://latex.codecogs.com/gif.image?${encoded}`;
-};
+const FloatingButton = styled(Button)(({ theme }) => ({
+  position: 'fixed',
+  bottom: theme.spacing(4),
+  right: theme.spacing(4),
+  borderRadius: '50%',
+  width: '60px',
+  height: '60px',
+  minWidth: '60px',
+  backgroundColor: theme.palette.primary.main,
+  color: 'white',
+  boxShadow: theme.shadows[4],
+  '&:hover': {
+    backgroundColor: theme.palette.primary.dark,
+    boxShadow: theme.shadows[6],
+  },
+}));
 
 const Quiz = () => {
+  const { levelId } = useParams();
   const navigate = useNavigate();
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [question, setQuestion] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [answered, setAnswered] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(null);
-  const isFirstRender = useRef(true);
-  const [showSecret, setShowSecret] = useState(false);
-  const [userRating, setUserRating] = useState({ mu: 500, sigma: 0 });
-  const [showProgress, setShowProgress] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [quizMessage, setQuizMessage] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [answerResult, setAnswerResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const levelSession = useSelector((state) => state.levelSession.session);
+  const [currentXp, setCurrentXp] = useState(0);
+  const [showCongrats, setShowCongrats] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [quizResults, setQuizResults] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
 
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      fetchQuestion();
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleEndQuiz = () => {
+    setOpenDialog(true);
+  };
+
+  const confirmEndQuiz = () => {
+    socket.emit('sendQuizEnd', { userLevelSessionId: levelSession?._id });
+    setOpenDialog(false);
+  };
+
+  const requestQuestion = () => {
+    setIsLoading(true);
+    socket.emit('question', { userLevelSessionId: levelSession?._id });
+  };
+
+  const handleAnswerSubmit = () => {
+    if (selectedAnswer === '') {
+      setQuizMessage('Please select an answer');
+      return;
     }
-  }, []);
-
-  const fetchQuestion = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://localhost:3000/api/quiz/question', {
-        withCredentials: true
-      });
-      setQuestion(response.data.question);
-      setUserRating(response.data.studentSkill);
-      setError(null);
-      setAnswered(false);
-      setIsCorrect(null);
-      setSelectedOption(null);
-      setShowProgress(false);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch question');
-    } finally {
-      setLoading(false);
-    }
+    socket.emit('answer', {
+      userLevelSessionId: levelSession?._id,
+      answer: parseInt(selectedAnswer)
+    });
   };
 
-  const handleOptionSelect = (optionIndex) => {
-    if (answered) return;
-    setSelectedOption(optionIndex);
-  };
-
-  const calculateProgress = (mu) => {
-    const { lowerBound, upperBound } = getProgressRange(mu);
-    
-    // Calculate progress percentage (0-100) within the current range
-    if (mu < lowerBound) return 0;
-    if (mu > upperBound) return 100;
-    
-    // Calculate progress within the current 500-point range
-    return ((mu - lowerBound) / 500) * 100;
-  };
-
-  const getProgressColor = (mu) => {
-    if (mu < 1000) return 'red'; 
-    if (mu <= 1500) return 'purple'; 
-    if (mu < 2000) return 'blue';
-    if (mu < 2500) return 'green';
-    return 'gold'; 
-  };
-
-  const getProgressRange = (mu) => {
-    // Find the range that contains the current rating
-    const lowerBound = Math.floor(mu / 500) * 500;
-    const upperBound = lowerBound + 500;
-    return { lowerBound, upperBound };
-  };
-
-  const handleSubmit = async () => {
-    if (selectedOption === null || answered) return;
-
-    try {
-      setSubmitting(true);
-      const response = await axios.post('http://localhost:3000/api/quiz/answer', {
-        questionId: question.id,
-        userAnswer: selectedOption
-      }, {
-        withCredentials: true
-      });
-
-      setAnswered(true);
-      setIsCorrect(response.data.isCorrect);
-      setUserRating(response.data.userNewRating);
-      setTimeout(() => {
-        setShowProgress(true);
-      }, 500);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to submit answer');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleNext = () => {
-    navigate('/dashboard');
-  };
-
-  const handleBack = () => {
-    navigate('/dashboard');
+  const handleNextQuestion = () => {
+    setAnswerResult(null);
+    requestQuestion();
   };
 
   const getOptionClass = (index) => {
-    if (!answered) return selectedOption === index ? 'selected' : '';
+    if (!answerResult) return selectedAnswer === index.toString() ? 'selected' : '';
     
-    if (index === question.correct) {
+    if (index === answerResult.correctAnswer) {
       return 'correct-answer';
     }
     
-    if (index === selectedOption) {
-      return isCorrect ? 'correct' : 'wrong';
+    if (index.toString() === selectedAnswer) {
+      return answerResult.isCorrect ? 'correct' : 'wrong';
     }
     
     return '';
   };
 
-  const formatTopic = (topic) => {
-    return topic.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+  const handleBack = () => {
+    navigate(`/levels/${levelSession?.chapterId}`);
   };
 
-  if (loading) {
-    return (
-      <ThemeProvider theme={quizTheme}>
-        <QuizContainer>
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-            <CircularProgress />
-          </Box>
-        </QuizContainer>
-      </ThemeProvider>
-    );
-  }
+  const getLevelSession = () => {
+    if (levelSession?._id) {
+      socket.emit('getLevelSession', { userLevelSessionId: levelSession._id });
+    }
+  };
 
-  if (error) {
-    return (
-      <ThemeProvider theme={quizTheme}>
-        <QuizContainer>
-          <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-            <Typography color="error">{error}</Typography>
-            <Button variant="contained" onClick={handleBack}>Go Back</Button>
-          </Box>
-        </QuizContainer>
-      </ThemeProvider>
-    );
-  }
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    getLevelSession();
+
+    socket.emit('getCurrentTime', { userLevelSessionId: levelSession?._id });
+
+    if (levelSession?.currentTime) {
+      setCurrentTime(levelSession.currentTime);
+    }
+
+    const timerInterval = setInterval(() => {
+      setCurrentTime(prev => {
+        const newTime = prev - 1;
+        if (newTime % 5 === 0) {
+          socket.emit('sendUpdateTime', { currentTime: newTime, userLevelSessionId: levelSession?._id });
+        }
+        if (newTime <= 0) {
+          socket.emit('sendTimesUp', { userLevelSessionId: levelSession?._id });
+          clearInterval(timerInterval);
+        }
+        return newTime;
+      });
+    }, 1000);
+
+    socket.on('levelSession', (data) => {
+      if (data.currentQuestion) {
+        setCurrentQuestion({
+          question: data.currentQuestion.ques,
+          options: data.currentQuestion.options,
+          correctAnswer: data.currentQuestion.correct
+        });
+        setIsLoading(false);
+      }
+      else{
+        socket.emit('question', { userLevelSessionId: levelSession?._id });
+      }
+      if (data.currentTime) {
+        setCurrentTime(data.currentTime);
+      }
+      if (data.currentXp) {
+        setCurrentXp(data.currentXp);
+      }
+    });
+
+    socket.on('question', (data) => {
+      setCurrentQuestion(data);
+      setSelectedAnswer('');
+      setIsLoading(false);
+    });
+
+    socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp }) => {
+      setAnswerResult({ isCorrect, correctAnswer });
+      setCurrentXp(currentXp);
+    });
+
+    socket.on('levelCompleted', ({ message }) => {
+      setShowCongrats(true);
+    });
+
+    socket.on('quizFinished', ({ message, currentXp, requiredXp, maxXp }) => {
+      clearInterval(timerInterval);
+      setQuizResults({ currentXp, requiredXp, maxXp, message });
+      setShowResults(true);
+      socket.disconnect();
+    });
+
+    socket.on('quizError', ({ type, message }) => {
+      console.error('Quiz error:', message);
+      setErrorMessage(message);
+      setShowError(true);
+    });
+
+    return () => {
+      clearInterval(timerInterval);
+      socket.disconnect();
+      socket.off('timeUpdated');
+      socket.off('question');
+      socket.off('quizFinished');
+      socket.off('quizError');
+      socket.off('answerResult');
+      socket.off('levelCompleted');
+      socket.off('levelSession');
+    };
+  }, [levelId, levelSession, navigate]);
 
   return (
     <ThemeProvider theme={quizTheme}>
       <QuizContainer>
         <QuizHeader>
-          <IconButton 
-            onClick={handleBack} 
-            size="large"
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.9)',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,1)',
-              },
-            }}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton 
+              onClick={handleBack} 
+              size="large"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.9)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,1)',
+                },
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <XpDisplay>
+              <StarIcon />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {currentXp} XP
+              </Typography>
+            </XpDisplay>
+          </Box>
+          <StyledButton
+            variant="contained"
+            color="error"
+            onClick={handleEndQuiz}
+            disabled={!!quizMessage}
           >
-            <ArrowBackIcon />
-          </IconButton>
+            End Quiz
+          </StyledButton>
         </QuizHeader>
 
-        {showProgress && (
-          <SkillProgressBar>
-            <Box sx={{ mb: 2 }}>
-              <ProgressBar
-                className="space"
-                label={`Skill Progress (${Math.round(calculateProgress(userRating.mu))}%)`}
-                progressColor={getProgressColor(userRating.mu)}
-                darkTheme
-                score={calculateProgress(userRating.mu)}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="caption" color="text.secondary">
-                {getProgressRange(userRating.mu).lowerBound}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {getProgressRange(userRating.mu).upperBound}
-              </Typography>
-            </Box>
-          </SkillProgressBar>
+        <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+          <TimeDisplay>
+            Time Remaining: {formatTime(currentTime)}
+          </TimeDisplay>
+        </Box>
+
+        {quizMessage && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {quizMessage}
+          </Alert>
         )}
 
-        {question && (
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+            <CircularProgress />
+          </Box>
+        ) : currentQuestion ? (
           <>
             <QuestionCard>
               <CardContent>
-                <TopicChip>
-                  {formatTopic(question.topic)}
-                </TopicChip>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Typography variant="h5" component="h2" gutterBottom>
-                    {question.text}
-                  </Typography>
-                </Box>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  {currentQuestion.question}
+                </Typography>
               </CardContent>
             </QuestionCard>
 
-            <Grid container spacing={2}>
-              {question.options.map((option, index) => (
-                <Grid size={{md: 3, xs: 12}} key={index}>
+            <Grid container spacing={3} sx={{ mt: 2 }}>
+              {currentQuestion.options.map((option, index) => (
+                <Grid size={{xs:12,sm:6,md:3}} key={index}>
                   <OptionCard
                     className={getOptionClass(index)}
-                    onClick={() => handleOptionSelect(index)}>
+                    onClick={() => !answerResult && setSelectedAnswer(index.toString())}
+                  >
                     <CardContent>
-                      <Typography variant="body1" sx={{marginRight: '8px'}}>
+                      <Typography variant="body1" align="center">
                         {option}
                       </Typography>
                     </CardContent>
@@ -516,70 +513,249 @@ const Quiz = () => {
             </Grid>
 
             <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
-              {!answered ? (
+              {!answerResult ? (
                 <StyledButton
                   variant="contained"
                   size="large"
-                  onClick={handleSubmit}
-                  disabled={selectedOption === null || submitting}
-                  startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : null}
+                  onClick={handleAnswerSubmit}
+                  disabled={selectedAnswer === ''}
                 >
-                  {submitting ? 'Submitting...' : 'Submit Answer'}
+                  Submit Answer
                 </StyledButton>
               ) : (
                 <StyledButton
                   variant="contained"
                   size="large"
-                  onClick={fetchQuestion}
+                  onClick={handleNextQuestion}
+                  disabled={isLoading}
                 >
                   Next Question
                 </StyledButton>
               )}
             </Box>
           </>
+        ) : null}
+
+        {currentQuestion && (
+          <FloatingButton
+            variant="contained"
+            onClick={() => setShowCorrectAnswer(!showCorrectAnswer)}
+            sx={{
+              position: 'fixed',
+              bottom: 32,
+              right: 32,
+              zIndex: 1000,
+            }}
+          >
+            {showCorrectAnswer ? currentQuestion.correctAnswer : '?'}
+          </FloatingButton>
         )}
 
-        <SecretButton
-          onClick={() => setShowSecret(!showSecret)}
-          size="large"
+        <CongratsDialog 
+          open={showCongrats} 
+          onClose={() => setShowCongrats(false)}
         >
-          {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-        </SecretButton>
-
-        <SecretDrawer
-          anchor="right"
-          open={showSecret}
-          onClose={() => setShowSecret(false)}
-        >
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Answer Key
+          <IconButton
+            onClick={() => setShowCongrats(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <EmojiDisplay>🎉</EmojiDisplay>
+          <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+            Congratulations!
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              You've completed the level with {currentXp} XP!
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <List>
-              <ListItem>
-                <ListItemText
-                  primary="Correct Answer"
-                  secondary={question?.options[question?.correct]}
-                  primaryTypographyProps={{
-                    color: 'primary',
-                    fontWeight: 'bold'
-                  }}
-                  secondaryTypographyProps={{
-                    color: 'success.main'
-                  }}
-                />
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText
-                  primary="Question Difficulty"
-                  secondary={`μ: ${question?.difficulty?.mu.toFixed(2)}, σ: ${question?.difficulty?.sigma.toFixed(2)}`}
-                />
-              </ListItem>
-            </List>
-          </Box>
-        </SecretDrawer>
+            <Typography variant="body2" color="text.secondary">
+              Keep up the great work! 🚀
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
+            <StyledButton
+              variant="outlined"
+              onClick={() => {
+                setShowCongrats(false);
+                navigate(`/levels/${levelSession?.chapterId}`);
+              }}
+            >
+              Back to Levels
+            </StyledButton>
+            <StyledButton
+              variant="contained"
+              onClick={() => setShowCongrats(false)}
+            >
+              Continue Quiz
+            </StyledButton>
+          </DialogActions>
+        </CongratsDialog>
+
+        <DialogMigrate 
+          open={showResults} 
+          onClose={() => setShowResults(false)}
+          disableBackdropClick
+          disableEscapeKeyDown
+          BackdropProps={{
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            }
+          }}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              padding: 3,
+              textAlign: 'center',
+              maxWidth: '400px',
+              width: '100%',
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+            Quiz Results
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
+                {quizResults?.currentXp} XP
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                Required: {quizResults?.requiredXp} XP
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                Max Score: {quizResults?.maxXp} XP
+              </Typography>
+              <Typography variant="body1" sx={{ 
+                color: 'text.primary',
+                fontStyle: 'italic',
+                mb: 2,
+                p: 2,
+                bgcolor: 'background.paper',
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider'
+              }}>
+                {quizResults?.message}
+              </Typography>
+            </Box>
+            <Box sx={{ 
+              width: '100%', 
+              height: '8px', 
+              bgcolor: 'grey.200', 
+              borderRadius: '4px',
+              overflow: 'hidden',
+              mb: 2
+            }}>
+              <Box sx={{ 
+                width: `${(quizResults?.currentXp / quizResults?.requiredXp) * 100}%`,
+                height: '100%',
+                bgcolor: 'primary.main',
+                transition: 'width 0.5s ease-in-out'
+              }} />
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              {quizResults?.currentXp >= quizResults?.requiredXp 
+                ? "Congratulations! You've completed the level! 🎉" 
+                : "Keep practicing to reach the required XP! 💪"}
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+            <StyledButton
+              variant="contained"
+              onClick={() => {
+                setShowResults(false);
+                navigate(`/levels/${levelSession?.chapterId}`);
+              }}
+            >
+              Back to Levels
+            </StyledButton>
+          </DialogActions>
+        </DialogMigrate>
+
+        <Dialog 
+          open={openDialog} 
+          onClose={() => setOpenDialog(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              padding: 2
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 'bold' }}>
+            End Quiz
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to end the quiz? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ padding: 2 }}>
+            <Button 
+              onClick={() => setOpenDialog(false)}
+              variant="outlined"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmEndQuiz} 
+              color="error" 
+              variant="contained"
+            >
+              End Quiz
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog 
+          open={showError} 
+          onClose={() => setShowError(false)}
+          BackdropProps={{
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            }
+          }}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              padding: 3,
+              textAlign: 'center',
+              maxWidth: '400px',
+              width: '100%',
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem', color: 'error.main' }}>
+            Quiz Error
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
+                {errorMessage}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Please return to levels and try again.
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+            <StyledButton
+              variant="contained"
+              color="error"
+              onClick={() => {
+                setShowError(false);
+                navigate(`/levels/${levelSession?.chapterId}`);
+              }}
+            >
+              Back to Levels
+            </StyledButton>
+          </DialogActions>
+        </Dialog>
       </QuizContainer>
     </ThemeProvider>
   );

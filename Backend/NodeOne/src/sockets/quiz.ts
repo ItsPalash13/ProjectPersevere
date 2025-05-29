@@ -1,12 +1,14 @@
 import express, { Request, Response, RequestHandler } from 'express';
 import { Server, Socket } from 'socket.io';
 import { logger } from '../utils/logger';
+import { getOneSampleFromPDF } from '../utils/pdfUtils';
 import authMiddleware from '../middleware/authMiddleware';
 import { UserLevelSession } from '../models/UserLevelSession';
 import { Question } from '../models/Questions';
 import { QuestionTs } from '../models/QuestionTs';
 import { UserChapterLevel } from '../models/UserChapterLevel';
 import { Level } from '../models/Level';
+
 interface AuthRequest extends Request {
   user: {
     id: string;
@@ -15,41 +17,71 @@ interface AuthRequest extends Request {
 
 const router = express.Router();
 
-async function getOneSampleFromPDF(expression: string, xMin: number, xMax: number) {
-  try {
-    const evaluatePDF = Function('x', `return ${expression};`);
-
-    // Estimate the max value of the PDF (normally at the mean for normal dist)
-    const midPoint = (xMin + xMax) / 2;
-    const peak = evaluatePDF(midPoint);
-  
-
-    if (isNaN(peak)) {
-      throw new Error(`Invalid PDF evaluation at midpoint: ${peak}`);
-    }
-
-    while (true) {
-      const x = Math.random() * (xMax - xMin) + xMin;
-      const y = Math.random() * peak;
-      const pdfValue = evaluatePDF(x);
-
-      if (isNaN(pdfValue)) {
-        throw new Error(`Invalid PDF evaluation at x=${x}: ${pdfValue}`);
-      }
-
-      if (y <= pdfValue) {
-        return x;
-      }
-    }
-  } catch (error) {
-    logger.error('Error in getOneSampleFromPDF:', error);
-    throw error;
-  }
-}
-
 // Socket event handlers
 export const quizSocketHandlers = (socket: Socket) => {
   logger.info(`Quiz socket connected: ${socket.id}`);
+
+  // Handle get current time
+  socket.on('getCurrentTime', async ({ userLevelSessionId }) => {
+    try {
+      const session = await UserLevelSession.findById(userLevelSessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+
+      // Reset reconnect expiration
+      await UserLevelSession.findByIdAndUpdate(userLevelSessionId, {
+        reconnectExpiresAt: null
+      });
+
+      socket.emit('timeUpdated', { 
+        currentTime: session.currentTime,
+        expiresAt: session.expiresAt
+      });
+
+    } catch (error) {
+      logger.error('Error getting current time:', error);
+      socket.emit('quizError', { 
+        type: 'error',
+        message: error.message || 'Failed to get current time' 
+      });
+    }
+  });
+
+  // Handle get level session
+  socket.on('getLevelSession', async ({ userLevelSessionId }) => {
+    try {
+      const session = await UserLevelSession.findById(userLevelSessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+
+      let currentQuestion = null;
+      if (session.currentQuestion) {
+        const question = await Question.findById(session.currentQuestion);
+        if (question) {
+          currentQuestion = {
+            ques: question.ques,
+            options: question.options,
+            correct: question.correct
+          };
+        }
+      }
+
+      socket.emit('levelSession', {
+        currentQuestion,
+        currentTime: session.currentTime,
+        currentXp: session.currentXp
+      });
+
+    } catch (error) {
+      logger.error('Error getting level session:', error);
+      socket.emit('quizError', {
+        type: 'error',
+        message: error.message || 'Failed to get level session'
+      });
+    }
+  });
 
   // Handle time updates
   socket.on('sendUpdateTime', async ({ currentTime , userLevelSessionId}) => {
@@ -61,7 +93,7 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       // Validate current time is not lower than stored time
       if (currentTime > session.currentTime) {
-        throw new Error('Invalid time update: current time cannot be lower than stored time');
+        throw new Error('Invalid time update: current time cannot be greater than stored time');
       }
 
       // Update current time
@@ -109,6 +141,10 @@ export const quizSocketHandlers = (socket: Socket) => {
       const question = await Question.findById(questionTs.quesId);
       logger.info(`User asked question for userLevelSessionId ${userLevelSessionId}`);
 
+      // Update the current question in the session
+      session.currentQuestion = questionTs.quesId;
+      await session.save();
+
       // Emit response to user
       socket.emit('question', {
         question: question?.ques,
@@ -117,7 +153,7 @@ export const quizSocketHandlers = (socket: Socket) => {
       });
 
     } catch (error) {
-      logger.error('Error submitting answer:', error);
+      logger.error('Error in question:', error);
       if (error.message.includes('not found')) {
         socket.emit('quizError', { 
           type: 'failure',
@@ -129,6 +165,86 @@ export const quizSocketHandlers = (socket: Socket) => {
           message: error.message || 'Failed to get question' 
         });
       }
+    }
+  });
+
+  // Handle answer submission
+  socket.on('answer', async ({ userLevelSessionId, answer }) => {
+    try {
+      const session = await UserLevelSession.findById(userLevelSessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+
+      if (!session.currentQuestion) {
+        throw new Error('No active question found');
+      }
+
+      const question = await Question.findById(session.currentQuestion);
+      if (!question) {
+        throw new Error('Question not found');
+      }
+
+      const isCorrect = answer === question.correct;
+      
+      // Find the QuestionTs document
+      const questionTs = await QuestionTs.findOne({ quesId: session.currentQuestion });
+      if (!questionTs) {
+        throw new Error('QuestionTs not found');
+      }
+
+      // Update XP based on answer
+      const xpEarned = isCorrect ? questionTs.xp.correct : questionTs.xp.incorrect;
+      
+      // Update session's currentXp, ensuring it's a number
+      session.currentXp = (session.currentXp || 0) + Number(xpEarned);
+
+      
+      // Clear current question
+      session.currentQuestion = null;
+      await session.save();
+
+      // Emit response to user
+      socket.emit('answerResult', {
+        isCorrect,
+        correctAnswer: question.correct,
+        xpEarned: Number(xpEarned),
+        currentXp: Number(session.currentXp)
+      });
+
+      if(session.status === 0 && session.currentXp >= session.requiredXp){
+        const userChapterLevel = await UserChapterLevel.findByIdAndUpdate(session.userChapterLevelId, {
+          status: 'completed'
+        });
+        if (!userChapterLevel) {
+          throw new Error('UserChapterLevel not found');
+        }
+        await UserLevelSession.findOneAndUpdate({_id: session._id}, {
+          status: 1
+        });
+        console.log('Level completed',session._id);
+        socket.emit('levelCompleted', { 
+          message: 'Level has been completed.',
+        });
+      }
+      if(session.maxXp !== undefined && session.currentXp > session.maxXp){
+        const userChapterLevel = await UserChapterLevel.findByIdAndUpdate(session.userChapterLevelId, {
+          maxXp: session.currentXp
+        });
+        if (!userChapterLevel) {
+          throw new Error('UserChapterLevel not found');
+        }
+        await UserLevelSession.findByIdAndUpdate(session._id, {
+          maxXp: undefined
+        });
+      }
+
+    } catch (error) {
+      logger.error('Error in answer submission:', error);
+      socket.emit('quizError', {
+        type: 'error',
+        message: error.message || 'Failed to process answer'
+      });
     }
   });
 
@@ -145,13 +261,46 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       // Emit quiz finished event
       socket.emit('quizFinished', { 
-        message: 'Time is up! Quiz has ended.',
+        message: 'Quiz has been ended. Keep up the good work!',
+        currentXp: session.currentXp,
+        requiredXp: session.requiredXp,
+        maxXp: session.maxXp,
         currentTime: 0
       });
       socket.disconnect();
 
     } catch (error) {
       logger.error('Error ending quiz:', error);
+      socket.emit('quizError', { 
+        type: 'failure',
+        message: error.message || 'Failed to end quiz' 
+      });
+    }
+  });
+
+  // Handle time up
+  socket.on('sendTimesUp', async ({ userLevelSessionId }) => {
+    try {
+      const session = await UserLevelSession.findById(userLevelSessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+
+      // Delete the session
+      await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+
+      // Emit quiz finished event
+      socket.emit('quizFinished', { 
+        message: 'Time is up! Quiz has ended. Keep up the good work!',
+        currentXp: session.currentXp,
+        requiredXp: session.requiredXp,
+        maxXp: session.maxXp,
+        currentTime: 0
+      });
+      socket.disconnect();
+
+    } catch (error) {
+      logger.error('Error in time up:', error);
       socket.emit('quizError', { 
         type: 'failure',
         message: error.message || 'Failed to end quiz' 
