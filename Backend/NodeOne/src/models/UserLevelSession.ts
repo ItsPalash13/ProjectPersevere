@@ -15,6 +15,15 @@ export interface IUserLevelSession extends Document {
   reconnectCount: number;
   reconnectExpiresAt: Date | null;
   currentQuestion: mongoose.Types.ObjectId | null;
+  powerups: {
+    powerupEventHistory: {
+      events: {
+        scoreChange: number;
+        timestamp: number;
+        isCorrect: boolean;
+      }[];
+    };
+  };
 }
 
 export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
@@ -94,6 +103,24 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     ref: 'Question',
     required: false,
     default: null
+  },
+  powerups: {
+    powerupEventHistory: {
+      events: [{
+        scoreChange: {
+          type: Number,
+          required: true
+        },
+        timestamp: {
+          type: Number,
+          required: true
+        },
+        isCorrect: {
+          type: Boolean,
+          required: true
+        }
+      }]
+    }
   }
 }, {
   timestamps: true

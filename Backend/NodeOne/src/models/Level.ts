@@ -9,9 +9,11 @@ export interface ILevel extends Document {
   status: boolean;
   totalTime: number;
   chapterId: mongoose.Types.ObjectId;
-  expression: string;
-  xMin: number;
-  xMax: number;
+  difficultyParams: {
+    mean: number;
+    sd: number;
+    alpha: number;
+  };
 }
 
 export const LevelSchema = new Schema<ILevel>({
@@ -54,20 +56,22 @@ export const LevelSchema = new Schema<ILevel>({
     required: true,
     trim: true
   }],
-  expression: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  xMin: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  xMax: {
-    type: Number,
-    required: true,
-    min: 0
+  difficultyParams: {
+    mean: {
+      type: Number,
+      required: true,
+      default: 750
+    },
+    sd: {
+      type: Number,
+      required: true,
+      default: 150
+    },
+    alpha: {
+      type: Number,
+      required: true,
+      default: 5
+    }
   }
 }, { timestamps: true });
 

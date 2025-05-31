@@ -6,7 +6,7 @@ import { QuestionTs } from '../models/QuestionTs';
 import { Question } from '../models/Questions';
 import authMiddleware from '../middleware/authMiddleware';
 import mongoose, { Document } from 'mongoose';
-import { getOneSampleFromPDF } from '../utils/pdfUtils';
+import { getSkewNormalRandom } from '../utils/math';
 
 interface AuthRequest extends Request {
   user: {
@@ -61,17 +61,29 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       });
     }
 
-    // Get initial question based on difficulty
-    const difficulty = await getOneSampleFromPDF(level.expression, level.xMin, level.xMax);
-    const questionTs = await QuestionTs.findOne({
-      'difficulty.mu': { $gte: difficulty }
-    }).sort({ 'difficulty.mu': 1 }).populate('quesId');
+    // Generate difficulty using skew normal distribution
+    const difficulty = getSkewNormalRandom(
+      level.difficultyParams.mean,
+      level.difficultyParams.sd,
+      level.difficultyParams.alpha
+    );
 
-    if (!questionTs) {
-      throw new Error('No suitable question found');
+    // Get 10 questions based on difficulty
+    const questionTsList = await QuestionTs.find({
+      'difficulty.mu': { $gte: difficulty }
+    })
+    .sort({ 'difficulty.mu': 1 })
+    .limit(10)
+    .populate('quesId');
+
+    if (!questionTsList.length) {
+      throw new Error('No suitable questions found');
     }
 
-    // Create new session with initial question
+    // Extract question IDs for the question bank
+    const questionBank = questionTsList.map(qt => qt.quesId);
+
+    // Create new session with question bank
     const session = await UserLevelSession.create({
       userChapterLevelId: userChapterLevel?._id,
       userId,
@@ -84,26 +96,27 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       totalTime: level.totalTime,
       currentTime: level.totalTime,
       expiresAt: new Date(Date.now() + level.totalTime * 1000),
-      currentQuestion: questionTs.quesId,
+      questionBank,
       reconnectCount: 0
     });
 
-    // Get the question details
-    const question = await Question.findById(questionTs.quesId);
-    if (!question) {
+    // Get the first question details
+    const firstQuestion = await Question.findById(questionBank[0]);
+    if (!firstQuestion) {
       throw new Error('Question not found');
     }
 
-    console.log('New session created with initial question');
+    console.log('New session created with question bank');
     return res.status(201).json({
       success: true,
       data: {
         session,
         currentQuestion: {
-          question: question.ques,
-          options: question.options,
-          correctAnswer: question.correct
-        }
+          question: firstQuestion.ques,
+          options: firstQuestion.options,
+          correctAnswer: firstQuestion.correct
+        },
+        totalQuestions: questionBank.length
       }
     });
   } catch (error) {

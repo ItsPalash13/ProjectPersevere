@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import { quizSocketHandlers } from './quiz';
+import { quizSocketHandlers } from './quiz/quiz';
 import { UserLevelSession } from '../models/UserLevelSession';
 import { logger } from '../utils/logger';
 import mongoose from 'mongoose';

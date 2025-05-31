@@ -1,19 +1,14 @@
-import express, { Request, Response, RequestHandler } from 'express';
-import { Server, Socket } from 'socket.io';
-import { logger } from '../utils/logger';
-import { getOneSampleFromPDF } from '../utils/pdfUtils';
-import authMiddleware from '../middleware/authMiddleware';
-import { UserLevelSession } from '../models/UserLevelSession';
-import { Question } from '../models/Questions';
-import { QuestionTs } from '../models/QuestionTs';
-import { UserChapterLevel } from '../models/UserChapterLevel';
-import { Level } from '../models/Level';
+import express from 'express';
+import { Socket } from 'socket.io';
+import { logger } from '../../utils/logger';
+import { getOneSampleFromPDF } from '../../utils/pdfUtils';
+import { UserLevelSession } from '../../models/UserLevelSession';
+import { Question } from '../../models/Questions';
+import { QuestionTs } from '../../models/QuestionTs';
+import { UserChapterLevel } from '../../models/UserChapterLevel';
+import { Level } from '../../models/Level';
+import { getSkewNormalRandom } from '../../utils/math';
 
-interface AuthRequest extends Request {
-  user: {
-    id: string;
-  };
-}
 
 const router = express.Router();
 
@@ -135,6 +130,7 @@ export const quizSocketHandlers = (socket: Socket) => {
   // Handle question submission
   socket.on('question', async ({ userLevelSessionId, userLevelId }) => {
     try {
+      const startTime = Date.now();
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
         throw new Error('Session not found');
@@ -144,7 +140,14 @@ export const quizSocketHandlers = (socket: Socket) => {
       if (!level) {
         throw new Error(`Level not found: ${userLevelId}`);
       }
-      const difficulty = await getOneSampleFromPDF(level.expression, level.xMin, level.xMax);
+
+      // Generate difficulty using skew normal distribution
+      const difficulty = getSkewNormalRandom(
+        level.difficultyParams.mean,
+        level.difficultyParams.sd,
+        level.difficultyParams.alpha
+      );
+
       const questionTs = await QuestionTs.findOne({
         'difficulty.mu': { $gte: difficulty }
       }).sort({ 'difficulty.mu': 1 }).populate('quesId');
@@ -166,6 +169,9 @@ export const quizSocketHandlers = (socket: Socket) => {
         options: question?.options,
         correctAnswer: question?.correct
       });
+      const endTime = Date.now();
+      const timeTaken = endTime - startTime;
+      console.log('timeTaken seconds',timeTaken/1000);
 
     } catch (error) {
       logger.error('Error in question:', error);
@@ -214,6 +220,24 @@ export const quizSocketHandlers = (socket: Socket) => {
       // Update session's currentXp, ensuring it's a number
       session.currentXp = (session.currentXp || 0) + Number(xpEarned);
 
+      // Update powerup event history
+      const currentTime = Date.now();
+      
+      // Initialize powerups if it doesn't exist
+      if (!session.powerups) {
+        session.powerups = {
+          powerupEventHistory: {
+            events: []
+          }
+        };
+      }
+
+      // Add event
+      session.powerups.powerupEventHistory.events.push({
+        scoreChange: Number(xpEarned),
+        timestamp: currentTime,
+        isCorrect
+      });
       
       // Clear current question
       session.currentQuestion = null;
@@ -270,6 +294,10 @@ export const quizSocketHandlers = (socket: Socket) => {
       if (!session) {
         throw new Error('Session not found');
       }
+      const userChapterLevel = await UserChapterLevel.findById(session.userChapterLevelId);
+      if (!userChapterLevel) {
+        throw new Error('UserChapterLevel not found');
+      }
 
       // Delete the session
       await UserLevelSession.findByIdAndDelete(userLevelSessionId);
@@ -279,7 +307,7 @@ export const quizSocketHandlers = (socket: Socket) => {
         message: 'Quiz has been ended. Keep up the good work!',
         currentXp: session.currentXp,
         requiredXp: session.requiredXp,
-        maxXp: session.maxXp,
+        maxXp: userChapterLevel.maxXp,
         currentTime: 0
       });
       socket.disconnect();
