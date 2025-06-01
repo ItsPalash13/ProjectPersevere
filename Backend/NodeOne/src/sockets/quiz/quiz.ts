@@ -1,7 +1,6 @@
 import express from 'express';
 import { Socket } from 'socket.io';
 import { logger } from '../../utils/logger';
-import { getOneSampleFromPDF } from '../../utils/pdfUtils';
 import { UserLevelSession } from '../../models/UserLevelSession';
 import { Question } from '../../models/Questions';
 import { QuestionTs } from '../../models/QuestionTs';
