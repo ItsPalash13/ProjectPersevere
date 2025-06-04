@@ -6,6 +6,7 @@ export interface IUserLevelSession extends Document {
   chapterId: mongoose.Types.ObjectId;
   levelId: mongoose.Types.ObjectId;
   status: 0 | 1;
+  multiplierXp: number;
   requiredXp: number;
   currentXp: number;
   maxXp: number | undefined;
@@ -15,14 +16,12 @@ export interface IUserLevelSession extends Document {
   reconnectCount: number;
   reconnectExpiresAt: Date | null;
   currentQuestion: mongoose.Types.ObjectId | null;
+  bagXp: number;
   powerups: {
-    powerupEventHistory: {
-      events: {
-        scoreChange: number;
-        timestamp: number;
-        isCorrect: boolean;
-      }[];
-    };
+    currentPowerups: {
+      powerupId: mongoose.Types.ObjectId;
+      timeLeft: number; // Time left in seconds
+    }[];
   };
 }
 
@@ -51,6 +50,12 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     type: Number,
     default: 0,
     min: 0,
+    required: true
+  },
+  multiplierXp: {
+    type: Number,
+    default: 1,
+    min: 1,
     required: true
   },
   requiredXp: {
@@ -104,23 +109,27 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     required: false,
     default: null
   },
+  bagXp: {
+    type: Number,
+    default: 0,
+    min: 0,
+    required: true
+  },
   powerups: {
-    powerupEventHistory: {
-      events: [{
-        scoreChange: {
-          type: Number,
+    currentPowerups: [
+      {
+        powerupId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Powerup',
           required: true
         },
-        timestamp: {
+        timeLeft: {
           type: Number,
-          required: true
-        },
-        isCorrect: {
-          type: Boolean,
-          required: true
+          required: true,
+          min: 0
         }
-      }]
-    }
+      }
+    ]
   }
 }, {
   timestamps: true

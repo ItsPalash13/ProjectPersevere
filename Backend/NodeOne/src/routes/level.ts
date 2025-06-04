@@ -89,6 +89,8 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       userId,
       chapterId: level.chapterId,
       levelId: level._id,
+      multiplierXp: 1,
+      bagXp: 200,
       requiredXp: level.requiredXp,
       maxXp: userChapterLevel?.maxXp,
       status: 0,

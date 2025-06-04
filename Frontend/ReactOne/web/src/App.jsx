@@ -11,6 +11,7 @@ import Dashboard from './Layouts/Dashboard/Dashboard';
 import Quiz from './Layouts/Quiz/Quiz';
 import Chapters from './Layouts/Chapters/Chapter';
 import Levels from './Layouts/Levels/Levels';
+import Inventory from './Layouts/Inventory/Inventory';
 import './App.css';
 
 // Create socket instance outside component
@@ -70,6 +71,7 @@ function App() {
         <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz socket={socket} /></ProtectedRoute>} />
         <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
         <Route path="/levels/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
+        <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

@@ -27,7 +27,7 @@ import {
   PingSection,
 } from '../../theme/dashboardTheme';
 import { Typography, Grid, Button } from '@mui/material';
-import { PlayArrow as PlayArrowIcon, MenuBook as MenuBookIcon } from '@mui/icons-material';
+import { PlayArrow as PlayArrowIcon, MenuBook as MenuBookIcon, Inventory as InventoryIcon } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';  
 import { logout } from '../../features/auth/authSlice';
 
@@ -61,6 +61,10 @@ const Dashboard = () => {
 
   const handleViewChapters = () => {
     navigate('/chapters');
+  };
+
+  const handleViewInventory = () => {
+    navigate('/inventory');
   };
 
   return (
@@ -98,7 +102,6 @@ const Dashboard = () => {
               <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
                 Your Learning Journey
               </Typography>
-              
             </Box>
 
             <Box sx={{ display: 'block', gap: 2, mb: 4 }}>
@@ -119,6 +122,26 @@ const Dashboard = () => {
                   startIcon={<MenuBookIcon />}
                 >
                   View Chapters
+                </QuizButton>
+              </QuizSection>
+
+              <QuizSection sx={{ mt: 2 }}>
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Your Inventory
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Check your artifacts and powerups collection.
+                  </Typography>
+                </Box>
+                <QuizButton
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={handleViewInventory}
+                  startIcon={<InventoryIcon />}
+                >
+                  View Inventory
                 </QuizButton>
               </QuizSection>
             </Box>

@@ -7,7 +7,10 @@ import { QuestionTs } from '../../models/QuestionTs';
 import { UserChapterLevel } from '../../models/UserChapterLevel';
 import { Level } from '../../models/Level';
 import { getSkewNormalRandom } from '../../utils/math';
-
+import { UserInventory } from '../../models/UserInventory'; 
+import { usePowerup } from './powerups/powerups';
+import { PowerupEffect } from './powerups/powerups';
+import { Powerups } from '../../models/Powerups';
 
 const router = express.Router();
 
@@ -68,6 +71,10 @@ export const quizSocketHandlers = (socket: Socket) => {
         return;
       }
 
+      const userInventory = await UserInventory.findOne({userId: session.userId});
+      if (!userInventory) {throw new Error('UserInventory not found');}
+
+
       let currentQuestion = null;
       if (session.currentQuestion) {
         const question = await Question.findById(session.currentQuestion);
@@ -83,7 +90,8 @@ export const quizSocketHandlers = (socket: Socket) => {
       socket.emit('levelSession', {
         currentQuestion,
         currentTime: session.currentTime,
-        currentXp: session.currentXp
+        currentXp: session.currentXp,
+        powerups: userInventory.powerups
       });
 
     } catch (error) {
@@ -110,11 +118,13 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       // Update current time
       session.currentTime = currentTime;
+      const time = new Date();
+      session.expiresAt = new Date(time.setSeconds(time.getSeconds() + (session.totalTime - currentTime)));
       await session.save();
       
       socket.emit('timeUpdated', { 
         currentTime: session.currentTime,
-        expiresAt: session.expiresAt
+        expiresAt: session.expiresAt,
       });
 
     } catch (error) {
@@ -217,26 +227,8 @@ export const quizSocketHandlers = (socket: Socket) => {
       const xpEarned = isCorrect ? questionTs.xp.correct : questionTs.xp.incorrect;
       
       // Update session's currentXp, ensuring it's a number
-      session.currentXp = (session.currentXp || 0) + Number(xpEarned);
+      session.currentXp = (session.currentXp || 0) + Number(xpEarned) * session.multiplierXp;
 
-      // Update powerup event history
-      const currentTime = Date.now();
-      
-      // Initialize powerups if it doesn't exist
-      if (!session.powerups) {
-        session.powerups = {
-          powerupEventHistory: {
-            events: []
-          }
-        };
-      }
-
-      // Add event
-      session.powerups.powerupEventHistory.events.push({
-        scoreChange: Number(xpEarned),
-        timestamp: currentTime,
-        isCorrect
-      });
       
       // Clear current question
       session.currentQuestion = null;
@@ -286,6 +278,61 @@ export const quizSocketHandlers = (socket: Socket) => {
     }
   });
 
+  // Handle powerup usage
+  socket.on('usePowerup', async ({ userLevelSessionId, powerupId }) => {
+    try {
+      const session = await UserLevelSession.findById(userLevelSessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+      const userInventory = await UserInventory.findOne({userId: session.userId});
+      if (!userInventory) {throw new Error('UserInventory not found');}
+      const powerup = await Powerups.findById(powerupId);
+      if (!powerup) {
+        throw new Error('Powerup not found');
+      }
+      const result = await usePowerup(userLevelSessionId, powerupId) as { 
+        success: boolean; 
+        message: string; 
+        effect?: PowerupEffect;
+      };
+      
+      if (result.success && result.effect) {
+        socket.emit('powerupSet', {
+          message: result.message,
+          effect: result.effect
+        });
+      } else {
+        socket.emit('powerupError', {
+          message: result.message
+        });
+      }
+      let currentQuestion = null;
+      if (session.currentQuestion) {
+        const question = await Question.findById(session.currentQuestion);
+        if (question) {
+          currentQuestion = {
+            ques: question.ques,
+            options: question.options,
+            correct: question.correct
+          };
+        }
+      }
+     socket.emit('levelSession', {
+        currentQuestion: currentQuestion,
+        currentTime: session.currentTime,
+        currentXp: session.currentXp,
+        powerups: userInventory.powerups,
+        });
+        
+    } catch (error) {
+      logger.error('Error using powerup:', error);
+      socket.emit('powerupError', {
+        message: error.message || 'Failed to use powerup'
+      });
+    }
+  });
+
   // Handle quiz end
   socket.on('sendQuizEnd', async ({ userLevelSessionId }) => {
     try {
@@ -300,6 +347,12 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       // Delete the session
       await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+
+      // Update user inventory
+      const userInventory = await UserInventory.findOne({userId: session.userId});
+      if (!userInventory) {throw new Error('UserInventory not found');}
+      userInventory.totalXp = (userInventory.totalXp || 0) + session.currentXp;
+      await userInventory.save();
 
       // Emit quiz finished event
       socket.emit('quizFinished', { 
@@ -330,6 +383,12 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       // Delete the session
       await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+
+      // Update user inventory
+      const userInventory = await UserInventory.findOne({userId: session.userId});
+      if (!userInventory) {throw new Error('UserInventory not found');}
+      userInventory.totalXp = (userInventory.totalXp || 0) + session.currentXp;
+      await userInventory.save();
 
       // Emit quiz finished event
       socket.emit('quizFinished', { 

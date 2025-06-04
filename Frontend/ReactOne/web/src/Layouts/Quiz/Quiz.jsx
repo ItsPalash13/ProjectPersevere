@@ -192,6 +192,37 @@ const XpDisplay = styled(Box)(({ theme }) => ({
   },
 }));
 
+const PowerupDisplay = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  backgroundColor: theme.palette.background.paper,
+  padding: theme.spacing(1, 2),
+  borderRadius: theme.shape.borderRadius,
+  boxShadow: theme.shadows[1],
+  marginLeft: theme.spacing(2),
+}));
+
+const PowerupItem = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(0.5),
+  padding: theme.spacing(0.5, 1),
+  backgroundColor: theme.palette.primary.light,
+  borderRadius: theme.shape.borderRadius,
+  color: 'white',
+  fontSize: '0.9rem',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    backgroundColor: theme.palette.primary.main,
+    transform: 'translateY(-2px)',
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+  },
+}));
+
 const CongratsDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: theme.shape.borderRadius * 2,
@@ -212,6 +243,29 @@ const EmojiDisplay = styled(Box)(({ theme }) => ({
     },
     '50%': {
       transform: 'translateY(-20px)',
+    },
+  },
+}));
+
+const PowerupTimer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  backgroundColor: theme.palette.success.main,
+  color: 'white',
+  padding: theme.spacing(0.5, 1),
+  borderRadius: theme.shape.borderRadius,
+  fontSize: '0.9rem',
+  animation: 'pulse 2s infinite',
+  '@keyframes pulse': {
+    '0%': {
+      opacity: 1,
+    },
+    '50%': {
+      opacity: 0.7,
+    },
+    '100%': {
+      opacity: 1,
     },
   },
 }));
@@ -281,6 +335,9 @@ const Quiz = ({ socket }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [isSocketInitialized, setIsSocketInitialized] = useState(false);
+  const initializedRef = React.useRef(false);
+  const [availablePowerups, setAvailablePowerups] = useState([]);
+  const [activePowerups, setActivePowerups] = useState([]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -341,13 +398,22 @@ const Quiz = ({ socket }) => {
       console.log("No level session ID available or quiz finished");
       return;
     }
+    if (initializedRef.current) {
+      console.log("Already initialized, skipping getLevelSession");
+      return;
+    }
+    if (!socket.connected) {
+      console.log("Socket not connected, connecting...");
+      socket.connect();
+      return;
+    }
     console.log("Getting level session for ID:", levelSession._id);
     socket.emit('getLevelSession', { userLevelSessionId: levelSession._id });
+    initializedRef.current = true;
   };
 
   useEffect(() => {
     if (!levelSession?._id || quizFinished) {
-      console.log("No level session available yet or quiz finished");
       return;
     }
 
@@ -355,6 +421,23 @@ const Quiz = ({ socket }) => {
       console.log("Connecting socket for session:", levelSession._id);
       socket.connect();
     }
+
+    return () => {
+      if (!showResults && !quizFinished) {
+        socket.disconnect();
+      }
+    };
+  }, [levelSession?._id, quizFinished, socket, showResults]);
+
+  useEffect(() => {
+    if (!levelSession?._id || quizFinished) {
+      return;
+    }
+
+    socket.on('connect', () => {
+      console.log("Socket connected, getting level session");
+      getLevelSession();
+    });
 
     socket.on('levelSession', (data) => {
       console.log("Received level session data:", data);
@@ -373,6 +456,9 @@ const Quiz = ({ socket }) => {
       }
       if (data.currentXp) {
         setCurrentXp(data.currentXp);
+      }
+      if (data.powerups) {
+        setAvailablePowerups(data.powerups);
       }
     });
 
@@ -444,9 +530,7 @@ const Quiz = ({ socket }) => {
     return () => {
       console.log("Cleaning up socket connection");
       clearInterval(timerInterval);
-      if (!showResults && !quizFinished) {
-        socket.disconnect();
-      }
+      socket.off('connect');
       socket.off('timeUpdated');
       socket.off('question');
       socket.off('quizFinished');
@@ -454,8 +538,53 @@ const Quiz = ({ socket }) => {
       socket.off('answerResult');
       socket.off('levelCompleted');
       socket.off('levelSession');
+      initializedRef.current = false;
     };
-  }, [levelId, levelSession, navigate, socket, showResults, quizFinished]);
+  }, [levelSession?._id, quizFinished, socket, showResults]);
+
+  useEffect(() => {
+    socket.on('powerupSet', ({ message, effect }) => {
+      if (effect?.duration) {
+        setActivePowerups(prev => [
+          ...prev,
+          {
+            name: message.split(' ')[0],
+            remainingTime: effect.duration,
+            effect: effect
+          }
+        ]);
+      }
+    });
+
+    socket.on('powerupError', ({ message }) => {
+      setQuizMessage(message);
+    });
+
+    return () => {
+      socket.off('powerupSet');
+      socket.off('powerupError');
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActivePowerups(prev => 
+        prev.map(powerup => ({
+          ...powerup,
+          remainingTime: Math.max(0, powerup.remainingTime - 1)
+        })).filter(powerup => powerup.remainingTime > 0)
+      );
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handlePowerupClick = (powerup) => {
+    socket.emit('usePowerup', {
+      userLevelSessionId: levelSession?._id,
+      powerupId: powerup.powerupId
+    });
+  };
 
   return (
     <ThemeProvider theme={quizTheme}>
@@ -480,12 +609,36 @@ const Quiz = ({ socket }) => {
                 {currentXp} XP
               </Typography>
             </XpDisplay>
+            {activePowerups.length > 0 && (
+              <PowerupDisplay>
+                {activePowerups.map((powerup, index) => (
+                  <PowerupTimer key={index}>
+                    <Typography variant="body2">
+                      {powerup.name}: {powerup.remainingTime}s
+                    </Typography>
+                  </PowerupTimer>
+                ))}
+              </PowerupDisplay>
+            )}
+            {availablePowerups.length > 0 && (
+              <PowerupDisplay>
+                {availablePowerups.map((powerup) => (
+                  <PowerupItem 
+                    key={powerup.powerupId}
+                    onClick={() => handlePowerupClick(powerup)}
+                  >
+                    <Typography variant="body2">
+                      {powerup.name} x{powerup.quantity}
+                    </Typography>
+                  </PowerupItem>
+                ))}
+              </PowerupDisplay>
+            )}
           </Box>
           <StyledButton
             variant="contained"
             color="error"
             onClick={handleEndQuiz}
-            disabled={!!quizMessage}
           >
             End Quiz
           </StyledButton>

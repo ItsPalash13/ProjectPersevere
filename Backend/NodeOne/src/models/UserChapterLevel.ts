@@ -57,7 +57,7 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
     default: 0,
     min: 0,
     required: true
-  },
+  }
 });
 
 // Index for faster queries
