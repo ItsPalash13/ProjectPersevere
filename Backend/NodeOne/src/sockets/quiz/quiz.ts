@@ -15,41 +15,7 @@ const router = express.Router();
 export const quizSocketHandlers = (socket: Socket) => {
   logger.info(`Quiz socket connected: ${socket.id}`);
 
-  // Handle get current time
-  socket.on('getCurrentTime', async ({ userLevelSessionId }) => {
-    try {
-      if (!userLevelSessionId) {
-        throw new Error('Session ID is required');
-      }
 
-      const session = await UserLevelSession.findById(userLevelSessionId);
-      if (!session) {
-        logger.warn(`Session not found for ID: ${userLevelSessionId}`);
-        socket.emit('quizError', { 
-          type: 'failure',
-          message: 'Session not found. Please start a new quiz.' 
-        });
-        return;
-      }
-
-      // Reset reconnect expiration
-      await UserLevelSession.findByIdAndUpdate(userLevelSessionId, {
-        reconnectExpiresAt: null
-      });
-
-      socket.emit('timeUpdated', { 
-        currentTime: session.currentTime,
-        expiresAt: session.expiresAt
-      });
-
-    } catch (error) {
-      logger.error('Error getting current time:', error);
-      socket.emit('quizError', { 
-        type: 'failure',
-        message: error.message || 'Failed to get current time' 
-      });
-    }
-  });
 
   // Handle get level session
   socket.on('getLevelSession', async ({ userLevelSessionId }) => {
@@ -108,15 +74,14 @@ export const quizSocketHandlers = (socket: Socket) => {
         throw new Error('Invalid time update: current time cannot be greater than stored time');
       }
 
-      // Update current time
+      // Update current time and set expiration based on remaining time
       session.currentTime = currentTime;
+      const remainingTime = (session.totalTime - currentTime) * 1000; // Convert to milliseconds
+      const baseTime = session.reconnectExpiresAt ? session.reconnectExpiresAt.getTime() : Date.now();
+      session.reconnectExpiresAt = new Date(baseTime + remainingTime + 20000);
+      
       await session.save();
       
-      socket.emit('timeUpdated', { 
-        currentTime: session.currentTime,
-        expiresAt: session.expiresAt
-      });
-
     } catch (error) {
       logger.error('Error updating time:', error);
       socket.emit('quizError', { 
@@ -219,24 +184,7 @@ export const quizSocketHandlers = (socket: Socket) => {
       // Update session's currentXp, ensuring it's a number
       session.currentXp = (session.currentXp || 0) + Number(xpEarned);
 
-      // Update powerup event history
-      const currentTime = Date.now();
       
-      // Initialize powerups if it doesn't exist
-      if (!session.powerups) {
-        session.powerups = {
-          powerupEventHistory: {
-            events: []
-          }
-        };
-      }
-
-      // Add event
-      session.powerups.powerupEventHistory.events.push({
-        scoreChange: Number(xpEarned),
-        timestamp: currentTime,
-        isCorrect
-      });
       
       // Clear current question
       session.currentQuestion = null;

@@ -11,19 +11,9 @@ export interface IUserLevelSession extends Document {
   maxXp: number | undefined;
   totalTime: number;
   currentTime: number;
-  expiresAt: Date;
   reconnectCount: number;
   reconnectExpiresAt: Date | null;
   currentQuestion: mongoose.Types.ObjectId | null;
-  powerups: {
-    powerupEventHistory: {
-      events: {
-        scoreChange: number;
-        timestamp: number;
-        isCorrect: boolean;
-      }[];
-    };
-  };
 }
 
 export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
@@ -83,11 +73,6 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     min: 0,
     required: true
   },
-  expiresAt: {
-    type: Date,
-    default: Date.now,
-    required: true
-  },
   reconnectCount: {
     type: Number,
     default: 0,
@@ -104,24 +89,6 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     required: false,
     default: null
   },
-  powerups: {
-    powerupEventHistory: {
-      events: [{
-        scoreChange: {
-          type: Number,
-          required: true
-        },
-        timestamp: {
-          type: Number,
-          required: true
-        },
-        isCorrect: {
-          type: Boolean,
-          required: true
-        }
-      }]
-    }
-  }
 }, {
   timestamps: true
 });
@@ -129,8 +96,7 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
 // Index for faster queries
 UserLevelSessionSchema.index({ userChapterLevelId: 1 });
 
-// Add TTL index for expiresAt
-UserLevelSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// Add TTL index for reconnectExpiresAt
 UserLevelSessionSchema.index({ reconnectExpiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const UserLevelSession = mongoose.model<IUserLevelSession>('UserLevelSession', UserLevelSessionSchema);

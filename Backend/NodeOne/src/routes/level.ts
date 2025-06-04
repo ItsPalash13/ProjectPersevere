@@ -95,7 +95,6 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       currentXp: 0,
       totalTime: level.totalTime,
       currentTime: level.totalTime,
-      expiresAt: new Date(Date.now() + level.totalTime * 1000),
       questionBank,
       reconnectCount: 0
     });
@@ -155,8 +154,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     // Get active sessions for this chapter
     const activeSessions = await UserLevelSession.find({
       userId: new mongoose.Types.ObjectId(userId),
-      chapterId: new mongoose.Types.ObjectId(chapterId),
-      expiresAt: { $gt: new Date() } // Not expired
+      chapterId: new mongoose.Types.ObjectId(chapterId)
     });
 
     // Create a map of level progress

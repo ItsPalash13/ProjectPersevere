@@ -281,11 +281,17 @@ const Quiz = ({ socket }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [isSocketInitialized, setIsSocketInitialized] = useState(false);
+  const lastUpdateTimeRef = React.useRef(0);
+  const timerIntervalRef = React.useRef(null);
+
+  const initializedRef = React.useRef(false);
+  const socketInitializedRef = React.useRef(false);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    const remainingSeconds = Math.floor(seconds % 60);
+    const tenths = Math.floor((seconds % 1) * 10);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${tenths}`;
   };
 
   const handleEndQuiz = () => {
@@ -341,19 +347,78 @@ const Quiz = ({ socket }) => {
       console.log("No level session ID available or quiz finished");
       return;
     }
+    if (initializedRef.current) {
+      console.log("Already initialized, skipping getLevelSession");
+      return;
+    }
     console.log("Getting level session for ID:", levelSession._id);
     socket.emit('getLevelSession', { userLevelSessionId: levelSession._id });
+    initializedRef.current = true;
   };
 
   useEffect(() => {
     if (!levelSession?._id || quizFinished) {
-      console.log("No level session available yet or quiz finished");
       return;
     }
 
     if (!socket.connected && !quizFinished) {
       console.log("Connecting socket for session:", levelSession._id);
       socket.connect();
+    }
+
+    return () => {
+      if (!showResults && !quizFinished) {
+        socket.disconnect();
+      }
+    };
+  }, [levelSession?._id, quizFinished, socket, showResults]);
+
+  useEffect(() => {
+    if (quizFinished || isLoading) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      return;
+    }
+
+    timerIntervalRef.current = setInterval(() => {
+      setCurrentTime(prev => {
+        const newTime = prev - 0.1;
+        const now = Date.now();
+        if (Math.floor(newTime) % 5 === 0 && levelSession._id && !quizFinished && now - lastUpdateTimeRef.current >= 5000) {
+          console.log('sending update time');
+          socket.emit('sendUpdateTime', { currentTime: Math.floor(newTime), userLevelSessionId: levelSession._id });
+          lastUpdateTimeRef.current = now;
+        }
+        if (newTime <= 0) {
+          socket.emit('sendTimesUp', { userLevelSessionId: levelSession._id });
+          clearInterval(timerIntervalRef.current);
+        }
+        return Number(newTime.toFixed(1));
+      });
+    }, 100);
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [quizFinished, isLoading, levelSession?._id, socket]);
+
+  useEffect(() => {
+    if (!levelSession?._id || quizFinished || socketInitializedRef.current) {
+      return;
+    }
+
+    socket.on('connect', () => {
+      console.log("Socket connected, getting level session");
+      getLevelSession();
+    });
+
+    if (levelSession?.currentTime) {
+      setCurrentTime(levelSession.currentTime);
     }
 
     socket.on('levelSession', (data) => {
@@ -373,6 +438,9 @@ const Quiz = ({ socket }) => {
       }
       if (data.currentXp) {
         setCurrentXp(data.currentXp);
+      }
+      if (data.powerups) {
+        setAvailablePowerups(data.powerups);
       }
     });
 
@@ -396,7 +464,6 @@ const Quiz = ({ socket }) => {
 
     socket.on('quizFinished', ({ message, currentXp, requiredXp, maxXp }) => {
       console.log("Quiz finished:", { message, currentXp, requiredXp, maxXp });
-      clearInterval(timerInterval);
       setQuizFinished(true);
       setQuizResults({ currentXp, requiredXp, maxXp, message });
       setShowResults(true);
@@ -413,49 +480,21 @@ const Quiz = ({ socket }) => {
       }
     });
 
-    getLevelSession();
-
-    if (levelSession._id && !quizFinished) {
-      socket.emit('getCurrentTime', { userLevelSessionId: levelSession._id });
-    }
-
-    if (levelSession?.currentTime) {
-      setCurrentTime(levelSession.currentTime);
-    }
-
-    const timerInterval = setInterval(() => {
-      if (quizFinished) {
-        clearInterval(timerInterval);
-        return;
-      }
-      setCurrentTime(prev => {
-        const newTime = prev - 1;
-        if (newTime % 5 === 0 && levelSession._id && !quizFinished) {
-          socket.emit('sendUpdateTime', { currentTime: newTime, userLevelSessionId: levelSession._id });
-        }
-        if (newTime <= 0) {
-          socket.emit('sendTimesUp', { userLevelSessionId: levelSession._id });
-          clearInterval(timerInterval);
-        }
-        return newTime;
-      });
-    }, 1000);
+    socketInitializedRef.current = true;
 
     return () => {
       console.log("Cleaning up socket connection");
-      clearInterval(timerInterval);
-      if (!showResults && !quizFinished) {
-        socket.disconnect();
-      }
-      socket.off('timeUpdated');
+      socket.off('connect');
       socket.off('question');
       socket.off('quizFinished');
       socket.off('quizError');
       socket.off('answerResult');
       socket.off('levelCompleted');
       socket.off('levelSession');
+      socketInitializedRef.current = false;
+      initializedRef.current = false;
     };
-  }, [levelId, levelSession, navigate, socket, showResults, quizFinished]);
+  }, [levelSession?._id, quizFinished, socket, showResults]);
 
   return (
     <ThemeProvider theme={quizTheme}>
