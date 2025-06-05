@@ -7,6 +7,7 @@ import { QuestionTs } from '../../models/QuestionTs';
 import { UserChapterLevel } from '../../models/UserChapterLevel';
 import { Level } from '../../models/Level';
 import { getSkewNormalRandom } from '../../utils/math';
+import axios from 'axios';
 
 
 const router = express.Router();
@@ -183,8 +184,6 @@ export const quizSocketHandlers = (socket: Socket) => {
       
       // Update session's currentXp, ensuring it's a number
       session.currentXp = (session.currentXp || 0) + Number(xpEarned);
-
-      
       
       // Clear current question
       session.currentQuestion = null;
@@ -213,17 +212,6 @@ export const quizSocketHandlers = (socket: Socket) => {
           message: 'Level has been completed.',
         });
       }
-      if(session.maxXp !== undefined && session.currentXp > session.maxXp){
-        const userChapterLevel = await UserChapterLevel.findByIdAndUpdate(session.userChapterLevelId, {
-          maxXp: session.currentXp
-        });
-        if (!userChapterLevel) {
-          throw new Error('UserChapterLevel not found');
-        }
-        await UserLevelSession.findByIdAndUpdate(session._id, {
-          maxXp: undefined
-        });
-      }
 
     } catch (error) {
       logger.error('Error in answer submission:', error);
@@ -241,21 +229,22 @@ export const quizSocketHandlers = (socket: Socket) => {
       if (!session) {
         throw new Error('Session not found');
       }
-      const userChapterLevel = await UserChapterLevel.findById(session.userChapterLevelId);
-      if (!userChapterLevel) {
-        throw new Error('UserChapterLevel not found');
-      }
 
-      // Delete the session
-      await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+      // Call the end API
+      const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
+        userLevelSessionId,
+        userId: session.userId
+      });
 
-      // Emit quiz finished event
+      // Emit quiz finished event with API response data
       socket.emit('quizFinished', { 
-        message: 'Quiz has been ended. Keep up the good work!',
-        currentXp: session.currentXp,
-        requiredXp: session.requiredXp,
-        maxXp: userChapterLevel.maxXp,
-        currentTime: 0
+        message: response.data.message,
+        currentXp: response.data.data.currentXp,
+        requiredXp: response.data.data.requiredXp,
+        maxXp: response.data.data.maxXp,
+        hasNextLevel: response.data.data.hasNextLevel,
+        nextLevelNumber: response.data.data.nextLevelNumber,
+        xpNeeded: response.data.data.xpNeeded
       });
       socket.disconnect();
 
@@ -276,16 +265,21 @@ export const quizSocketHandlers = (socket: Socket) => {
         throw new Error('Session not found');
       }
 
-      // Delete the session
-      await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+      // Call the end API
+      const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
+        userLevelSessionId,
+        userId: session.userId
+      });
 
-      // Emit quiz finished event
+      // Emit quiz finished event with API response data
       socket.emit('quizFinished', { 
-        message: 'Time is up! Quiz has ended. Keep up the good work!',
-        currentXp: session.currentXp,
-        requiredXp: session.requiredXp,
-        maxXp: session.maxXp,
-        currentTime: 0
+        message: response.data.message,
+        currentXp: response.data.data.currentXp,
+        requiredXp: response.data.data.requiredXp,
+        maxXp: response.data.data.maxXp,
+        hasNextLevel: response.data.data.hasNextLevel,
+        nextLevelNumber: response.data.data.nextLevelNumber,
+        xpNeeded: response.data.data.xpNeeded
       });
 
     } catch (error) {

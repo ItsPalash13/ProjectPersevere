@@ -196,4 +196,152 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
   }
 }) as unknown as RequestHandler);
 
+// End a level
+router.post('/end', (async (req: Request, res: Response) => {
+  try {
+    const { userLevelSessionId, userId } = req.body;
+    
+    if (!userId || !userLevelSessionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId and userLevelSessionId are required'
+      });
+    }
+
+    // Find the session
+    const session = await UserLevelSession.findById(userLevelSessionId);
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+
+    // Get current UserChapterLevel
+    const userChapterLevel = await UserChapterLevel.findOne({
+      userId,
+      chapterId: session.chapterId,
+      levelId: session.levelId
+    });
+
+    let maxXpMessage = '';
+    let newMaxXp = userChapterLevel?.maxXp || 0;
+
+    // Check if current XP exceeds max XP
+    if (session.currentXp > (userChapterLevel?.maxXp || 0)) {
+      newMaxXp = session.currentXp;
+      maxXpMessage = `New high score achieved: ${newMaxXp} XP!`;
+    }
+
+    // Check if user has enough XP
+    if (session.currentXp >= session.requiredXp) {
+      // Find the current level
+      const currentLevel = await Level.findById(session.levelId);
+      if (!currentLevel) {
+        throw new Error('Level not found');
+      }
+
+      // Find the next level in the same chapter
+      const nextLevel = await Level.findOne({
+        chapterId: session.chapterId,
+        levelNumber: currentLevel.levelNumber + 1
+      }).select('_id levelNumber');
+
+      // Update or create UserChapterLevel for current level
+      await UserChapterLevel.findOneAndUpdate(
+        {
+          userId,
+          chapterId: session.chapterId,
+          levelId: session.levelId
+        },
+        {
+          $set: {
+            status: 'completed',
+            completedAt: new Date(),
+            maxXp: newMaxXp
+          }
+        },
+        { upsert: true }
+      );
+
+      // If next level exists, create UserChapterLevel for it
+      if (nextLevel && typeof nextLevel.levelNumber === 'number' && !isNaN(nextLevel.levelNumber)) {
+        await UserChapterLevel.findOneAndUpdate(
+          {
+            userId,
+            chapterId: session.chapterId,
+            levelId: nextLevel._id
+          },
+          {
+            $set: {
+              status: 'not_started',
+              levelNumber: nextLevel.levelNumber,
+              maxXp: 0
+            }
+          },
+          { upsert: true }
+        );
+      }
+
+      // Delete the session
+      await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+
+      return res.status(200).json({
+        success: true,
+        message: maxXpMessage ? 
+          `Level completed successfully! You have unlocked the next level. ${maxXpMessage}` :
+          'Level completed successfully! You have unlocked the next level.',
+        data: {
+          currentXp: session.currentXp,
+          requiredXp: session.requiredXp,
+          maxXp: newMaxXp,
+          hasNextLevel: !!nextLevel,
+          nextLevelNumber: nextLevel?.levelNumber,
+          isNewHighScore: !!maxXpMessage
+        }
+      });
+    } else {
+      // Update maxXp even if level not completed
+      if (newMaxXp > (userChapterLevel?.maxXp || 0)) {
+        await UserChapterLevel.findOneAndUpdate(
+          {
+            userId,
+            chapterId: session.chapterId,
+            levelId: session.levelId
+          },
+          {
+            $set: {
+              maxXp: newMaxXp
+            }
+          },
+          { upsert: true }
+        );
+      }
+
+      // Delete the session
+      await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+
+      return res.status(200).json({
+        success: true,
+        message: maxXpMessage ? 
+          `Level ended. You need more XP to complete this level. ${maxXpMessage}` :
+          'Level ended. You need more XP to complete this level.',
+        data: {
+          currentXp: session.currentXp,
+          requiredXp: session.requiredXp,
+          maxXp: newMaxXp,
+          xpNeeded: session.requiredXp - session.currentXp,
+          isNewHighScore: !!maxXpMessage
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error ending level:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Server Error'
+    });
+  }
+}) as unknown as RequestHandler);
+
 export default router; 
