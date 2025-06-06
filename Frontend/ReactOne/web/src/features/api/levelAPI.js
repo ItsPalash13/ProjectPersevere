@@ -11,10 +11,10 @@ export const levelApi = createApi({
       query: (chapterId) => `/api/levels/${chapterId}`,
     }),
     startLevel: builder.mutation({
-      query: (levelId) => ({
+      query: ({ levelId, attemptType }) => ({
         url: '/api/levels/start',
         method: 'POST',
-        body: { levelId },
+        body: { levelId, attemptType },
       }),
     }),
   }),

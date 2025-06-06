@@ -12,7 +12,9 @@ import {
   LinearProgress,
   IconButton,
   Backdrop,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -29,16 +31,39 @@ export interface Level {
   requiredXP: number;
   topics: string[];
   status: boolean;
+  mode: 'time_rush' | 'precision_path';
+  timeRushTime?: number;
   activeSession?: {
     _id: string;
-    currentTime: number;
-    currentXp: number;
+    attemptType: 'time_rush' | 'precision_path';
+    timeRush?: {
+      currentTime: number;
+      currentXp: number;
+      timeLimit: number;
+    };
+    precisionPath?: {
+      currentTime: number;
+      currentXp: number;
+    };
+  } | null;
+  userProgress?: {
+    timeRush?: {
+      maxXp: number;
+      attempts: number;
+      requiredXp: number;
+    };
+    precisionPath?: {
+      minTime: number;
+      attempts: number;
+      requiredXp: number;
+    };
   } | null;
 }
 
 const Levels: React.FC = () => {
-  const [levels, setLevels] = useState<Level[]>([]);
+  const [levels, setLevels] = useState<{ timeRush: Level[], precisionPath: Level[] }>({ timeRush: [], precisionPath: [] });
   const [isStarting, setIsStarting] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -59,16 +84,20 @@ const Levels: React.FC = () => {
     }
   }, [levelsData]);
 
-  const handleLevelClick = async (levelId: string) => {
+  const handleLevelClick = async (levelId: string, mode: 'time_rush' | 'precision_path') => {
     try {
       setIsStarting(true);
-      const result = await startLevel(levelId).unwrap();
+      const result = await startLevel({ levelId, attemptType: mode }).unwrap();
       dispatch(setLevelSession(result.data.session));
       navigate(`/quiz/${levelId}`);
     } catch (error) {
       console.error('Failed to start level:', error);
       setIsStarting(false);
     }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
   if (isLoading) {
@@ -98,6 +127,159 @@ const Levels: React.FC = () => {
     );
   }
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const renderLevelCard = (level: Level) => {
+    const isTimeRush = level.mode === 'time_rush';
+    const progress = isTimeRush ? level.userProgress?.timeRush : level.userProgress?.precisionPath;
+    const activeSession = level.activeSession;
+
+    return (
+      <Grid size={{xs: 12, sm: 6, md: 4}} key={`${level._id}_${level.mode}`}>
+        <Card 
+          sx={{ 
+            height: '100%',
+            width: '370px',
+            display: 'flex',
+            flexDirection: 'column',
+            opacity: level.status ? 1 : 0.7,
+            '&:hover': {
+              boxShadow: level.status ? 6 : 1,
+              cursor: level.status ? 'pointer' : 'not-allowed'
+            }
+          }}
+        >
+          <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="h5" component="h2" noWrap>
+                {level.name}
+              </Typography>
+              {!level.status && (
+                <IconButton disabled size="small">
+                  <LockIcon />
+                </IconButton>
+              )}
+            </Box>
+            <Typography color="text.secondary" paragraph sx={{ flexGrow: 1 }}>
+              {level.description}
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              {level.topics.map((topic, index) => (
+                <Chip 
+                  key={index}
+                  label={topic}
+                  size="small"
+                  sx={{ mr: 1, mb: 1 }}
+                />
+              ))}
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Required XP: {progress?.requiredXp}
+              </Typography>
+              {isTimeRush && level.timeRushTime && (
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Time Limit: {formatTime(level.timeRushTime)}
+                </Typography>
+              )}
+              {progress && (
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {isTimeRush 
+                    ? `Best Score: ${(progress as { maxXp: number }).maxXp || 0} XP`
+                    : `Best Time: ${formatTime((progress as { minTime: number }).minTime || 0)}`
+                  }
+                </Typography>
+              )}
+              <LinearProgress 
+                variant="determinate" 
+                value={0} 
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+            </Box>
+            {activeSession && (
+              <Box sx={{ 
+                mt: 2, 
+                p: 2, 
+                bgcolor: 'warning.light', 
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'warning.main'
+              }}>
+                <Typography variant="body2" color="warning.dark" gutterBottom>
+                  Active Session
+                </Typography>
+                {isTimeRush ? (
+                  <>
+                    <Typography variant="body2" color="warning.dark">
+                      Time Remaining: {formatTime(activeSession.timeRush?.currentTime || 0)}
+                    </Typography>
+                    <Typography variant="body2" color="warning.dark">
+                      Current XP: {activeSession.timeRush?.currentXp || 0}
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="body2" color="warning.dark">
+                      Time: {formatTime(activeSession.precisionPath?.currentTime || 0)}
+                    </Typography>
+                    <Typography variant="body2" color="warning.dark">
+                      Current XP: {activeSession.precisionPath?.currentXp || 0}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            )}
+          </CardContent>
+          <CardActions>
+            {activeSession ? (
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  size="small" 
+                  color="warning"
+                  variant="contained"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    await dispatch(setLevelSession(activeSession));
+                    navigate(`/quiz/${level._id}`);
+                  }}
+                >
+                  Reconnect
+                </Button>
+                <Button 
+                  size="small" 
+                  color="error"
+                  variant="outlined"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLevelClick(level._id, level.mode);
+                  }}
+                >
+                  Start Fresh
+                </Button>
+              </Box>
+            ) : (
+              <Button 
+                size="small" 
+                color="primary"
+                disabled={!level.status}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  level.status && handleLevelClick(level._id, level.mode);
+                }}
+              >
+                {level.status ? 'Start Level' : 'Locked'}
+              </Button>
+            )}
+          </CardActions>
+        </Card>
+      </Grid>
+    );
+  };
+
   return (
     <Box sx={{minHeight: '100vh'}}>
       <Backdrop
@@ -125,121 +307,19 @@ const Levels: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           Levels
         </Typography>
+        
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="Time Rush" />
+            <Tab label="Precision Path" />
+          </Tabs>
+        </Box>
+
         <Grid container spacing={3}>
-          {levels.map((level) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={level._id}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  width: '370px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  opacity: level.status ? 1 : 0.7,
-                  '&:hover': {
-                    boxShadow: level.status ? 6 : 1,
-                    cursor: level.status ? 'pointer' : 'not-allowed'
-                  }
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="h5" component="h2" noWrap>
-                      {level.name}
-                    </Typography>
-                    {!level.status && (
-                      <IconButton disabled size="small">
-                        <LockIcon />
-                      </IconButton>
-                    )}
-                  </Box>
-                  <Typography color="text.secondary" paragraph sx={{ flexGrow: 1 }}>
-                    {level.description}
-                  </Typography>
-                  <Box sx={{ mb: 2 }}>
-                    {level.topics.map((topic, index) => (
-                      <Chip 
-                        key={index}
-                        label={topic}
-                        size="small"
-                        sx={{ mr: 1, mb: 1 }}
-                      />
-                    ))}
-                  </Box>
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Required XP: {level.requiredXP}
-                    </Typography>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={0} 
-                      sx={{ height: 8, borderRadius: 4 }}
-                    />
-                  </Box>
-                  {level.activeSession && (
-                    <Box sx={{ 
-                      mt: 2, 
-                      p: 2, 
-                      bgcolor: 'warning.light', 
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'warning.main'
-                    }}>
-                      <Typography variant="body2" color="warning.dark" gutterBottom>
-                        Active Session
-                      </Typography>
-                      <Typography variant="body2" color="warning.dark">
-                        Time Remaining: {Math.floor(level.activeSession.currentTime / 60)}:{(level.activeSession.currentTime % 60).toString().padStart(2, '0')}
-                      </Typography>
-                      <Typography variant="body2" color="warning.dark">
-                        Current XP: {level.activeSession.currentXp}
-                      </Typography>
-                    </Box>
-                  )}
-                </CardContent>
-                <CardActions>
-                  {level.activeSession ? (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button 
-                        size="small" 
-                        color="warning"
-                        variant="contained"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          await dispatch(setLevelSession(level.activeSession));
-                          navigate(`/quiz/${level._id}`);
-                        }}
-                      >
-                        Reconnect
-                      </Button>
-                      <Button 
-                        size="small" 
-                        color="error"
-                        variant="outlined"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLevelClick(level._id);
-                        }}
-                      >
-                        Start Fresh
-                      </Button>
-                    </Box>
-                  ) : (
-                  <Button 
-                    size="small" 
-                    color="primary"
-                    disabled={!level.status}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      level.status && handleLevelClick(level._id);
-                    }}
-                  >
-                    {level.status ? 'Start Level' : 'Locked'}
-                  </Button>
-                  )}
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
+          {activeTab === 0 
+            ? levels.timeRush.map(renderLevelCard)
+            : levels.precisionPath.map(renderLevelCard)
+          }
         </Grid>
       </Container>
     </Box>

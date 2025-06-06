@@ -49,8 +49,19 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       socket.emit('levelSession', {
         currentQuestion,
-        currentTime: session.currentTime,
-        currentXp: session.currentXp
+        attemptType: session.attemptType,
+        ...(session.attemptType === 'time_rush' ? {
+          timeRush: {
+            currentTime: session.timeRush.currentTime,
+            currentXp: session.timeRush.currentXp,
+            timeLimit: session.timeRush.timeLimit
+          }
+        } : {
+          precisionPath: {
+            currentTime: session.precisionPath.currentTime,
+            currentXp: session.precisionPath.currentXp
+          }
+        })
       });
 
     } catch (error) {
@@ -63,23 +74,35 @@ export const quizSocketHandlers = (socket: Socket) => {
   });
 
   // Handle time updates
-  socket.on('sendUpdateTime', async ({ currentTime , userLevelSessionId}) => {
+  socket.on('sendUpdateTime', async ({ currentTime, userLevelSessionId }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
         throw new Error('Session not found');
       }
 
-      // Validate current time is not lower than stored time
-      if (currentTime > session.currentTime) {
-        throw new Error('Invalid time update: current time cannot be greater than stored time');
-      }
+      if (session.attemptType === 'time_rush') {
+        // Time Rush: Validate current time is not lower than stored time
+        if (currentTime > session.timeRush?.currentTime) {
+          throw new Error('Invalid time update: current time cannot be greater than stored time');
+        }
+        if (currentTime < 0) {
+          throw new Error('Invalid time update: current time cannot be negative');
+        }
 
-      // Update current time and set expiration based on remaining time
-      session.currentTime = currentTime;
-      const remainingTime = (session.totalTime - currentTime) * 1000; // Convert to milliseconds
-      const baseTime = session.reconnectExpiresAt ? session.reconnectExpiresAt.getTime() : Date.now();
-      session.reconnectExpiresAt = new Date(baseTime + remainingTime + 20000);
+        // Update current time and set expiration based on remaining time
+        session.timeRush.currentTime = currentTime;
+        const remainingTime = (session.timeRush.timeLimit - currentTime) * 1000; // Convert to milliseconds
+        const baseTime = session.reconnectExpiresAt ? session.reconnectExpiresAt.getTime() : Date.now();
+        session.reconnectExpiresAt = new Date(baseTime + remainingTime + 20000);
+      } else {
+        // Precision Path: Validate current time is not negative
+        if (currentTime < 0) {
+          throw new Error('Invalid time update: current time cannot be negative');
+        }
+        // Update the current time
+        session.precisionPath.currentTime = currentTime;
+      }
       
       await session.save();
       
@@ -182,8 +205,12 @@ export const quizSocketHandlers = (socket: Socket) => {
       // Update XP based on answer
       const xpEarned = isCorrect ? questionTs.xp.correct : questionTs.xp.incorrect;
       
-      // Update session's currentXp, ensuring it's a number
-      session.currentXp = (session.currentXp || 0) + Number(xpEarned);
+      // Update session's currentXp based on attempt type
+      if (session.attemptType === 'time_rush') {
+        session.timeRush.currentXp = (session.timeRush.currentXp || 0) + Number(xpEarned);
+      } else {
+        session.precisionPath.currentXp = (session.precisionPath.currentXp || 0) + Number(xpEarned);
+      }
       
       // Clear current question
       session.currentQuestion = null;
@@ -194,22 +221,42 @@ export const quizSocketHandlers = (socket: Socket) => {
         isCorrect,
         correctAnswer: question.correct,
         xpEarned: Number(xpEarned),
-        currentXp: Number(session.currentXp)
+        currentXp: session.attemptType === 'time_rush' ? 
+          session.timeRush.currentXp : 
+          session.precisionPath.currentXp
       });
 
-      if(session.status === 0 && session.currentXp >= session.requiredXp){
-        const userChapterLevel = await UserChapterLevel.findByIdAndUpdate(session.userChapterLevelId, {
-          status: 'completed'
-        });
+      // Check for level completion
+      const currentXp = session.attemptType === 'time_rush' ? 
+        session.timeRush.currentXp : 
+        session.precisionPath.currentXp;
+      const requiredXp = session.attemptType === 'time_rush' ? 
+        session.timeRush.requiredXp : 
+        session.precisionPath.requiredXp;
+
+      if (session.status === 0 && currentXp >= requiredXp) {
+        const userChapterLevel = await UserChapterLevel.findOneAndUpdate(
+          {
+            userId: session.userId,
+            chapterId: session.chapterId,
+            levelId: session.levelId,
+            attemptType: session.attemptType
+          },
+          {
+            status: 'completed'
+          }
+        );
         if (!userChapterLevel) {
           throw new Error('UserChapterLevel not found');
         }
-        await UserLevelSession.findOneAndUpdate({_id: session._id}, {
-          status: 1
-        });
-        console.log('Level completed',session._id);
+        await UserLevelSession.findOneAndUpdate(
+          { _id: session._id },
+          { status: 1 }
+        );
+        console.log('Level completed', session._id);
         socket.emit('levelCompleted', { 
           message: 'Level has been completed.',
+          attemptType: session.attemptType
         });
       }
 
@@ -223,7 +270,7 @@ export const quizSocketHandlers = (socket: Socket) => {
   });
 
   // Handle quiz end
-  socket.on('sendQuizEnd', async ({ userLevelSessionId }) => {
+  socket.on('sendQuizEnd', async ({ userLevelSessionId, currentTime }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
@@ -233,15 +280,29 @@ export const quizSocketHandlers = (socket: Socket) => {
       // Call the end API
       const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
         userLevelSessionId,
-        userId: session.userId
+        userId: session.userId,
+        currentTime: currentTime
       });
 
       // Emit quiz finished event with API response data
       socket.emit('quizFinished', { 
         message: response.data.message,
-        currentXp: response.data.data.currentXp,
-        requiredXp: response.data.data.requiredXp,
-        maxXp: response.data.data.maxXp,
+        attemptType: session.attemptType,
+        ...(session.attemptType === 'time_rush' ? {
+          timeRush: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            maxXp: response.data.data.maxXp,
+            timeTaken: response.data.data.timeTaken
+          }
+        } : {
+          precisionPath: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            timeTaken: response.data.data.timeTaken,
+            bestTime: response.data.data.bestTime
+          }
+        }),
         hasNextLevel: response.data.data.hasNextLevel,
         nextLevelNumber: response.data.data.nextLevelNumber,
         xpNeeded: response.data.data.xpNeeded
@@ -274,9 +335,22 @@ export const quizSocketHandlers = (socket: Socket) => {
       // Emit quiz finished event with API response data
       socket.emit('quizFinished', { 
         message: response.data.message,
-        currentXp: response.data.data.currentXp,
-        requiredXp: response.data.data.requiredXp,
-        maxXp: response.data.data.maxXp,
+        attemptType: session.attemptType,
+        ...(session.attemptType === 'time_rush' ? {
+          timeRush: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            maxXp: response.data.data.maxXp,
+            timeTaken: response.data.data.timeTaken
+          }
+        } : {
+          precisionPath: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            timeTaken: response.data.data.timeTaken,
+            bestTime: response.data.data.bestTime
+          }
+        }),
         hasNextLevel: response.data.data.hasNextLevel,
         nextLevelNumber: response.data.data.nextLevelNumber,
         xpNeeded: response.data.data.xpNeeded

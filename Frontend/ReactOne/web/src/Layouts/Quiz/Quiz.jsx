@@ -283,6 +283,7 @@ const Quiz = ({ socket }) => {
   const [isSocketInitialized, setIsSocketInitialized] = useState(false);
   const lastUpdateTimeRef = React.useRef(0);
   const timerIntervalRef = React.useRef(null);
+  const [attemptType, setAttemptType] = useState(null);
 
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
@@ -384,17 +385,26 @@ const Quiz = ({ socket }) => {
 
     timerIntervalRef.current = setInterval(() => {
       setCurrentTime(prev => {
-        const newTime = prev - 0.1;
         const now = Date.now();
-        if (Math.floor(newTime) % 5 === 0 && levelSession._id && !quizFinished && now - lastUpdateTimeRef.current >= 5000) {
+        let newTime;
+        
+        if (attemptType === 'time_rush') {
+          newTime = prev - 0.1;
+          if (newTime <= 0) {
+            socket.emit('sendTimesUp', { userLevelSessionId: levelSession._id });
+            clearInterval(timerIntervalRef.current);
+          }
+        } else {
+          // Precision Path: increment time
+          newTime = prev + 0.1;
+        }
+
+        if (Math.floor(newTime) % 1 === 0 && levelSession._id && !quizFinished && now - lastUpdateTimeRef.current >= 1000) {
           console.log('sending update time');
           socket.emit('sendUpdateTime', { currentTime: Math.floor(newTime), userLevelSessionId: levelSession._id });
           lastUpdateTimeRef.current = now;
         }
-        if (newTime <= 0) {
-          socket.emit('sendTimesUp', { userLevelSessionId: levelSession._id });
-          clearInterval(timerIntervalRef.current);
-        }
+        
         return Number(newTime.toFixed(1));
       });
     }, 100);
@@ -405,7 +415,7 @@ const Quiz = ({ socket }) => {
         timerIntervalRef.current = null;
       }
     };
-  }, [quizFinished, isLoading, levelSession?._id, socket]);
+  }, [quizFinished, isLoading, levelSession?._id, socket, attemptType]);
 
   useEffect(() => {
     if (!levelSession?._id || quizFinished || socketInitializedRef.current) {
@@ -417,12 +427,10 @@ const Quiz = ({ socket }) => {
       getLevelSession();
     });
 
-    if (levelSession?.currentTime) {
-      setCurrentTime(levelSession.currentTime);
-    }
-
     socket.on('levelSession', (data) => {
       console.log("Received level session data:", data);
+      setAttemptType(data.attemptType);
+      
       if (data.currentQuestion) {
         setCurrentQuestion({
           question: data.currentQuestion.ques,
@@ -433,14 +441,13 @@ const Quiz = ({ socket }) => {
       } else {
         requestQuestion();
       }
-      if (data.currentTime) {
-        setCurrentTime(data.currentTime);
-      }
-      if (data.currentXp) {
-        setCurrentXp(data.currentXp);
-      }
-      if (data.powerups) {
-        setAvailablePowerups(data.powerups);
+
+      if (data.attemptType === 'time_rush' && data.timeRush) {
+        setCurrentTime(data.timeRush.currentTime);
+        setCurrentXp(data.timeRush.currentXp);
+      } else if (data.attemptType === 'precision_path' && data.precisionPath) {
+        setCurrentTime(data.precisionPath.currentTime);
+        setCurrentXp(data.precisionPath.currentXp);
       }
     });
 
@@ -457,15 +464,24 @@ const Quiz = ({ socket }) => {
       setCurrentXp(currentXp);
     });
 
-    socket.on('levelCompleted', ({ message }) => {
-      console.log("Level completed:", message);
-      setShowCongrats(true);
+    socket.on('levelCompleted', ({ message, attemptType: eventAttemptType }) => {
+      console.log("Level completed:", message, eventAttemptType);
+      if (eventAttemptType === 'precision_path') {
+        // For Precision Path, end the quiz to record the time
+        socket.emit('sendQuizEnd', { 
+          userLevelSessionId: levelSession._id,
+          currentTime: currentTime 
+        });
+      } else {
+        // For Time Rush, show congrats
+        setShowCongrats(true);
+      }
     });
 
-    socket.on('quizFinished', ({ message, currentXp, requiredXp, maxXp }) => {
-      console.log("Quiz finished:", { message, currentXp, requiredXp, maxXp });
+    socket.on('quizFinished', (data) => {
+      console.log("Quiz finished:", data);
       setQuizFinished(true);
-      setQuizResults({ currentXp, requiredXp, maxXp, message });
+      setQuizResults(data);
       setShowResults(true);
     });
 
@@ -495,6 +511,67 @@ const Quiz = ({ socket }) => {
       initializedRef.current = false;
     };
   }, [levelSession?._id, quizFinished, socket, showResults]);
+
+  const renderResults = () => {
+    if (!quizResults) return null;
+
+    const isTimeRush = quizResults.attemptType === 'time_rush';
+    const data = isTimeRush ? quizResults.timeRush : quizResults.precisionPath;
+
+    return (
+      <>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
+            {data.currentXp} XP
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+            Required: {data.requiredXp} XP
+          </Typography>
+          {isTimeRush ? (
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              Max Score: {data.maxXp} XP
+            </Typography>
+          ) : (
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              Best Time: {formatTime(data.bestTime)}
+            </Typography>
+          )}
+          <Typography variant="body1" sx={{ 
+            color: 'text.primary',
+            fontStyle: 'italic',
+            mb: 2,
+            p: 2,
+            bgcolor: 'background.paper',
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: 'divider'
+          }}>
+            {quizResults.message}
+          </Typography>
+        </Box>
+        <Box sx={{ 
+          width: '100%', 
+          height: '8px', 
+          bgcolor: 'grey.200', 
+          borderRadius: '4px',
+          overflow: 'hidden',
+          mb: 2
+        }}>
+          <Box sx={{ 
+            width: `${(data.currentXp / data.requiredXp) * 100}%`,
+            height: '100%',
+            bgcolor: 'primary.main',
+            transition: 'width 0.5s ease-in-out'
+          }} />
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {data.currentXp >= data.requiredXp 
+            ? "Congratulations! You've completed the level! 🎉" 
+            : "Keep practicing to reach the required XP! 💪"}
+        </Typography>
+      </>
+    );
+  };
 
   return (
     <ThemeProvider theme={quizTheme}>
@@ -532,7 +609,8 @@ const Quiz = ({ socket }) => {
 
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
           <TimeDisplay>
-            Time Remaining: {formatTime(currentTime)}
+            {attemptType === 'time_rush' ? 'Time Remaining: ' : 'Time: '}
+            {formatTime(currentTime)}
           </TimeDisplay>
         </Box>
 
@@ -681,49 +759,7 @@ const Quiz = ({ socket }) => {
             Quiz Results
           </DialogTitle>
           <DialogContent>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
-                {quizResults?.currentXp} XP
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-                Required: {quizResults?.requiredXp} XP
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                Max Score: {quizResults?.maxXp} XP
-              </Typography>
-              <Typography variant="body1" sx={{ 
-                color: 'text.primary',
-                fontStyle: 'italic',
-                mb: 2,
-                p: 2,
-                bgcolor: 'background.paper',
-                borderRadius: 1,
-                border: '1px solid',
-                borderColor: 'divider'
-              }}>
-                {quizResults?.message}
-              </Typography>
-            </Box>
-            <Box sx={{ 
-              width: '100%', 
-              height: '8px', 
-              bgcolor: 'grey.200', 
-              borderRadius: '4px',
-              overflow: 'hidden',
-              mb: 2
-            }}>
-              <Box sx={{ 
-                width: `${(quizResults?.currentXp / quizResults?.requiredXp) * 100}%`,
-                height: '100%',
-                bgcolor: 'primary.main',
-                transition: 'width 0.5s ease-in-out'
-              }} />
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {quizResults?.currentXp >= quizResults?.requiredXp 
-                ? "Congratulations! You've completed the level! 🎉" 
-                : "Keep practicing to reach the required XP! 💪"}
-            </Typography>
+            {renderResults()}
           </DialogContent>
           <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
             <StyledButton
