@@ -244,7 +244,7 @@ const Levels: React.FC = () => {
                   onClick={async (e) => {
                     e.stopPropagation();
                     await dispatch(setLevelSession(activeSession));
-                    navigate(`/quiz/${level._id}`);
+                    navigate(`/quiz/${level._id}`, { replace: true });
                   }}
                 >
                   Reconnect

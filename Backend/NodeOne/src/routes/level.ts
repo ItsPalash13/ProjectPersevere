@@ -2,6 +2,7 @@ import express, { Request, Response, RequestHandler } from 'express';
 import { Level } from '../models/Level';
 import { UserChapterLevel } from '../models/UserChapterLevel';
 import { UserLevelSession } from '../models/UserLevelSession';
+import { UserChapterLevelPerformanceLogs } from '../models/UserChapterLevelPerformanceLogs';
 import { QuestionTs } from '../models/QuestionTs';
 import { Question } from '../models/Questions';
 import authMiddleware from '../middleware/authMiddleware';
@@ -285,6 +286,25 @@ router.post('/end', (async (req: Request, res: Response) => {
       levelId: session.levelId,
       attemptType: session.attemptType
     });
+
+    // Save session data to performance logs before processing
+    const performanceLogData = {
+      userChapterLevelId: session.userChapterLevelId,
+      userId: session.userId,
+      chapterId: session.chapterId,
+      levelId: session.levelId,
+      attemptType: session.attemptType,
+      currentQuestion: session.currentQuestion,
+      questionsAnswered: session.questionsAnswered,
+      // Only include the relevant mode data
+      ...(session.attemptType === 'time_rush' ? {
+        timeRush: session.timeRush,
+      } : {
+        precisionPath: session.precisionPath,
+      })
+    };
+
+    await UserChapterLevelPerformanceLogs.create(performanceLogData);
 
     let highScoreMessage = '';
     let newHighScore = false;

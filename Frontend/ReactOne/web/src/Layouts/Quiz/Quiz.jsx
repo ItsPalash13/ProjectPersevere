@@ -342,7 +342,7 @@ const Quiz = ({ socket }) => {
   };
 
   const handleBack = () => {
-    navigate(`/levels/${levelSession?.chapterId}`);
+    navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
   };
 
   const getLevelSession = () => {
@@ -717,7 +717,8 @@ const Quiz = ({ socket }) => {
               variant="outlined"
               onClick={() => {
                 setShowCongrats(false);
-                navigate(`/levels/${levelSession?.chapterId}`);
+                confirmEndQuiz();
+                navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
               }}
             >
               Back to Levels
@@ -762,7 +763,7 @@ const Quiz = ({ socket }) => {
               variant="contained"
               onClick={() => {
                 setShowResults(false);
-                navigate(`/levels/${levelSession?.chapterId}`);
+                navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
               }}
             >
               Back to Levels
@@ -842,7 +843,7 @@ const Quiz = ({ socket }) => {
               color="error"
               onClick={() => {
                 setShowError(false);
-                navigate(`/levels/${levelSession?.chapterId}`);
+                navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
               }}
             >
               Back to Levels

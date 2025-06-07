@@ -11,6 +11,10 @@ export interface IUserLevelSession extends Document {
   reconnectCount: number;
   reconnectExpiresAt: Date | null;
   currentQuestion: mongoose.Types.ObjectId | null;
+  questionsAnswered: {
+    correct: mongoose.Types.ObjectId[];
+    incorrect: mongoose.Types.ObjectId[];
+  };
 
   // Time Rush specific fields
   timeRush: {
@@ -78,6 +82,16 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     ref: 'Question',
     required: false,
     default: null
+  },
+  questionsAnswered: {
+    correct: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Question'
+    }],
+    incorrect: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Question'
+    }]
   },
 
   // Time Rush specific fields

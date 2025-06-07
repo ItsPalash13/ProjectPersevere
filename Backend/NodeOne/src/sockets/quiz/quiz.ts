@@ -9,22 +9,21 @@ import { Level } from '../../models/Level';
 import { getSkewNormalRandom } from '../../utils/math';
 import axios from 'axios';
 
-
 const router = express.Router();
 
-// Socket event handlers
+// Socket event handlers for quiz functionality
 export const quizSocketHandlers = (socket: Socket) => {
   logger.info(`Quiz socket connected: ${socket.id}`);
 
-
-
-  // Handle get level session
+  // Handle initial level session retrieval
+  // This is called when a user starts or reconnects to a quiz
   socket.on('getLevelSession', async ({ userLevelSessionId }) => {
     try {
       if (!userLevelSessionId) {
         throw new Error('Session ID is required');
       }
 
+      // Find the existing session
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
         logger.warn(`Session not found for ID: ${userLevelSessionId}`);
@@ -35,6 +34,7 @@ export const quizSocketHandlers = (socket: Socket) => {
         return;
       }
 
+      // If there's a current question, fetch its details
       let currentQuestion = null;
       if (session.currentQuestion) {
         const question = await Question.findById(session.currentQuestion);
@@ -47,6 +47,8 @@ export const quizSocketHandlers = (socket: Socket) => {
         }
       }
 
+      // Send session data back to client
+      // Include mode-specific data (timeRush or precisionPath)
       socket.emit('levelSession', {
         currentQuestion,
         attemptType: session.attemptType,
@@ -73,7 +75,8 @@ export const quizSocketHandlers = (socket: Socket) => {
     }
   });
 
-  // Handle time updates
+  // Handle time updates from client
+  // This keeps the server in sync with the client's timer
   socket.on('sendUpdateTime', async ({ currentTime, userLevelSessionId }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
@@ -82,7 +85,9 @@ export const quizSocketHandlers = (socket: Socket) => {
       }
 
       if (session.attemptType === 'time_rush') {
-        // Time Rush: Validate current time is not lower than stored time
+        // Time Rush mode validation:
+        // 1. Current time can't be greater than stored time (prevents time manipulation)
+        // 2. Current time can't be negative
         if (currentTime > session.timeRush?.currentTime) {
           throw new Error('Invalid time update: current time cannot be greater than stored time');
         }
@@ -90,17 +95,17 @@ export const quizSocketHandlers = (socket: Socket) => {
           throw new Error('Invalid time update: current time cannot be negative');
         }
 
-        // Update current time and set expiration based on remaining time
+        // Update time and set reconnection window
         session.timeRush.currentTime = currentTime;
         const remainingTime = (session.timeRush.timeLimit - currentTime) * 1000; // Convert to milliseconds
         const baseTime = session.reconnectExpiresAt ? session.reconnectExpiresAt.getTime() : Date.now();
-        session.reconnectExpiresAt = new Date(baseTime + remainingTime + 20000);
+        session.reconnectExpiresAt = new Date(baseTime + remainingTime + 20000); // Add 20s buffer
       } else {
-        // Precision Path: Validate current time is not negative
+        // Precision Path mode validation:
+        // Only check for negative time
         if (currentTime < 0) {
           throw new Error('Invalid time update: current time cannot be negative');
         }
-        // Update the current time
         session.precisionPath.currentTime = currentTime;
       }
       
@@ -115,7 +120,8 @@ export const quizSocketHandlers = (socket: Socket) => {
     }
   });
 
-  // Handle question submission
+  // Handle question requests
+  // Generates a new question based on level difficulty
   socket.on('question', async ({ userLevelSessionId, userLevelId }) => {
     try {
       const startTime = Date.now();
@@ -130,12 +136,14 @@ export const quizSocketHandlers = (socket: Socket) => {
       }
 
       // Generate difficulty using skew normal distribution
+      // This ensures questions are appropriately challenging
       const difficulty = getSkewNormalRandom(
         level.difficultyParams.mean,
         level.difficultyParams.sd,
         level.difficultyParams.alpha
       );
 
+      // Find a question matching the generated difficulty
       const questionTs = await QuestionTs.findOne({
         'difficulty.mu': { $gte: difficulty }
       }).sort({ 'difficulty.mu': 1 }).populate('quesId');
@@ -147,11 +155,11 @@ export const quizSocketHandlers = (socket: Socket) => {
       const question = await Question.findById(questionTs.quesId);
       logger.info(`User asked question for userLevelSessionId ${userLevelSessionId}`);
 
-      // Update the current question in the session
+      // Update session with new question
       session.currentQuestion = questionTs.quesId;
       await session.save();
 
-      // Emit response to user
+      // Send question to client
       socket.emit('question', {
         question: question?.ques,
         options: question?.options,
@@ -178,6 +186,7 @@ export const quizSocketHandlers = (socket: Socket) => {
   });
 
   // Handle answer submission
+  // Processes user's answer and updates XP
   socket.on('answer', async ({ userLevelSessionId, answer, currentTime }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
@@ -189,6 +198,7 @@ export const quizSocketHandlers = (socket: Socket) => {
         throw new Error('No active question found');
       }
 
+      // Verify answer correctness
       const question = await Question.findById(session.currentQuestion);
       if (!question) {
         throw new Error('Question not found');
@@ -196,27 +206,37 @@ export const quizSocketHandlers = (socket: Socket) => {
 
       const isCorrect = answer === question.correct;
       
-      // Find the QuestionTs document
+      // Get question details for XP calculation
       const questionTs = await QuestionTs.findOne({ quesId: session.currentQuestion });
       if (!questionTs) {
         throw new Error('QuestionTs not found');
       }
 
-      // Update XP based on answer
+      // Calculate XP earned
       const xpEarned = isCorrect ? questionTs.xp.correct : questionTs.xp.incorrect;
       
-      // Update session's currentXp based on attempt type
+      // Update XP based on game mode
       if (session.attemptType === 'time_rush') {
         session.timeRush.currentXp = (session.timeRush.currentXp || 0) + Number(xpEarned);
       } else {
         session.precisionPath.currentXp = (session.precisionPath.currentXp || 0) + Number(xpEarned);
       }
       
+      // Track answered questions
+      if (!session.questionsAnswered) {
+        session.questionsAnswered = { correct: [], incorrect: [] };
+      }
+      if (isCorrect) {
+        session.questionsAnswered.correct.push(session.currentQuestion);
+      } else {
+        session.questionsAnswered.incorrect.push(session.currentQuestion);
+      }
+      
       // Clear current question
       session.currentQuestion = null;
       await session.save();
 
-      // Emit response to user
+      // Send result to client
       socket.emit('answerResult', {
         isCorrect,
         correctAnswer: question.correct,
@@ -234,7 +254,9 @@ export const quizSocketHandlers = (socket: Socket) => {
         session.timeRush.requiredXp : 
         session.precisionPath.requiredXp;
 
+      // If level is completed (XP requirement met)
       if (session.status === 0 && currentXp >= requiredXp) {
+        // Update user's chapter level status
         const userChapterLevel = await UserChapterLevel.findOneAndUpdate(
           {
             userId: session.userId,
@@ -255,35 +277,37 @@ export const quizSocketHandlers = (socket: Socket) => {
         );
         console.log('Level completed', session._id);
         if (session.attemptType === 'time_rush') {
-        socket.emit('levelCompleted', { 
+          // For Time Rush, notify client to show congrats
+          socket.emit('levelCompleted', { 
             message: 'Level has been completed.',
             attemptType: session.attemptType
           });
-        }
-        else {
-      // Call the end API for precision path
-      const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
-        userLevelSessionId,
-        userId: session.userId,
-        currentTime: currentTime
-      });
+        } else {
+          // For Precision Path, end the quiz and record time
+          const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
+            userLevelSessionId,
+            userId: session.userId,
+            currentTime: currentTime
+          });
 
-      socket.emit('quizFinished', { 
-        message: response.data.message,
-        attemptType: session.attemptType,
-        precisionPath: {
-            currentXp: response.data.data.currentXp,
-            requiredXp: response.data.data.requiredXp,
-            timeTaken: response.data.data.timeTaken,
-            bestTime: response.data.data.bestTime
-        },
-        hasNextLevel: response.data.data.hasNextLevel,
-        nextLevelNumber: response.data.data.nextLevelNumber,
-        xpNeeded: response.data.data.xpNeeded
-      });
-      socket.disconnect();
+          // Send final results to client
+          socket.emit('quizFinished', { 
+            message: response.data.message,
+            attemptType: session.attemptType,
+            precisionPath: {
+              currentXp: response.data.data.currentXp,
+              requiredXp: response.data.data.requiredXp,
+              timeTaken: response.data.data.timeTaken,
+              bestTime: response.data.data.bestTime
+            },
+            hasNextLevel: response.data.data.hasNextLevel,
+            nextLevelNumber: response.data.data.nextLevelNumber,
+            xpNeeded: response.data.data.xpNeeded
+          });
+          socket.disconnect();
+        }
       }
-    }
+
     } catch (error) {
       logger.error('Error in answer submission:', error);
       socket.emit('quizError', {
@@ -293,22 +317,22 @@ export const quizSocketHandlers = (socket: Socket) => {
     }
   });
 
-  // Handle quiz end
-  socket.on('sendQuizEnd', async ({ userLevelSessionId, currentTime }) => {
+  // Handle manual quiz end
+  // Called when user clicks "End Quiz" button
+  socket.on('sendQuizEnd', async ({ userLevelSessionId }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
         throw new Error('Session not found');
       }
 
-      // Call the end API
+      // Call the end API to process final results
       const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
         userLevelSessionId,
-        userId: session.userId,
-        currentTime: currentTime
+        userId: session.userId
       });
 
-      // Emit quiz finished event with API response data
+      // Send final results to client
       socket.emit('quizFinished', { 
         message: response.data.message,
         attemptType: session.attemptType,
@@ -342,7 +366,8 @@ export const quizSocketHandlers = (socket: Socket) => {
     }
   });
 
-  // Handle time up
+  // Handle time up event
+  // Called when time runs out in Time Rush mode
   socket.on('sendTimesUp', async ({ userLevelSessionId }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
@@ -350,13 +375,13 @@ export const quizSocketHandlers = (socket: Socket) => {
         throw new Error('Session not found');
       }
 
-      // Call the end API
+      // Call the end API to process final results
       const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
         userLevelSessionId,
         userId: session.userId
       });
 
-      // Emit quiz finished event with API response data
+      // Send final results to client
       socket.emit('quizFinished', { 
         message: response.data.message,
         attemptType: session.attemptType,
