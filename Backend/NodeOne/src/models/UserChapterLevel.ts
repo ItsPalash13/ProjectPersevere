@@ -73,13 +73,11 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
   timeRush: {
     attempts: {
       type: Number,
-      default: 0,
       min: 0,
       required: true
     },
     maxXp: {
       type: Number,
-      default: 0,
       min: 0,
       required: true
     },

@@ -311,7 +311,7 @@ router.post('/end', (async (req: Request, res: Response) => {
         const nextLevel = await Level.findOne({
           chapterId: session.chapterId,
           levelNumber: currentLevel.levelNumber + 1
-        }).select('_id levelNumber');
+        }).select('_id levelNumber requiredXp');
 
         // Update UserChapterLevel for current level
         await UserChapterLevel.findOneAndUpdate(
@@ -344,7 +344,10 @@ router.post('/end', (async (req: Request, res: Response) => {
               $set: {
                 status: 'not_started',
                 levelNumber: nextLevel.levelNumber,
-                'timeRush.maxXp': 0
+                'timeRush.maxXp': 0,
+                'timeRush.attempts': 0,
+                'timeRush.requiredXp': nextLevel.requiredXp,
+                'timeRush.timeLimit': nextLevel.totalTime
               }
             },
             { upsert: true }
@@ -415,7 +418,13 @@ router.post('/end', (async (req: Request, res: Response) => {
         // Level completed - check and update best time
         if (finalTime < minTime) {
           newHighScore = true;
-          highScoreMessage = `New best time: ${Math.floor(finalTime / 60)}:${(finalTime % 60).toString().padStart(2, '0')}!`;
+          let totalMilliseconds = Math.floor(finalTime * 1000); // convert to ms
+          let minutes = Math.floor(totalMilliseconds / 60000);
+          let seconds = Math.floor((totalMilliseconds % 60000) / 1000);
+          let milliseconds = totalMilliseconds % 1000;
+
+          let formatted = `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+          highScoreMessage = `New best time: ${formatted}!`;
         }
 
         // Find the current level
@@ -428,7 +437,8 @@ router.post('/end', (async (req: Request, res: Response) => {
         const nextLevel = await Level.findOne({
           chapterId: session.chapterId,
           levelNumber: currentLevel.levelNumber + 1
-        }).select('_id levelNumber');
+        }).select('_id levelNumber requiredXp');
+        console.log("finalTime", finalTime);
 
         // Update UserChapterLevel for current level
         await UserChapterLevel.findOneAndUpdate(
@@ -461,7 +471,9 @@ router.post('/end', (async (req: Request, res: Response) => {
               $set: {
                 status: 'not_started',
                 levelNumber: nextLevel.levelNumber,
-                'precisionPath.minTime': 99999999
+                'precisionPath.minTime': 99999999,
+                'precisionPath.requiredXp': nextLevel.requiredXp || 0,
+                'precisionPath.attempts': 0
               }
             },
             { upsert: true }

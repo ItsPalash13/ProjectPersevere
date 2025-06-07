@@ -178,7 +178,7 @@ export const quizSocketHandlers = (socket: Socket) => {
   });
 
   // Handle answer submission
-  socket.on('answer', async ({ userLevelSessionId, answer }) => {
+  socket.on('answer', async ({ userLevelSessionId, answer, currentTime }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
@@ -254,12 +254,36 @@ export const quizSocketHandlers = (socket: Socket) => {
           { status: 1 }
         );
         console.log('Level completed', session._id);
+        if (session.attemptType === 'time_rush') {
         socket.emit('levelCompleted', { 
-          message: 'Level has been completed.',
-          attemptType: session.attemptType
-        });
-      }
+            message: 'Level has been completed.',
+            attemptType: session.attemptType
+          });
+        }
+        else {
+      // Call the end API for precision path
+      const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
+        userLevelSessionId,
+        userId: session.userId,
+        currentTime: currentTime
+      });
 
+      socket.emit('quizFinished', { 
+        message: response.data.message,
+        attemptType: session.attemptType,
+        precisionPath: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            timeTaken: response.data.data.timeTaken,
+            bestTime: response.data.data.bestTime
+        },
+        hasNextLevel: response.data.data.hasNextLevel,
+        nextLevelNumber: response.data.data.nextLevelNumber,
+        xpNeeded: response.data.data.xpNeeded
+      });
+      socket.disconnect();
+      }
+    }
     } catch (error) {
       logger.error('Error in answer submission:', error);
       socket.emit('quizError', {

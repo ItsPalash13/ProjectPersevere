@@ -316,8 +316,10 @@ const Quiz = ({ socket }) => {
     }
     socket.emit('answer', {
       userLevelSessionId: levelSession?._id,
-      answer: parseInt(selectedAnswer)
+      answer: parseInt(selectedAnswer),
+      currentTime: currentTime
     });
+    console.log("currentTime", currentTime);
   };
 
   const handleNextQuestion = () => {
@@ -466,13 +468,7 @@ const Quiz = ({ socket }) => {
 
     socket.on('levelCompleted', ({ message, attemptType: eventAttemptType }) => {
       console.log("Level completed:", message, eventAttemptType);
-      if (eventAttemptType === 'precision_path') {
-        // For Precision Path, end the quiz to record the time
-        socket.emit('sendQuizEnd', { 
-          userLevelSessionId: levelSession._id,
-          currentTime: currentTime 
-        });
-      } else {
+      if (eventAttemptType === 'time_rush') {
         // For Time Rush, show congrats
         setShowCongrats(true);
       }
