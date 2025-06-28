@@ -39,7 +39,7 @@ const LevelCard = ({ level, onLevelClick }) => {
       <CardContent sx={levelsStyles.cardContent}>
         <Box sx={levelsStyles.cardHeader}>
           <Typography variant="h5" component="h2" sx={levelsStyles.cardTitle}>
-            {level.levelNumber ? `${level.levelNumber}. ${level.name}` : level.name}
+            {level.name}
           </Typography>
           {!level.status && (
             <IconButton disabled size="small" sx={levelsStyles.lockIcon}>

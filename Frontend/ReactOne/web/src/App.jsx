@@ -165,6 +165,9 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(() => 
     getStorageValue(STORAGE_KEYS.SIDEBAR_OPEN, true)
   );
+  
+  // Device pixel ratio state for zoom level tracking
+  const [devicePixelRatio, setDevicePixelRatio] = useState(window.devicePixelRatio);
 
   const theme = createAppTheme(darkMode);
   const isAuthenticated = !!session?.session;
@@ -180,6 +183,32 @@ function AppContent() {
     setSidebarOpen(newSidebarOpen);
     setStorageValue(STORAGE_KEYS.SIDEBAR_OPEN, newSidebarOpen);
   };
+
+  // Track device pixel ratio changes (zoom level changes)
+  useEffect(() => {
+    const updateDevicePixelRatio = () => {
+      const newRatio = window.devicePixelRatio;
+      setDevicePixelRatio(newRatio);
+      
+      // At 90% zoom (approximately 0.9 ratio), if collapsed, set to expanded
+      if (Math.round(newRatio * 100) === 90 && !sidebarOpen) {
+        setSidebarOpen(true);
+        setStorageValue(STORAGE_KEYS.SIDEBAR_OPEN, true);
+      }
+    };
+
+    // Listen for resize events (which occur when zooming)
+    window.addEventListener('resize', updateDevicePixelRatio);
+    
+    // Also listen for orientation changes on mobile
+    window.addEventListener('orientationchange', updateDevicePixelRatio);
+
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('resize', updateDevicePixelRatio);
+      window.removeEventListener('orientationchange', updateDevicePixelRatio);
+    };
+  }, [sidebarOpen]);
 
   useEffect(() => {
     console.log('Session data from auth client:', session); // Debug log
@@ -214,7 +243,11 @@ function AppContent() {
         )}
         <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
           {showSidebar && (
-            <Sidebar open={sidebarOpen} onToggle={handleSidebarToggle} />
+            <Sidebar 
+              open={sidebarOpen} 
+              onToggle={handleSidebarToggle}
+              devicePixelRatio={devicePixelRatio}
+            />
           )}
           <Box 
             component="main"
