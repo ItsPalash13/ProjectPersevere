@@ -9,212 +9,39 @@ import {
   IconButton,
   Button,
   CircularProgress,
-  ThemeProvider,
-  createTheme,
   Grid,
   Alert,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  LinearProgress,
+  Chip
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Star as StarIcon, Close as CloseIcon } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
+import { 
+  ArrowBack as ArrowBackIcon, 
+  Star as StarIcon, 
+  Close as CloseIcon,
+  Timer as TimerIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Help as HelpIcon
+} from '@mui/icons-material';
+import { 
+  QuizContainer,
+  QuestionCard,
+  OptionCard,
+  QuizHeader,
+  StyledButton,
+  TimeDisplay,
+  XpDisplay,
+  CongratsDialog,
+  EmojiDisplay,
+  FloatingButton,
+  quizStyles
+} from '../../theme/quizTheme';
 
-const quizTheme = createTheme({
-  palette: {
-    primary: {
-      main: '#424242',
-      light: '#616161',
-      dark: '#212121',
-    },
-    secondary: {
-      main: '#757575',
-      light: '#9e9e9e',
-      dark: '#616161',
-    },
-    success: {
-      main: '#2e7d32',
-      light: '#4caf50',
-      dark: '#1b5e20',
-    },
-    error: {
-      main: '#c62828',
-      light: '#ef5350',
-      dark: '#b71c1c',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-  },
-  typography: {
-    h5: {
-      fontWeight: 600,
-      color: '#212121',
-    },
-    body1: {
-      fontSize: '1.1rem',
-      fontWeight: 500,
-      color: '#424242',
-    },
-  },
-  shape: {
-    borderRadius: 12,
-  },
-});
 
-const QuizContainer = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  padding: theme.spacing(4),
-  backgroundColor: theme.palette.background.default,
-  backgroundImage: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
-  position: 'relative',
-}));
-
-const QuestionCard = styled(Card)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[2],
-  backgroundColor: theme.palette.background.paper,
-  border: '1px solid rgba(0,0,0,0.1)',
-  transition: 'transform 0.2s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: theme.shadows[3],
-  },
-}));
-
-const OptionCard = styled(Card)(({ theme }) => ({
-  cursor: 'pointer',
-  transition: 'all 0.2s ease-in-out',
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: theme.shadows[1],
-  backgroundColor: theme.palette.background.paper,
-  minHeight: '160px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: '1px solid rgba(0,0,0,0.1)',
-  padding: theme.spacing(2, 0),
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: theme.shadows[4],
-  },
-  '&.selected': {
-    border: `2px solid ${theme.palette.primary.main}`,
-    backgroundColor: theme.palette.primary.main,
-    color: 'white',
-    '& .MuiTypography-root': {
-      color: 'white',
-    }
-  },
-  '&.correct': {
-    border: `2px solid ${theme.palette.success.main}`,
-    backgroundColor: theme.palette.success.main,
-    color: 'white',
-    '& .MuiTypography-root': {
-      color: 'white',
-    }
-  },
-  '&.wrong': {
-    border: `2px solid ${theme.palette.error.main}`,
-    backgroundColor: theme.palette.error.main,
-    color: 'white',
-    '& .MuiTypography-root': {
-      color: 'white',
-    }
-  },
-  '&.correct-answer': {
-    border: `2px solid ${theme.palette.success.main}`,
-    backgroundColor: theme.palette.success.main,
-    color: 'white',
-    '& .MuiTypography-root': {
-      color: 'white',
-    }
-  }
-}));
-
-const QuizHeader = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: theme.spacing(4),
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 2,
-  padding: theme.spacing(1.5, 4),
-  fontSize: '1.1rem',
-  fontWeight: 600,
-  textTransform: 'none',
-  boxShadow: theme.shadows[2],
-  '&:hover': {
-    boxShadow: theme.shadows[4],
-  },
-}));
-
-const TimeDisplay = styled(Box)(({ theme }) => ({
-  fontSize: '1.2rem',
-  fontWeight: 'bold',
-  textAlign: 'center',
-  marginBottom: theme.spacing(2),
-  padding: theme.spacing(1, 3),
-  backgroundColor: theme.palette.background.paper,
-  borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[1],
-  display: 'inline-block',
-  margin: '0 auto',
-}));
-
-const XpDisplay = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  backgroundColor: theme.palette.background.paper,
-  padding: theme.spacing(1, 2),
-  borderRadius: theme.shape.borderRadius,
-  boxShadow: theme.shadows[1],
-  '& .MuiSvgIcon-root': {
-    color: theme.palette.warning.main,
-    animation: 'pulse 2s infinite',
-  },
-  '@keyframes pulse': {
-    '0%': {
-      transform: 'scale(1)',
-    },
-    '50%': {
-      transform: 'scale(1.1)',
-    },
-    '100%': {
-      transform: 'scale(1)',
-    },
-  },
-}));
-
-const CongratsDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: theme.shape.borderRadius * 2,
-    padding: theme.spacing(3),
-    textAlign: 'center',
-    maxWidth: '400px',
-    width: '100%',
-  },
-}));
-
-const EmojiDisplay = styled(Box)(({ theme }) => ({
-  fontSize: '4rem',
-  marginBottom: theme.spacing(2),
-  animation: 'bounce 1s infinite',
-  '@keyframes bounce': {
-    '0%, 100%': {
-      transform: 'translateY(0)',
-    },
-    '50%': {
-      transform: 'translateY(-20px)',
-    },
-  },
-}));
 
 const DialogMigrate = ({
   children,
@@ -244,23 +71,6 @@ const DialogMigrate = ({
   );
 };
 
-const FloatingButton = styled(Button)(({ theme }) => ({
-  position: 'fixed',
-  bottom: theme.spacing(4),
-  right: theme.spacing(4),
-  borderRadius: '50%',
-  width: '60px',
-  height: '60px',
-  minWidth: '60px',
-  backgroundColor: theme.palette.primary.main,
-  color: 'white',
-  boxShadow: theme.shadows[4],
-  '&:hover': {
-    backgroundColor: theme.palette.primary.dark,
-    boxShadow: theme.shadows[6],
-  },
-}));
-
 const Quiz = ({ socket }) => {
   const { levelId } = useParams();
   const navigate = useNavigate();
@@ -288,10 +98,13 @@ const Quiz = ({ socket }) => {
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds, ongame = false) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     const tenths = Math.floor((seconds % 1) * 10);
+    if (ongame) {
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${tenths}`;
   };
 
@@ -513,76 +326,121 @@ const Quiz = ({ socket }) => {
 
     const isTimeRush = quizResults.attemptType === 'time_rush';
     const data = isTimeRush ? quizResults.timeRush : quizResults.precisionPath;
+    const progressPercent = Math.min((data.currentXp / data.requiredXp) * 100, 100);
+    const isLevelCompleted = data.currentXp >= data.requiredXp;
 
     return (
       <>
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
-            {data.currentXp} XP
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Box sx={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: 1, 
+            mb: 2,
+            p: 2,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+            color: 'white'
+          }}>
+            <StarIcon sx={{ fontSize: '2rem' }} />
+            <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+              {data.currentXp}
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              XP
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="body1" color="text.secondary">
             Required: {data.requiredXp} XP
           </Typography>
           {isTimeRush ? (
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant="body1" color="text.secondary">
               Max Score: {data.maxXp} XP
             </Typography>
           ) : (
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant="body1" color="text.secondary">
               Best Time: {formatTime(data.bestTime)}
             </Typography>
           )}
+          </Box>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Progress: {progressPercent.toFixed(1)}%
+          </Typography>
+          <LinearProgress 
+            variant="determinate" 
+            value={progressPercent}
+            sx={{ 
+              height: 12, 
+              borderRadius: 2,
+              backgroundColor: theme => theme.palette.mode === 'dark' ? '#3a3a5c' : '#e5e7eb',
+              '& .MuiLinearProgress-bar': {
+                background: isLevelCompleted 
+                  ? 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)'
+                  : 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
+                borderRadius: 2,
+              }
+            }}
+          />
+        </Box>
+
+        <Box sx={{ 
+          p: 3,
+          borderRadius: 2,
+          background: theme => theme.palette.mode === 'dark' 
+            ? 'rgba(150, 103, 224, 0.1)' 
+            : 'rgba(150, 103, 224, 0.05)',
+          border: theme => theme.palette.mode === 'dark'
+            ? '1px solid rgba(150, 103, 224, 0.2)'
+            : '1px solid rgba(150, 103, 224, 0.1)',
+          mb: 3
+        }}>
           <Typography variant="body1" sx={{ 
-            color: 'text.primary',
-            fontStyle: 'italic',
-            mb: 2,
-            p: 2,
-            bgcolor: 'background.paper',
-            borderRadius: 1,
-            border: '1px solid',
-            borderColor: 'divider'
+            fontWeight: 500,
+            textAlign: 'center',
+            lineHeight: 1.6
           }}>
             {quizResults.message}
           </Typography>
         </Box>
+
         <Box sx={{ 
-          width: '100%', 
-          height: '8px', 
-          bgcolor: 'grey.200', 
-          borderRadius: '4px',
-          overflow: 'hidden',
-          mb: 2
+          textAlign: 'center',
+          p: 2,
+          borderRadius: 2,
+          background: isLevelCompleted 
+            ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%)'
+            : 'linear-gradient(135deg, rgba(150, 103, 224, 0.1) 0%, rgba(212, 187, 252, 0.1) 100%)',
         }}>
-          <Box sx={{ 
-            width: `${(data.currentXp / data.requiredXp) * 100}%`,
-            height: '100%',
-            bgcolor: 'primary.main',
-            transition: 'width 0.5s ease-in-out'
-          }} />
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {data.currentXp >= data.requiredXp 
-            ? "Congratulations! You've completed the level! 🎉" 
-            : "Keep practicing to reach the required XP! 💪"}
+          <Typography variant="h6" sx={{ 
+            fontWeight: 'bold',
+            color: isLevelCompleted ? '#2e7d32' : '#9667e0',
+            mb: 1
+          }}>
+            {isLevelCompleted ? "🎉 Level Completed!" : "💪 Keep Going!"}
         </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {isLevelCompleted 
+              ? "Amazing work! You've mastered this level!" 
+              : "You're making great progress! Keep practicing to reach your goal!"}
+          </Typography>
+        </Box>
       </>
     );
   };
 
   return (
-    <ThemeProvider theme={quizTheme}>
       <QuizContainer>
         <QuizHeader>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton 
               onClick={handleBack} 
               size="large"
-              sx={{
-                backgroundColor: 'rgba(255,255,255,0.9)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,1)',
-                },
-              }}
+              sx={quizStyles.backButton}
             >
               <ArrowBackIcon />
             </IconButton>
@@ -592,6 +450,31 @@ const Quiz = ({ socket }) => {
                 {currentXp} XP
               </Typography>
             </XpDisplay>
+            {answerResult && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {answerResult.isCorrect ? (
+                  <Chip 
+                    icon={<CheckCircleIcon />}
+                    label="Correct!"
+                    sx={{ 
+                      background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                ) : (
+                  <Chip 
+                    icon={<CancelIcon />}
+                    label="Try Again"
+                    sx={{ 
+                      background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                )}
+              </Box>
+            )}
           </Box>
           <StyledButton
             variant="contained"
@@ -605,8 +488,9 @@ const Quiz = ({ socket }) => {
 
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
           <TimeDisplay>
+            <TimerIcon />
             {attemptType === 'time_rush' ? 'Time Remaining: ' : 'Time: '}
-            {formatTime(currentTime)}
+            {formatTime(currentTime, true)}
           </TimeDisplay>
         </Box>
 
@@ -623,8 +507,20 @@ const Quiz = ({ socket }) => {
         ) : currentQuestion ? (
           <>
             <QuestionCard>
-              <CardContent>
-                <Typography variant="h5" component="h2" gutterBottom>
+              <CardContent sx={quizStyles.questionCardContent}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Chip 
+                    label="Question" 
+                    size="small" 
+                    sx={quizStyles.questionChip}
+                  />
+                </Box>
+                <Typography 
+                  variant="h5" 
+                  component="h2" 
+                  gutterBottom
+                  sx={quizStyles.questionTitle}
+                >
                   {currentQuestion.question}
                 </Typography>
               </CardContent>
@@ -681,8 +577,9 @@ const Quiz = ({ socket }) => {
               right: 32,
               zIndex: 1000,
             }}
+            title={showCorrectAnswer ? `Answer: ${currentQuestion.correctAnswer}` : "Show correct answer"}
           >
-            {showCorrectAnswer ? currentQuestion.correctAnswer : '?'}
+            {showCorrectAnswer ? currentQuestion.correctAnswer : <HelpIcon />}
           </FloatingButton>
         )}
 
@@ -816,31 +713,61 @@ const Quiz = ({ socket }) => {
           }}
           PaperProps={{
             sx: {
-              borderRadius: 3,
+              borderRadius: 20,
               padding: 3,
               textAlign: 'center',
               maxWidth: '400px',
               width: '100%',
+              background: theme => theme.palette.mode === 'dark' 
+                ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
+                : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+              border: '1px solid rgba(211, 47, 47, 0.2)',
             }
           }}
         >
-          <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem', color: 'error.main' }}>
+          <DialogTitle sx={{ 
+            fontWeight: 'bold', 
+            fontSize: '1.5rem', 
+            color: '#d32f2f',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1
+          }}>
+            <CancelIcon sx={{ fontSize: '2rem' }} />
             Quiz Error
           </DialogTitle>
           <DialogContent>
             <Box sx={{ mb: 3 }}>
-              <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
+              <Box sx={{
+                p: 2,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(244, 67, 54, 0.1) 100%)',
+                border: '1px solid rgba(211, 47, 47, 0.2)',
+                mb: 2
+              }}>
+                <Typography variant="body1" sx={{ 
+                  fontWeight: 500,
+                  color: '#d32f2f',
+                  mb: 1
+                }}>
                 {errorMessage}
               </Typography>
+              </Box>
               <Typography variant="body2" color="text.secondary">
-                Please return to levels and try again.
+                Don't worry! Please return to levels and try again.
               </Typography>
             </Box>
           </DialogContent>
           <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
             <StyledButton
               variant="contained"
-              color="error"
+              sx={{
+                background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%)',
+                }
+              }}
               onClick={() => {
                 setShowError(false);
                 navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
@@ -851,7 +778,6 @@ const Quiz = ({ socket }) => {
           </DialogActions>
         </Dialog>
       </QuizContainer>
-    </ThemeProvider>
   );
 };
 

@@ -2,64 +2,39 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
-  Drawer,
   List,
   ListItem,
-  ListItemButton,
   ListItemIcon,
   ListItemText,
   Divider,
-  Avatar,
   Typography,
   IconButton,
+  Collapse,
+  Tooltip,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
-  Campaign as CampaignIcon,
-  LocalOffer as OfferIcon,
-  Analytics as AnalyticsIcon,
+  Quiz as QuizIcon,
+  MenuBook as ChaptersIcon,
+  Assessment as ReportsIcon,
   Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
-
-const DRAWER_WIDTH = 240;
-
-const StyledDrawer = styled(Drawer)(({ theme }) => ({
-  width: DRAWER_WIDTH,
-  flexShrink: 0,
-  '& .MuiDrawer-paper': {
-    width: DRAWER_WIDTH,
-    boxSizing: 'border-box',
-    borderRight: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.paper,
-  },
-}));
-
-const DrawerHeader = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(2),
-  justifyContent: 'space-between',
-}));
-
-const UserProfile = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-}));
+import { 
+  StyledDrawer, 
+  DrawerHeader, 
+  StyledListItemButton, 
+  BrandText, 
+  sidebarStyles 
+} from '../theme/sidebarTheme';
 
 const navigationItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Campaigns', icon: <CampaignIcon />, path: '/campaigns' },
-  { text: 'Offers', icon: <OfferIcon />, path: '/offers' },
-  { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { text: 'Dashboard', icon: <DashboardIcon fontSize="small" />, path: '/dashboard' },
+  { text: 'Settings', icon: <SettingsIcon fontSize="small" />, path: '/settings' },
 ];
 
-const Sidebar = ({ open, onClose }) => {
+const Sidebar = ({ open, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -70,67 +45,68 @@ const Sidebar = ({ open, onClose }) => {
   return (
     <StyledDrawer variant="permanent" open={open}>
       <DrawerHeader>
-        <Typography variant="h6" color="primary" fontWeight="bold">
-          ProjectX
-        </Typography>
-        <IconButton onClick={onClose}>
-          <ChevronLeftIcon />
+        <Collapse in={open} orientation="horizontal">
+          <BrandText variant="h6">
+            ProjectX
+          </BrandText>
+        </Collapse>
+        <IconButton 
+          onClick={onToggle}
+          size="small"
+          sx={sidebarStyles.toggleButton}
+        >
+          {open ? <ChevronLeftIcon fontSize="small" /> : <MenuIcon fontSize="small" />}
         </IconButton>
       </DrawerHeader>
-      <Divider />
 
-      <UserProfile>
-        <Avatar
-          sx={{
-            width: 64,
-            height: 64,
-            bgcolor: 'primary.main',
-          }}
-        >
-          U
-        </Avatar>
-        <Typography variant="subtitle1" fontWeight="medium">
-          User Name
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          user@example.com
-        </Typography>
-      </UserProfile>
-
-      <Divider />
-
-      <List>
-        {navigationItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => handleNavigation(item.path)}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.light',
-                  '&:hover': {
-                    backgroundColor: 'primary.light',
-                  },
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  color: location.pathname === item.path ? 'primary.main' : 'inherit',
-                }}
+      <List sx={sidebarStyles.listContainer}>
+        {navigationItems.map((item) => {
+          const isSelected = location.pathname === item.path;
+          return (
+            <ListItem key={item.text} disablePadding>
+              <Tooltip 
+                title={open ? '' : item.text} 
+                placement="right"
+                arrow
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.text}
-                primaryTypographyProps={{
-                  fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                <StyledListItemButton
+                  selected={isSelected}
+                  onClick={() => handleNavigation(item.path)}
+                >
+                  <ListItemIcon
+                    sx={{
+                      ...sidebarStyles.listItemIcon,
+                      mr: open ? 2 : 'auto',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <Collapse in={open} orientation="horizontal">
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{
+                        fontWeight: isSelected ? 600 : 400,
+                        fontSize: '0.875rem',
+                      }}
+                    />
+                  </Collapse>
+                </StyledListItemButton>
+              </Tooltip>
+            </ListItem>
+          );
+        })}
       </List>
+
+      <Divider sx={sidebarStyles.divider} />
+      
+      {/* Minimal footer */}
+      <Box sx={sidebarStyles.footer}>
+        <Collapse in={open} orientation="horizontal">
+          <Typography variant="caption" sx={sidebarStyles.footerText}>
+            © 2024 ProjectX
+          </Typography>
+        </Collapse>
+      </Box>
     </StyledDrawer>
   );
 };

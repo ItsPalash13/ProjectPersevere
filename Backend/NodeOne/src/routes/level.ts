@@ -172,8 +172,8 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     const userId = req.user.id;
     
     const levels = await Level.find({ chapterId })
-      .select('name description requiredXp topics status timeRushTime')
-      .sort({ createdAt: 1 }) as ILevel[];
+      .select('name levelNumber description requiredXp topics status timeRushTime')
+      .sort({ levelNumber: 1 }) as ILevel[];
 
     if (!levels.length) {
       return res.status(404).json({

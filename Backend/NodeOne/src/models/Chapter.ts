@@ -7,6 +7,7 @@ interface IChapter extends Document {
   gameName: string;
   topics: string[];
   status: boolean;
+  subjectId: mongoose.Types.ObjectId;
 }
 
 const ChapterSchema = new Schema<IChapter>({
@@ -34,6 +35,14 @@ const ChapterSchema = new Schema<IChapter>({
     type: Boolean,
     default: false  
   },
+  subjectId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Subject',
+    required: true
+  },
 }, { timestamps: true });
+
+// Index for faster queries
+ChapterSchema.index({ subjectId: 1 });
 
 export const Chapter = mongoose.model<IChapter>('Chapter', ChapterSchema);
