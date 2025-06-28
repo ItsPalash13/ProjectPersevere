@@ -2,6 +2,7 @@ import { createTheme } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
 // Custom theme configuration
 export const theme = createTheme({
@@ -51,4 +52,61 @@ export const AuthContainer = styled(Stack)(({ theme }) => ({
         'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
     }),
   },
-})); 
+}));
+
+export const authStyles = {
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: themeColors.background.main,
+    p: 2,
+  },
+  card: {
+    maxWidth: 400,
+    width: '100%',
+    p: 4,
+    borderRadius: 3,
+    background: getThemeGradient(colors.gradients.cardLight, colors.gradients.cardDark),
+    backdropFilter: 'blur(20px)',
+    border: themeColors.card.border,
+    boxShadow: themeColors.card.shadow,
+  },
+  title: {
+    textAlign: 'center',
+    mb: 3,
+    fontWeight: 700,
+    fontSize: '2rem',
+    background: colors.gradients.primary,
+    backgroundClip: 'text',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  submitButton: {
+    mt: 2,
+    py: 1.5,
+    background: colors.gradients.primary,
+    color: colors.special.white,
+    '&:hover': {
+      background: colors.gradients.primaryDark,
+      transform: 'translateY(-1px)',
+    },
+    transition: 'all 0.2s ease',
+  },
+  linkButton: {
+    mt: 2,
+    textAlign: 'center',
+    color: colors.primary.main,
+    textDecoration: 'none',
+    '&:hover': {
+      color: colors.primary.accent,
+      textDecoration: 'underline',
+    },
+  },
+}; 

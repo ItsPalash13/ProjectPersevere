@@ -1,12 +1,11 @@
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
+
 export const dashboardStyles = {
   container: {
-    p: 3,
-    width: '100%',
-    maxWidth: '100%',
-    boxSizing: 'border-box',
     minHeight: '100vh',
+    background: themeColors.background.main,
   },
   chaptersContainer: {
-    mb: 4,
+    p: 3,
   },
 }; 

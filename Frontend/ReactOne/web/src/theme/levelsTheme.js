@@ -1,14 +1,14 @@
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
+
 export const levelsStyles = {
   container: {
     minHeight: '100vh',
-    background: (theme) => theme.palette.mode === 'dark' 
-      ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-      : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+    background: themeColors.background.main,
   },
   backdrop: {
-    color: '#fff',
+    color: colors.special.white,
     zIndex: (theme) => theme.zIndex.drawer + 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: colors.special.backdrop,
     backdropFilter: 'blur(8px)',
   },
   loadingContainer: {
@@ -18,13 +18,9 @@ export const levelsStyles = {
     gap: 1.5,
     p: 3,
     borderRadius: 2,
-    backgroundColor: (theme) => theme.palette.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.05)' 
-      : 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: themeColors.overlay.card,
     backdropFilter: 'blur(10px)',
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(255, 255, 255, 0.1)' 
-      : '1px solid rgba(255, 255, 255, 0.3)',
+    border: themeColors.card.border,
   },
   pageContainer: {
     py: 3,
@@ -33,7 +29,7 @@ export const levelsStyles = {
     mb: 3,
     fontWeight: 700,
     fontSize: '2rem',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: colors.gradients.primary,
     backgroundClip: 'text',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
@@ -47,9 +43,7 @@ export const levelsStyles = {
     display: 'flex',
     justifyContent: 'center',
     '& .MuiTabs-root': {
-      backgroundColor: (theme) => theme.palette.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.05)' 
-        : 'rgba(255, 255, 255, 0.8)',
+      backgroundColor: themeColors.overlay.card,
       borderRadius: 4,
       outline: 'none',
       p: 1,
@@ -67,9 +61,7 @@ export const levelsStyles = {
       py: 1.5,
       mx: 0.5,
       borderRadius: 3,
-      color: (theme) => theme.palette.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.7)' 
-        : 'rgba(0, 0, 0, 0.7)',
+      color: themeColors.text.secondary,
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       position: 'relative',
       overflow: 'hidden',
@@ -79,29 +71,24 @@ export const levelsStyles = {
       },
       '&:focus-visible': {
         outline: 'none',
-        boxShadow: (theme) => theme.palette.mode === 'dark' 
-          ? '0 0 0 2px rgba(102, 126, 234, 0.4)' 
-          : '0 0 0 2px rgba(102, 126, 234, 0.3)',
+        boxShadow: getThemeColor(colors.border.light.focus, colors.border.dark.focus),
       },
       '&:focus-within': {
         outline: 'none',
       },
       '&:hover': {
-        backgroundColor: (theme) => theme.palette.mode === 'dark' 
-          ? 'rgba(102, 126, 234, 0.1)' 
-          : 'rgba(102, 126, 234, 0.05)',
-        color: (theme) => theme.palette.mode === 'dark' 
-          ? 'rgba(255, 255, 255, 0.9)' 
-          : 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+        color: themeColors.text.primary,
         transform: 'scale(1.02)',
       },
       '&.Mui-selected': {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
+        background: colors.gradients.primary,
+        color: colors.special.white,
         fontWeight: 700,
-        boxShadow: (theme) => theme.palette.mode === 'dark' 
-          ? '0 0 0 1px rgba(102, 126, 234, 0.4), 0 2px 6px rgba(102, 126, 234, 0.15)' 
-          : '0 0 0 1px rgba(102, 126, 234, 0.3), 0 2px 6px rgba(102, 126, 234, 0.1)',
+        boxShadow: getThemeColor(
+          `0 0 0 1px ${colors.border.light.focus}, 0 2px 6px ${colors.shadow.light.primary}`,
+          `0 0 0 1px ${colors.border.dark.focus}, 0 2px 6px ${colors.shadow.dark.primary}`
+        ),
         transform: 'scale(1.03)',
         '&::before': {
           content: '""',
@@ -110,7 +97,7 @@ export const levelsStyles = {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+          background: colors.gradients.overlayLight,
           borderRadius: 3,
           pointerEvents: 'none',
         },
@@ -138,16 +125,10 @@ export const levelsStyles = {
     flexDirection: 'column',
     borderRadius: 3,
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    background: (theme) => theme.palette.mode === 'dark' 
-      ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)'
-      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+    background: themeColors.card.background,
     backdropFilter: 'blur(20px)',
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(255, 255, 255, 0.1)' 
-      : '1px solid rgba(255, 255, 255, 0.3)',
-    boxShadow: (theme) => theme.palette.mode === 'dark' 
-      ? '0 4px 20px rgba(0, 0, 0, 0.3)' 
-      : '0 4px 20px rgba(0, 0, 0, 0.08)',
+    border: themeColors.card.border,
+    boxShadow: themeColors.card.shadow,
     overflow: 'hidden',
     position: 'relative',
     '&::before': {
@@ -157,7 +138,7 @@ export const levelsStyles = {
       left: 0,
       right: 0,
       height: '3px',
-      background: 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+      background: colors.gradients.rainbow,
       opacity: 0,
       transition: 'opacity 0.3s ease',
     },
@@ -167,18 +148,14 @@ export const levelsStyles = {
     filter: 'grayscale(0.2)',
     '&:hover': {
       transform: 'translateY(-2px)',
-      boxShadow: (theme) => theme.palette.mode === 'dark' 
-        ? '0 6px 25px rgba(0, 0, 0, 0.4)' 
-        : '0 6px 25px rgba(0, 0, 0, 0.12)',
+      boxShadow: getThemeColor(colors.shadow.light.medium, colors.shadow.dark.medium),
       cursor: 'not-allowed',
     },
   },
   activeCard: {
     '&:hover': {
       transform: 'translateY(-4px)',
-      boxShadow: (theme) => theme.palette.mode === 'dark' 
-        ? '0 12px 35px rgba(102, 126, 234, 0.3)' 
-        : '0 12px 35px rgba(102, 126, 234, 0.2)',
+      boxShadow: getThemeColor(colors.shadow.light.primaryHigh, colors.shadow.dark.primaryHigh),
       cursor: 'pointer',
       '&::before': {
         opacity: 1,
@@ -200,7 +177,7 @@ export const levelsStyles = {
   cardTitle: {
     fontWeight: 700,
     fontSize: '1.1rem',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: colors.gradients.primary,
     backgroundClip: 'text',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
@@ -229,17 +206,11 @@ export const levelsStyles = {
     fontSize: '0.7rem',
     fontWeight: 500,
     height: 22,
-    background: (theme) => theme.palette.mode === 'dark' 
-      ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)'
-      : 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-    color: '#667eea',
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(102, 126, 234, 0.3)' 
-      : '1px solid rgba(102, 126, 234, 0.2)',
+    background: getThemeGradient(colors.gradients.chipLight, colors.gradients.chipDark),
+    color: colors.primary.main,
+    border: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
     '&:hover': {
-      background: (theme) => theme.palette.mode === 'dark' 
-        ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)'
-        : 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
+      background: getThemeGradient(colors.gradients.chipLightHover, colors.gradients.chipDarkHover),
       transform: 'translateY(-1px)',
     },
     transition: 'all 0.2s ease',
@@ -253,19 +224,13 @@ export const levelsStyles = {
   metricCard: {
     p: 1.5,
     borderRadius: 2,
-    background: (theme) => theme.palette.mode === 'dark' 
-      ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%)'
-      : 'linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%)',
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(102, 126, 234, 0.2)' 
-      : '1px solid rgba(102, 126, 234, 0.1)',
+    background: getThemeGradient(colors.gradients.cardLightGlass, colors.gradients.cardDarkGlass),
+    border: getThemeColor(colors.border.light.secondary, colors.border.dark.secondary),
     textAlign: 'center',
     transition: 'all 0.3s ease',
     '&:hover': {
       transform: 'translateY(-1px)',
-      boxShadow: (theme) => theme.palette.mode === 'dark' 
-        ? '0 3px 8px rgba(102, 126, 234, 0.2)' 
-        : '0 3px 8px rgba(102, 126, 234, 0.12)',
+      boxShadow: getThemeColor(colors.shadow.light.primaryMedium, colors.shadow.dark.primaryMedium),
     },
   },
   metricIcon: {
@@ -276,7 +241,7 @@ export const levelsStyles = {
   metricValue: {
     fontSize: '0.9rem',
     fontWeight: 700,
-    color: '#667eea',
+    color: colors.primary.main,
     lineHeight: 1.1,
     mb: 0.3,
   },
@@ -293,9 +258,9 @@ export const levelsStyles = {
   progressBar: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    backgroundColor: colors.border.light.secondary,
     '& .MuiLinearProgress-bar': {
-      background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+      background: colors.gradients.primary,
       borderRadius: 3,
     },
   },
@@ -308,23 +273,19 @@ export const levelsStyles = {
   progressText: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: '#667eea',
+    color: colors.primary.main,
   },
   progressPercentage: {
     fontSize: '0.85rem',
     fontWeight: 700,
-    color: '#667eea',
+    color: colors.primary.main,
   },
   activeSessionContainer: {
     mt: 1.5,
     p: 2,
-    background: (theme) => theme.palette.mode === 'dark' 
-      ? 'linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.15) 100%)'
-      : 'linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 152, 0, 0.08) 100%)',
+    background: getThemeGradient(colors.gradients.sessionLight, colors.gradients.sessionDark),
     borderRadius: 2,
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(255, 193, 7, 0.3)' 
-      : '1px solid rgba(255, 193, 7, 0.2)',
+    border: getThemeColor(colors.warning.accent, colors.warning.lighter),
     position: 'relative',
     '&::before': {
       content: '""',
@@ -333,11 +294,11 @@ export const levelsStyles = {
       left: 0,
       right: 0,
       height: '2px',
-      background: 'linear-gradient(90deg, #ffc107 0%, #ff9800 100%)',
+      background: colors.gradients.sessionWarning,
     },
   },
   activeSessionTitle: {
-    color: '#e65100',
+    color: colors.warning.orange,
     fontSize: '0.8rem',
     fontWeight: 700,
     mb: 1,
@@ -352,23 +313,19 @@ export const levelsStyles = {
   activeSessionStat: {
     textAlign: 'center',
     p: 1,
-    background: (theme) => theme.palette.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.05)' 
-      : 'rgba(255, 255, 255, 0.7)',
+    background: getThemeColor(colors.overlay.light.card, colors.overlay.dark.low),
     borderRadius: 1,
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(255, 193, 7, 0.2)' 
-      : '1px solid rgba(255, 193, 7, 0.15)',
+    border: getThemeColor(colors.warning.accent, colors.warning.lighter),
   },
   activeSessionStatValue: {
     fontSize: '0.85rem',
     fontWeight: 700,
-    color: '#f57c00',
+    color: colors.warning.dark,
     mb: 0.3,
   },
   activeSessionStatLabel: {
     fontSize: '0.65rem',
-    color: '#e65100',
+    color: colors.warning.orange,
     fontWeight: 500,
     textTransform: 'uppercase',
     letterSpacing: '0.3px',
@@ -384,19 +341,19 @@ export const levelsStyles = {
     color: 'warning',
     variant: 'contained',
     sx: {
-      background: 'linear-gradient(135deg, #ffc107 0%, #ff9800 100%)',
-      color: 'white',
+      background: colors.gradients.warning,
+      color: colors.special.white,
       fontWeight: 600,
       textTransform: 'none',
       borderRadius: 1.5,
       px: 2,
       py: 0.5,
       fontSize: '0.8rem',
-      boxShadow: '0 2px 8px rgba(255, 193, 7, 0.3)',
+      boxShadow: colors.shadow.light.warning,
       '&:hover': {
-        background: 'linear-gradient(135deg, #ffb300 0%, #f57c00 100%)',
+        background: colors.gradients.warningAlt,
         transform: 'translateY(-1px)',
-        boxShadow: '0 4px 12px rgba(255, 193, 7, 0.4)',
+        boxShadow: colors.shadow.light.warningHigh,
       },
       transition: 'all 0.3s ease',
     },
@@ -406,8 +363,8 @@ export const levelsStyles = {
     color: 'error',
     variant: 'outlined',
     sx: {
-      borderColor: '#f44336',
-      color: '#f44336',
+      borderColor: colors.error.main,
+      color: colors.error.main,
       fontWeight: 600,
       textTransform: 'none',
       borderRadius: 1.5,
@@ -416,10 +373,10 @@ export const levelsStyles = {
       fontSize: '0.8rem',
       borderWidth: 1.5,
       '&:hover': {
-        backgroundColor: '#f44336',
-        color: 'white',
+        backgroundColor: colors.error.main,
+        color: colors.special.white,
         transform: 'translateY(-1px)',
-        boxShadow: '0 4px 12px rgba(244, 67, 54, 0.3)',
+        boxShadow: colors.shadow.light.error,
       },
       transition: 'all 0.3s ease',
     },
@@ -427,19 +384,19 @@ export const levelsStyles = {
   startButton: {
     color: 'primary',
     sx: {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
+      background: colors.gradients.primary,
+      color: colors.special.white,
       fontWeight: 600,
       textTransform: 'none',
       borderRadius: 1.5,
       px: 3,
       py: 1,
       fontSize: '0.85rem',
-      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+      boxShadow: colors.shadow.light.primary,
       '&:hover': {
-        background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
+        background: colors.gradients.primaryAlt,
         transform: 'translateY(-1px)',
-        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+        boxShadow: colors.shadow.light.primaryHigh,
       },
       transition: 'all 0.3s ease',
     },
@@ -447,9 +404,7 @@ export const levelsStyles = {
   lockedButton: {
     sx: {
       color: 'text.disabled',
-      backgroundColor: (theme) => theme.palette.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.02)' 
-        : 'rgba(0, 0, 0, 0.04)',
+      backgroundColor: themeColors.overlay.low,
       fontWeight: 500,
       textTransform: 'none',
       borderRadius: 1.5,
@@ -457,21 +412,15 @@ export const levelsStyles = {
       py: 1,
       fontSize: '0.85rem',
       cursor: 'not-allowed',
-      border: (theme) => theme.palette.mode === 'dark' 
-        ? '1px solid rgba(255, 255, 255, 0.05)' 
-        : 'none',
+      border: themeColors.card.border,
     },
   },
   lockIcon: {
     color: 'text.disabled',
-    backgroundColor: (theme) => theme.palette.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.05)' 
-      : 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: themeColors.overlay.low,
     borderRadius: '50%',
     p: 0.3,
     fontSize: '1rem',
-    border: (theme) => theme.palette.mode === 'dark' 
-      ? '1px solid rgba(255, 255, 255, 0.1)' 
-      : 'none',
+    border: themeColors.card.border,
   },
 }; 

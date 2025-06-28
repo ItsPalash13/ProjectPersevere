@@ -1,3 +1,5 @@
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
+
 export const subjectSectionStyles = {
   container: {
     mb: 5,
@@ -33,10 +35,10 @@ export const subjectSectionStyles = {
     right: 0,
   },
   scrollButton: {
-    color: 'white',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    color: colors.special.white,
+    backgroundColor: colors.special.backdrop,
     '&:hover': {
-      backgroundColor: 'rgba(0,0,0,0.7)',
+      backgroundColor: getThemeColor(colors.shadow.light.medium, colors.shadow.dark.medium),
     },
   },
   chaptersContainer: {
@@ -60,10 +62,10 @@ export const subjectSectionStyles = {
     // Show scrollbar on hover
     '&:hover': {
       '&::-webkit-scrollbar-thumb': {
-        backgroundColor: 'rgba(150, 103, 224, 0.3)',
+        backgroundColor: colors.border.light.accent,
       },
       '&::-webkit-scrollbar-track': {
-        backgroundColor: 'rgba(150, 103, 224, 0.1)',
+        backgroundColor: colors.border.light.secondary,
         borderRadius: 4,
       },
     },

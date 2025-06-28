@@ -31,7 +31,6 @@ import {
 
 const navigationItems = [
   { text: 'Dashboard', icon: <DashboardIcon fontSize="small" />, path: '/dashboard' },
-  { text: 'Settings', icon: <SettingsIcon fontSize="small" />, path: '/settings' },
 ];
 
 const Sidebar = ({ open, onToggle }) => {

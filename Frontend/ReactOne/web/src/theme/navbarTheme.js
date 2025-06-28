@@ -1,78 +1,101 @@
 import { styled } from '@mui/material/styles';
 import { AppBar, Typography } from '@mui/material';
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
 export const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  backgroundColor: 'transparent',
-  backgroundImage: 'none',
-  boxShadow: 'none',
-  backdropFilter: 'blur(20px)',
-  borderBottom: theme.palette.mode === 'dark' 
-    ? '1px solid rgba(150, 103, 224, 0.2)' 
-    : '1px solid rgba(242, 235, 251, 0.8)',
+  backgroundColor: colors.special.transparent,
+  backdropFilter: 'blur(10px)',
+  border: 'none',
+  borderBottom: themeColors.card.border(theme),
+  boxShadow: getThemeColor(colors.shadow.light.low, colors.shadow.dark.low)(theme),
 }));
 
 export const BrandText = styled(Typography)(({ theme }) => ({
   fontWeight: 700,
-  fontSize: '1.2rem',
-  letterSpacing: '0.5px',
-  background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
+  fontSize: '1.5rem',
+  background: colors.gradients.primary,
   backgroundClip: 'text',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
-  cursor: 'pointer',
+  letterSpacing: '1px',
 }));
 
 export const navbarStyles = {
   toolbar: {
     minHeight: 64,
-    px: 3,
+    px: 2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   leftSection: {
     display: 'flex',
     alignItems: 'center',
     gap: 2,
   },
-  sidebarToggle: {
-    display: { xs: 'block', sm: 'none' },
-    color: 'text.primary',
-  },
   rightSection: {
     display: 'flex',
     alignItems: 'center',
     gap: 2,
   },
-  themeToggle: {
-    color: 'text.primary',
-  },
   avatar: {
-    width: 32,
-    height: 32,
-    bgcolor: 'primary.main',
-    fontSize: '0.875rem',
-    fontWeight: 600,
-    color: 'primary.contrastText',
+    width: 40,
+    height: 40,
+    background: colors.gradients.primary,
+    color: colors.special.white,
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    '&:hover': {
+      background: colors.gradients.primaryDark,
+      transform: 'scale(1.05)',
+    },
+    transition: 'all 0.2s ease',
   },
   menu: {
-    mt: 1.5,
     '& .MuiPaper-root': {
+      background: getThemeColor(colors.overlay.light.surface, colors.background.dark.surface),
+      backdropFilter: 'blur(20px)',
+      border: getThemeColor(colors.border.light.primary, colors.border.dark.primary),
       borderRadius: 2,
-      minWidth: 180,
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      border: '1px solid',
-      borderColor: 'divider',
+      mt: 1,
+      minWidth: 200,
+      boxShadow: getThemeColor(colors.shadow.light.medium, colors.shadow.dark.medium),
     },
-  },
-  menuItem: {
-    py: 1.5,
-  },
-  logoutMenuItem: {
-    py: 1.5,
-    color: 'error.main',
+    '& .MuiMenuItem-root': {
+      px: 3,
+      py: 1.5,
+      color: themeColors.text.primary,
+      '&:hover': {
+        backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+      },
+    },
   },
   loginButton: {
-    background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
+    background: colors.gradients.primary,
+    color: colors.special.white,
+    px: 3,
+    py: 1,
+    borderRadius: 2,
+    fontWeight: 600,
+    textTransform: 'none',
     '&:hover': {
-      background: 'linear-gradient(135deg, #7c3aed 0%, #9667e0 100%)',
+      background: colors.gradients.primaryDark,
+      transform: 'translateY(-1px)',
     },
+    transition: 'all 0.2s ease',
+  },
+  registerButton: {
+    color: colors.primary.main,
+    border: `1px solid ${colors.primary.main}`,
+    px: 3,
+    py: 1,
+    borderRadius: 2,
+    fontWeight: 600,
+    textTransform: 'none',
+    '&:hover': {
+      backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+      borderColor: colors.primary.accent,
+    },
+    transition: 'all 0.2s ease',
   },
 }; 

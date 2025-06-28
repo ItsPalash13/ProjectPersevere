@@ -1,12 +1,11 @@
 import { styled } from '@mui/material/styles';
 import { Box, Card, Button, Dialog } from '@mui/material';
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
 export const QuizContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
   backgroundColor: theme.palette.background.default,
-  backgroundImage: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
-    : 'linear-gradient(135deg, #fbfaff 0%, #f2ebfb 100%)',
+  backgroundImage: themeColors.background.main(theme),
   position: 'relative',
   minHeight: 'calc(100vh - 64px)', // Account for navbar height
 }));

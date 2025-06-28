@@ -1,5 +1,6 @@
 import { styled } from '@mui/material/styles';
 import { Card } from '@mui/material';
+import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
 export const StyledChapterCard = styled(Card)(({ theme }) => ({
   minWidth: 260,
@@ -8,20 +9,12 @@ export const StyledChapterCard = styled(Card)(({ theme }) => ({
   cursor: 'pointer',
   transition: 'all 0.3s ease-in-out',
   borderRadius: 16,
-  background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-    : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
-  border: theme.palette.mode === 'dark'
-    ? '1px solid rgba(150, 103, 224, 0.2)'
-    : '1px solid rgba(150, 103, 224, 0.1)',
-  boxShadow: theme.palette.mode === 'dark' 
-    ? '0 4px 20px rgba(0, 0, 0, 0.2)' 
-    : '0 4px 20px rgba(150, 103, 224, 0.08)',
+  background: getThemeGradient(colors.gradients.cardLightAlt, colors.gradients.cardDarkAlt)(theme),
+  border: getThemeColor(colors.border.light.secondary, colors.border.dark.accent)(theme),
+  boxShadow: getThemeColor(colors.shadow.light.low, colors.shadow.dark.low)(theme),
   '&:hover': {
     transform: 'translateY(-4px)',
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
-      : '0 8px 32px rgba(150, 103, 224, 0.15)',
+    boxShadow: getThemeColor(colors.shadow.light.primaryMedium, colors.shadow.dark.medium)(theme),
   },
 }));
 
