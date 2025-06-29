@@ -42,7 +42,7 @@ router.get('/subject/:slug', async (req, res) => {
 
     // Get all chapters for this subject
     const chapters = await Chapter.find({ subjectId: subject._id })
-      .select('name description gameName topics status')
+      .select('name description gameName topics status thumbnailUrl')
       .sort({ createdAt: -1 });
 
     res.status(200).json({

@@ -1,18 +1,19 @@
 import { styled } from '@mui/material/styles';
-import { Card } from '@mui/material';
+import { Box } from '@mui/material';
 import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
-export const StyledChapterCard = styled(Card)(({ theme }) => ({
-  minWidth: 320,
+export const StyledChapterCard = styled(Box)(({ theme }) => ({
   maxWidth: 360,
   height: '100%',
   cursor: 'pointer',
   transition: 'background-color 0.3s ease',
-  borderRadius: 16,
+  borderRadius: 10,
   background: 'transparent',
   border: 'none',
   boxShadow: 'none',
   overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.03)'
@@ -21,14 +22,31 @@ export const StyledChapterCard = styled(Card)(({ theme }) => ({
 }));
 
 export const chapterCardStyles = {
-  cardImage: {
+  imageContainer: {
     height: 200,
     width: '100%',
-    objectFit: 'cover',
-    borderRadius: '16px 16px 16px 16px',
-    background: theme => theme.palette.mode === 'dark' 
-      ? '#3A3A3A'
-      : '#D0D0D0',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    padding: 0,
+  },
+  image: {
+    height: '100%',
+    objectFit: 'contain',
+  },
+  placeholderContainer: {
+    height: 200,
+    width: '100%',
+    backgroundColor: 'rgb(23, 23, 24)',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    padding: 0,
   },
   cardContent: {
     p: 1.5,

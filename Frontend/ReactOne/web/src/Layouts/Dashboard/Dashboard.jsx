@@ -6,7 +6,7 @@ import { dashboardStyles } from '../../theme/dashboardTheme';
 // Chapters by Subject Component
 const ChaptersBySubject = ({ darkMode }) => {
   const subjects = [
-    { name: 'Mathematics', slug: 'math', icon: '📐' }
+    { name: 'Mathematics', slug: 'math', icon: '' }
   ];
 
   return (
