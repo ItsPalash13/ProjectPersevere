@@ -4,6 +4,7 @@ import {
   CardContent,
   Typography,
   Box,
+  CardMedia,
 } from '@mui/material';
 import { StyledChapterCard, chapterCardStyles } from '../theme/chapterCardTheme';
 
@@ -21,6 +22,11 @@ const ChapterCard = ({ chapter, onClick }) => {
 
   return (
     <StyledChapterCard onClick={handleChapterClick}>
+      <CardMedia
+        sx={chapterCardStyles.cardImage}
+        image={chapter.image || ''}
+        title={chapter.name}
+      />
       <CardContent sx={chapterCardStyles.cardContent}>
         <Typography 
           variant="h6" 
@@ -29,17 +35,9 @@ const ChapterCard = ({ chapter, onClick }) => {
           {chapter.name}
         </Typography>
         
-        <Typography 
-          variant="body2" 
-          sx={chapterCardStyles.description}
-        >
-          {chapter.description}
-        </Typography>
-
-        
         {chapter.topics && chapter.topics.length > 0 && (
           <Box sx={chapterCardStyles.topicsContainer}>
-            {chapter.topics.slice(0, 3).map((topic, index) => (
+            {chapter.topics.slice(0, 4).map((topic, index) => (
               <Typography 
                 key={index} 
                 variant="caption" 
@@ -48,12 +46,12 @@ const ChapterCard = ({ chapter, onClick }) => {
                 {topic}
               </Typography>
             ))}
-            {chapter.topics.length > 3 && (
+            {chapter.topics.length > 4 && (
               <Typography 
                 variant="caption" 
                 sx={chapterCardStyles.topicCount}
               >
-                +{chapter.topics.length - 3}
+                +{chapter.topics.length - 4}
               </Typography>
             )}
           </Box>

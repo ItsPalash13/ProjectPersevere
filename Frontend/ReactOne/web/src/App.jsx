@@ -121,7 +121,7 @@ const createAppTheme = (isDark) => createTheme({
     },
   },
   typography: {
-    fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: '"Roboto", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     h4: {
       fontWeight: 700,
       fontSize: '1.75rem',

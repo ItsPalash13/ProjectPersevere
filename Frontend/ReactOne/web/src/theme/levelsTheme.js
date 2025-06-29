@@ -59,7 +59,7 @@ export const levelsStyles = {
       mx: 0.5,
       borderRadius: 3,
       color: themeColors.text.secondary,
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: 'background-color 0.3s ease',
       position: 'relative',
       overflow: 'hidden',
       outline: 'none',
@@ -76,7 +76,6 @@ export const levelsStyles = {
       '&:hover': {
         backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
         color: themeColors.text.primary,
-        transform: 'scale(1.02)',
       },
       '&.Mui-selected': {
         background: getThemeColor(colors.app.light.border, colors.app.dark.border),
@@ -86,7 +85,6 @@ export const levelsStyles = {
           `0 0 0 1px ${colors.border.light.focus}, 0 2px 6px ${colors.shadow.light.primary}`,
           `0 0 0 1px ${colors.border.dark.focus}, 0 2px 6px ${colors.shadow.dark.primary}`
         ),
-        transform: 'scale(1.03)',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -121,7 +119,7 @@ export const levelsStyles = {
     display: 'flex',
     flexDirection: 'column',
     borderRadius: 3,
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'background-color 0.3s ease',
     background: themeColors.card.background,
     backdropFilter: 'blur(20px)',
     border: themeColors.card.border,
@@ -144,15 +142,17 @@ export const levelsStyles = {
     opacity: 0.75,
     filter: 'grayscale(0.2)',
     '&:hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: getThemeColor(colors.shadow.light.medium, colors.shadow.dark.medium),
+      background: theme => theme.palette.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.02)'
+        : 'rgba(0, 0, 0, 0.02)',
       cursor: 'not-allowed',
     },
   },
   activeCard: {
     '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: getThemeColor(colors.shadow.light.primaryHigh, colors.shadow.dark.primaryHigh),
+      background: theme => theme.palette.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.03)'
+        : 'rgba(0, 0, 0, 0.03)',
       cursor: 'pointer',
       '&::before': {
         opacity: 1,
@@ -205,9 +205,8 @@ export const levelsStyles = {
     border: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
     '&:hover': {
       background: getThemeColor(colors.app.light.border, colors.app.dark.border),
-      transform: 'translateY(-1px)',
     },
-    transition: 'all 0.2s ease',
+    transition: 'background-color 0.2s ease',
   },
   metricsGrid: {
     display: 'grid',
@@ -221,10 +220,11 @@ export const levelsStyles = {
     background: getThemeColor(colors.background.light.surface, colors.background.dark.surface),
     border: getThemeColor(colors.border.light.secondary, colors.border.dark.secondary),
     textAlign: 'center',
-    transition: 'all 0.3s ease',
+    transition: 'background-color 0.3s ease',
     '&:hover': {
-      transform: 'translateY(-1px)',
-      boxShadow: getThemeColor(colors.shadow.light.primaryMedium, colors.shadow.dark.primaryMedium),
+      background: theme => theme.palette.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.03)'
+        : 'rgba(0, 0, 0, 0.03)',
     },
   },
   metricIcon: {
@@ -344,12 +344,10 @@ export const levelsStyles = {
       py: 0.5,
       fontSize: '0.8rem',
       boxShadow: colors.shadow.light.warning,
-      '&:hover': {
-        background: colors.warning.dark,
-        transform: 'translateY(-1px)',
-        boxShadow: colors.shadow.light.warningHigh,
-      },
-      transition: 'all 0.3s ease',
+              '&:hover': {
+          background: colors.warning.dark,
+        },
+        transition: 'background-color 0.3s ease',
     },
   },
   startFreshButton: {
@@ -366,13 +364,11 @@ export const levelsStyles = {
       py: 0.5,
       fontSize: '0.8rem',
       borderWidth: 1.5,
-      '&:hover': {
-        backgroundColor: colors.error.main,
-        color: colors.special.white,
-        transform: 'translateY(-1px)',
-        boxShadow: colors.shadow.light.error,
-      },
-      transition: 'all 0.3s ease',
+              '&:hover': {
+          backgroundColor: colors.error.main,
+          color: colors.special.white,
+        },
+        transition: 'background-color 0.3s ease',
     },
   },
   startButton: {
@@ -387,12 +383,10 @@ export const levelsStyles = {
       py: 1,
       fontSize: '0.85rem',
       boxShadow: colors.shadow.light.primary,
-      '&:hover': {
-        background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
-        transform: 'translateY(-1px)',
-        boxShadow: colors.shadow.light.primaryHigh,
-      },
-      transition: 'all 0.3s ease',
+              '&:hover': {
+          background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
+        },
+        transition: 'background-color 0.3s ease',
     },
   },
   lockedButton: {
