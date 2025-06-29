@@ -101,7 +101,14 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
             <>
               <IconButton
                 onClick={handleAvatarClick}
-                sx={{ p: 0 }}
+                sx={{ 
+                  p: '0 !important', 
+                  m: '0 !important',
+                  minWidth: '24px !important', 
+                  minHeight: '24px !important',
+                  width: '24px',
+                  height: '24px'
+                }}
               >
                 <Avatar sx={navbarStyles.avatar}>
                   {session?.user?.name?.charAt(0)?.toUpperCase() || 'U'}

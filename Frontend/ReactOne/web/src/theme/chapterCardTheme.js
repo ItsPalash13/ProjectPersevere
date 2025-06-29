@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
 export const StyledChapterCard = styled(Box)(({ theme }) => ({
-  maxWidth: 360,
+  width: 320,
   height: '100%',
   cursor: 'pointer',
   transition: 'background-color 0.3s ease',

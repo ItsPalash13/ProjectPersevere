@@ -178,7 +178,6 @@ const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
             })}
           </List>
 
-          <Divider sx={sidebarStyles.divider} />
         </StyledDrawer>
       )}
 
