@@ -332,16 +332,7 @@ const Quiz = ({ socket }) => {
     return (
       <>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Box sx={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: 1, 
-            mb: 2,
-            p: 2,
-            borderRadius: 3,
-            background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
-            color: 'white'
-          }}>
+          <Box sx={quizStyles.resultsXpBox}>
             <StarIcon sx={{ fontSize: '2rem' }} />
             <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
               {data.currentXp}
@@ -351,7 +342,7 @@ const Quiz = ({ socket }) => {
             </Typography>
           </Box>
           
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={quizStyles.resultsStatsContainer}>
             <Typography variant="body1" color="text.secondary">
             Required: {data.requiredXp} XP
           </Typography>
@@ -367,7 +358,7 @@ const Quiz = ({ socket }) => {
           </Box>
         </Box>
 
-        <Box sx={{ mb: 3 }}>
+        <Box sx={quizStyles.progressBarContainer}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             Progress: {progressPercent.toFixed(1)}%
           </Typography>
@@ -375,51 +366,28 @@ const Quiz = ({ socket }) => {
             variant="determinate" 
             value={progressPercent}
             sx={{ 
-              height: 12, 
-              borderRadius: 2,
-              backgroundColor: theme => theme.palette.mode === 'dark' ? '#3a3a5c' : '#e5e7eb',
+              ...quizStyles.progressBar,
               '& .MuiLinearProgress-bar': {
-                background: isLevelCompleted 
-                  ? 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)'
-                  : 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
-                borderRadius: 2,
+                ...quizStyles.progressBar['& .MuiLinearProgress-bar'],
+                ...(isLevelCompleted ? quizStyles.progressBarCompleted : quizStyles.progressBarIncomplete),
               }
             }}
           />
         </Box>
 
-        <Box sx={{ 
-          p: 3,
-          borderRadius: 2,
-          background: theme => theme.palette.mode === 'dark' 
-            ? 'rgba(150, 103, 224, 0.1)' 
-            : 'rgba(150, 103, 224, 0.05)',
-          border: theme => theme.palette.mode === 'dark'
-            ? '1px solid rgba(150, 103, 224, 0.2)'
-            : '1px solid rgba(150, 103, 224, 0.1)',
-          mb: 3
-        }}>
-          <Typography variant="body1" sx={{ 
-            fontWeight: 500,
-            textAlign: 'center',
-            lineHeight: 1.6
-          }}>
+        <Box sx={quizStyles.resultsMessageBox}>
+          <Typography variant="body1" sx={quizStyles.resultsMessageText}>
             {quizResults.message}
           </Typography>
         </Box>
 
         <Box sx={{ 
-          textAlign: 'center',
-          p: 2,
-          borderRadius: 2,
-          background: isLevelCompleted 
-            ? 'linear-gradient(135deg, rgba(46, 125, 50, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%)'
-            : 'linear-gradient(135deg, rgba(150, 103, 224, 0.1) 0%, rgba(212, 187, 252, 0.1) 100%)',
+          ...quizStyles.resultsStatusBox,
+          ...(isLevelCompleted ? quizStyles.resultsStatusCompleted : quizStyles.resultsStatusInProgress)
         }}>
           <Typography variant="h6" sx={{ 
-            fontWeight: 'bold',
-            color: isLevelCompleted ? '#2e7d32' : '#9667e0',
-            mb: 1
+            ...quizStyles.resultsStatusTitle,
+            color: isLevelCompleted ? '#2e7d32' : theme => theme.palette.text.primary,
           }}>
             {isLevelCompleted ? "🎉 Level Completed!" : "💪 Keep Going!"}
         </Typography>
@@ -456,21 +424,13 @@ const Quiz = ({ socket }) => {
                   <Chip 
                     icon={<CheckCircleIcon />}
                     label="Correct!"
-                    sx={{ 
-                      background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
-                      color: 'white',
-                      fontWeight: 'bold'
-                    }}
+                    sx={quizStyles.correctAnswerChip}
                   />
                 ) : (
                   <Chip 
                     icon={<CancelIcon />}
                     label="Try Again"
-                    sx={{ 
-                      background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
-                      color: 'white',
-                      fontWeight: 'bold'
-                    }}
+                    sx={quizStyles.wrongAnswerChip}
                   />
                 )}
               </Box>
@@ -635,18 +595,10 @@ const Quiz = ({ socket }) => {
           disableBackdropClick
           disableEscapeKeyDown
           BackdropProps={{
-            sx: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            }
+            sx: quizStyles.resultsBackdrop
           }}
           PaperProps={{
-            sx: {
-              borderRadius: 3,
-              padding: 3,
-              textAlign: 'center',
-              maxWidth: '400px',
-              width: '100%',
-            }
+            sx: quizStyles.resultsDialogPaper
           }}
         >
           <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
@@ -703,54 +655,22 @@ const Quiz = ({ socket }) => {
           </DialogActions>
         </Dialog>
 
-        <Dialog 
+                <Dialog 
           open={showError} 
           onClose={() => setShowError(false)}
           BackdropProps={{
-            sx: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            }
+            sx: quizStyles.resultsBackdrop
           }}
-          PaperProps={{
-            sx: {
-              borderRadius: 20,
-              padding: 3,
-              textAlign: 'center',
-              maxWidth: '400px',
-              width: '100%',
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-                : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
-              border: '1px solid rgba(211, 47, 47, 0.2)',
-            }
-          }}
+          sx={quizStyles.errorDialog}
         >
-          <DialogTitle sx={{ 
-            fontWeight: 'bold', 
-            fontSize: '1.5rem', 
-            color: '#d32f2f',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1
-          }}>
+          <DialogTitle sx={quizStyles.errorDialogTitle}>
             <CancelIcon sx={{ fontSize: '2rem' }} />
             Quiz Error
           </DialogTitle>
           <DialogContent>
             <Box sx={{ mb: 3 }}>
-              <Box sx={{
-                p: 2,
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(244, 67, 54, 0.1) 100%)',
-                border: '1px solid rgba(211, 47, 47, 0.2)',
-                mb: 2
-              }}>
-                <Typography variant="body1" sx={{ 
-                  fontWeight: 500,
-                  color: '#d32f2f',
-                  mb: 1
-                }}>
+              <Box sx={quizStyles.errorMessageBox}>
+                <Typography variant="body1" sx={quizStyles.errorMessageText}>
                 {errorMessage}
               </Typography>
               </Box>
@@ -762,12 +682,7 @@ const Quiz = ({ socket }) => {
           <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
             <StyledButton
               variant="contained"
-              sx={{
-                background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%)',
-                }
-              }}
+              sx={quizStyles.errorDialogButton}
               onClick={() => {
                 setShowError(false);
                 navigate(`/levels/${levelSession?.chapterId}`, { replace: true });

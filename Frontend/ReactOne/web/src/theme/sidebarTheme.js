@@ -39,13 +39,13 @@ export const StyledListItemButton = styled(ListItemButton)(({ theme, selected })
   borderRadius: theme.spacing(1.5),
   minHeight: 48,
   background: selected 
-    ? colors.gradients.primary
+    ? getThemeColor(colors.app.light.border, colors.app.dark.border)(theme)
     : colors.special.transparent,
-  color: selected ? colors.special.white : themeColors.text.primary(theme),
+  color: selected ? getThemeColor(colors.text.light.primary, colors.text.dark.primary)(theme) : themeColors.text.primary(theme),
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
     background: selected 
-      ? colors.gradients.primaryDark
+      ? getThemeColor(colors.app.light.accent, colors.app.dark.accent)(theme)
       : getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium)(theme),
     transform: 'translateX(4px)',
   },

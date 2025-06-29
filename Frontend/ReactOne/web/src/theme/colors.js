@@ -2,7 +2,7 @@
 // This file contains all color definitions used across theme files
 
 export const colors = {
-  // Primary Purple Theme
+  // Primary Purple Theme (Reserved for navbar logo and avatar only)
   primary: {
     main: '#667eea',
     secondary: '#764ba2',
@@ -12,6 +12,28 @@ export const colors = {
     dark: '#7c3aed',
     darker: '#5a67d8',
     darkest: '#6b46c1',
+  },
+
+  // Major App Colors (New neutral scheme)
+  app: {
+    light: {
+      primary: '#FFFFFF',
+      secondary: '#FBFBFA',
+      surface: '#FFFFFF',
+      paper: '#FBFBFA',
+      accent: '#F8F8F8',
+      border: '#E5E5E5',
+      divider: '#F0F0F0',
+    },
+    dark: {
+      primary: '#1F1F1F',
+      secondary: '#FBFBFA',
+      surface: '#1F1F1F',
+      paper: '#2A2A2A',
+      accent: '#333333',
+      border: '#404040',
+      divider: '#2D2D2D',
+    },
   },
 
   // Semantic Colors
@@ -37,85 +59,85 @@ export const colors = {
     orange: '#e65100',
   },
 
-  // Background Colors
+  // Background Colors (Updated to new scheme)
   background: {
     light: {
-      primary: '#f5f7fa',
-      secondary: '#c3cfe2',
-      surface: '#ffffff',
-      paper: '#fbfaff',
-      accent: '#f2ebfb',
+      primary: '#FFFFFF',
+      secondary: '#FBFBFA',
+      surface: '#FFFFFF',
+      paper: '#FBFBFA',
+      accent: '#F8F8F8',
     },
     dark: {
-      primary: '#1a1a2e',
-      secondary: '#16213e',
-      surface: '#2d2d44',
-      paper: '#3a3a5c',
-      accent: '#1e1e3f',
+      primary: '#1F1F1F',
+      secondary: '#FBFBFA',
+      surface: '#1F1F1F',
+      paper: '#2A2A2A',
+      accent: '#333333',
     },
   },
 
-  // Text Colors
+  // Text Colors (Updated for better contrast with new backgrounds)
   text: {
     light: {
-      primary: 'rgba(0, 0, 0, 0.87)',
-      secondary: 'rgba(0, 0, 0, 0.7)',
-      disabled: 'rgba(0, 0, 0, 0.38)',
-      hint: 'rgba(0, 0, 0, 0.6)',
+      primary: '#1F1F1F',
+      secondary: '#666666',
+      disabled: '#CCCCCC',
+      hint: '#999999',
     },
     dark: {
-      primary: 'rgba(255, 255, 255, 0.9)',
-      secondary: 'rgba(255, 255, 255, 0.7)',
-      disabled: 'rgba(255, 255, 255, 0.38)',
-      hint: 'rgba(255, 255, 255, 0.6)',
+      primary: '#FBFBFA',
+      secondary: '#CCCCCC',
+      disabled: '#666666',
+      hint: '#999999',
     },
   },
 
-  // Border Colors
+  // Border Colors (Updated to neutral tones)
   border: {
     light: {
-      primary: 'rgba(255, 255, 255, 0.3)',
-      secondary: 'rgba(102, 126, 234, 0.1)',
-      accent: 'rgba(102, 126, 234, 0.2)',
-      focus: 'rgba(102, 126, 234, 0.3)',
+      primary: '#E5E5E5',
+      secondary: '#F0F0F0',
+      accent: '#DDDDDD',
+      focus: '#CCCCCC',
     },
     dark: {
-      primary: 'rgba(255, 255, 255, 0.1)',
-      secondary: 'rgba(102, 126, 234, 0.2)',
-      accent: 'rgba(102, 126, 234, 0.3)',
-      focus: 'rgba(102, 126, 234, 0.4)',
+      primary: '#404040',
+      secondary: '#333333',
+      accent: '#555555',
+      focus: '#666666',
     },
   },
 
-  // Overlay Colors (for glass effects)
+  // Overlay Colors (Updated for new scheme)
   overlay: {
     light: {
-      low: 'rgba(255, 255, 255, 0.05)',
-      medium: 'rgba(255, 255, 255, 0.1)',
-      high: 'rgba(255, 255, 255, 0.2)',
-      card: 'rgba(255, 255, 255, 0.8)',
-      surface: 'rgba(255, 255, 255, 0.95)',
-      glassSoft: 'rgba(255, 255, 255, 0.85)',
+      low: 'rgba(0, 0, 0, 0.02)',
+      medium: 'rgba(0, 0, 0, 0.05)',
+      high: 'rgba(0, 0, 0, 0.1)',
+      card: 'rgba(255, 255, 255, 0.95)',
+      surface: 'rgba(251, 251, 250, 0.98)',
+      glassSoft: 'rgba(255, 255, 255, 0.9)',
     },
     dark: {
       low: 'rgba(255, 255, 255, 0.02)',
       medium: 'rgba(255, 255, 255, 0.05)',
       high: 'rgba(255, 255, 255, 0.08)',
-      card: 'rgba(255, 255, 255, 0.06)',
-      surface: 'rgba(255, 255, 255, 0.08)',
-      glassSoft: 'rgba(255, 255, 255, 0.04)',
+      card: 'rgba(42, 42, 42, 0.95)',
+      surface: 'rgba(31, 31, 31, 0.98)',
+      glassSoft: 'rgba(31, 31, 31, 0.9)',
     },
   },
 
-  // Shadow Colors
+  // Shadow Colors (Updated for neutral theme)
   shadow: {
     light: {
-      low: 'rgba(0, 0, 0, 0.08)',
-      medium: 'rgba(0, 0, 0, 0.12)',
+      low: 'rgba(0, 0, 0, 0.05)',
+      medium: 'rgba(0, 0, 0, 0.1)',
       high: 'rgba(0, 0, 0, 0.15)',
-      primary: 'rgba(102, 126, 234, 0.1)',
-      primaryMedium: 'rgba(102, 126, 234, 0.15)',
-      primaryHigh: 'rgba(102, 126, 234, 0.2)',
+      primary: 'rgba(0, 0, 0, 0.08)',
+      primaryMedium: 'rgba(0, 0, 0, 0.12)',
+      primaryHigh: 'rgba(0, 0, 0, 0.18)',
       warning: 'rgba(255, 193, 7, 0.3)',
       warningHigh: 'rgba(255, 193, 7, 0.4)',
       error: 'rgba(244, 67, 54, 0.3)',
@@ -124,9 +146,9 @@ export const colors = {
       low: 'rgba(0, 0, 0, 0.2)',
       medium: 'rgba(0, 0, 0, 0.3)',
       high: 'rgba(0, 0, 0, 0.4)',
-      primary: 'rgba(102, 126, 234, 0.15)',
-      primaryMedium: 'rgba(102, 126, 234, 0.2)',
-      primaryHigh: 'rgba(102, 126, 234, 0.3)',
+      primary: 'rgba(0, 0, 0, 0.25)',
+      primaryMedium: 'rgba(0, 0, 0, 0.35)',
+      primaryHigh: 'rgba(0, 0, 0, 0.45)',
       warning: 'rgba(255, 193, 7, 0.3)',
       warningHigh: 'rgba(255, 193, 7, 0.4)',
       error: 'rgba(244, 67, 54, 0.3)',
@@ -135,19 +157,27 @@ export const colors = {
 
   // Special Colors
   special: {
-    white: '#ffffff',
+    white: '#FFFFFF',
+    offWhite: '#FBFBFA',
+    darkGray: '#1F1F1F',
     black: '#000000',
     transparent: 'transparent',
-    backdrop: 'rgba(0, 0, 0, 0.8)',
+    backdrop: 'rgba(0, 0, 0, 0.5)',
   },
 
-  // Gradient Definitions
+  // Gradient Definitions (Updated to neutral scheme)
   gradients: {
+    // Keep purple gradients for navbar logo and avatar
     primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     primaryAlt: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
     primaryAccent: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
     primaryDark: 'linear-gradient(135deg, #7c3aed 0%, #9667e0 100%)',
-    rainbow: 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+    
+    // New neutral gradients for main app
+    appLight: 'linear-gradient(135deg, #FFFFFF 0%, #FBFBFA 100%)',
+    appLightAlt: 'linear-gradient(135deg, #FBFBFA 0%, #F8F8F8 100%)',
+    appDark: 'linear-gradient(135deg, #1F1F1F 0%, #2A2A2A 100%)',
+    appDarkAlt: 'linear-gradient(135deg, #2A2A2A 0%, #333333 100%)',
     
     success: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
     error: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
@@ -155,30 +185,30 @@ export const colors = {
     warningAlt: 'linear-gradient(135deg, #ffb300 0%, #f57c00 100%)',
     warningAccent: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
     
-    backgroundLight: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-    backgroundLightAlt: 'linear-gradient(135deg, #fbfaff 0%, #f2ebfb 100%)',
-    backgroundDark: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    backgroundLight: 'linear-gradient(135deg, #FFFFFF 0%, #FBFBFA 100%)',
+    backgroundLightAlt: 'linear-gradient(135deg, #FBFBFA 0%, #F8F8F8 100%)',
+    backgroundDark: 'linear-gradient(135deg, #1F1F1F 0%, #2A2A2A 100%)',
     
-    cardLight: 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
-    cardLightAlt: 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
-    cardLightGlass: 'linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%)',
-    cardDark: 'linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
-    cardDarkAlt: 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)',
-    cardDarkGlass: 'linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%)',
+    cardLight: 'linear-gradient(145deg, #FFFFFF 0%, #FBFBFA 100%)',
+    cardLightAlt: 'linear-gradient(145deg, #FBFBFA 0%, #F8F8F8 100%)',
+    cardLightGlass: 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(251, 251, 250, 0.9) 100%)',
+    cardDark: 'linear-gradient(145deg, #1F1F1F 0%, #2A2A2A 100%)',
+    cardDarkAlt: 'linear-gradient(145deg, #2A2A2A 0%, #333333 100%)',
+    cardDarkGlass: 'linear-gradient(145deg, rgba(31, 31, 31, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%)',
     
-    overlayLight: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-    overlayDark: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+    overlayLight: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.02) 100%)',
+    overlayDark: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.1) 100%)',
     
-    // Active session gradients
-    sessionLight: 'linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 152, 0, 0.08) 100%)',
-    sessionDark: 'linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.15) 100%)',
+    // Active session gradients (neutral)
+    sessionLight: 'linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.02) 100%)',
+    sessionDark: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.05) 100%)',
     sessionWarning: 'linear-gradient(90deg, #ffc107 0%, #ff9800 100%)',
     
-    // Chip gradients
-    chipLight: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-    chipLightHover: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-    chipDark: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-    chipDarkHover: 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)',
+    // Chip gradients (neutral)
+    chipLight: 'linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.02) 100%)',
+    chipLightHover: 'linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%)',
+    chipDark: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.05) 100%)',
+    chipDarkHover: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)',
   },
 };
 
@@ -189,16 +219,16 @@ export const getThemeColor = (lightColor, darkColor) => (theme) =>
 export const getThemeGradient = (lightGradient, darkGradient) => (theme) => 
   theme.palette.mode === 'dark' ? darkGradient : lightGradient;
 
-// Commonly used theme-aware color combinations
+// Commonly used theme-aware color combinations (Updated to new scheme)
 export const themeColors = {
   background: {
-    main: getThemeColor(colors.gradients.backgroundLight, colors.gradients.backgroundDark),
+    main: getThemeColor(colors.background.light.primary, colors.background.dark.primary),
     paper: getThemeColor(colors.background.light.paper, colors.background.dark.paper),
     surface: getThemeColor(colors.background.light.surface, colors.background.dark.surface),
   },
   
   card: {
-    background: getThemeGradient(colors.gradients.cardLight, colors.gradients.cardDark),
+    background: getThemeColor(colors.background.light.paper, colors.background.dark.paper),
     border: getThemeColor(colors.border.light.primary, colors.border.dark.primary),
     shadow: getThemeColor(colors.shadow.light.low, colors.shadow.dark.low),
   },

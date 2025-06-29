@@ -9,7 +9,7 @@ export const StyledChapterCard = styled(Card)(({ theme }) => ({
   cursor: 'pointer',
   transition: 'all 0.3s ease-in-out',
   borderRadius: 16,
-  background: getThemeGradient(colors.gradients.cardLightAlt, colors.gradients.cardDarkAlt)(theme),
+  background: getThemeColor(colors.background.light.paper, colors.background.dark.paper)(theme),
   border: getThemeColor(colors.border.light.secondary, colors.border.dark.accent)(theme),
   boxShadow: getThemeColor(colors.shadow.light.low, colors.shadow.dark.low)(theme),
   '&:hover': {
@@ -48,8 +48,8 @@ export const chapterCardStyles = {
     gap: 0.5,
   },
   topicChip: {
-    backgroundColor: 'primary.main',
-    color: 'primary.contrastText',
+    backgroundColor: getThemeColor(colors.app.light.border, colors.app.dark.border),
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     px: 1,
     py: 0.25,
     borderRadius: 1,

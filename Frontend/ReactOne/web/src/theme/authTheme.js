@@ -44,13 +44,10 @@ export const AuthContainer = styled(Stack)(({ theme }) => ({
     position: 'absolute',
     zIndex: -1,
     inset: 0,
-    backgroundImage:
-      'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? colors.background.dark.primary 
+      : colors.background.light.primary,
     backgroundRepeat: 'no-repeat',
-    ...(theme.palette.mode === 'dark' && {
-      backgroundImage:
-        'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
-    }),
   },
 }));
 
@@ -68,7 +65,7 @@ export const authStyles = {
     width: '100%',
     p: 4,
     borderRadius: 3,
-    background: getThemeGradient(colors.gradients.cardLight, colors.gradients.cardDark),
+    background: getThemeColor(colors.background.light.paper, colors.background.dark.paper),
     backdropFilter: 'blur(20px)',
     border: themeColors.card.border,
     boxShadow: themeColors.card.shadow,
@@ -78,10 +75,7 @@ export const authStyles = {
     mb: 3,
     fontWeight: 700,
     fontSize: '2rem',
-    background: colors.gradients.primary,
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
   },
   form: {
     display: 'flex',
@@ -91,10 +85,10 @@ export const authStyles = {
   submitButton: {
     mt: 2,
     py: 1.5,
-    background: colors.gradients.primary,
-    color: colors.special.white,
+    background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     '&:hover': {
-      background: colors.gradients.primaryDark,
+      background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
       transform: 'translateY(-1px)',
     },
     transition: 'all 0.2s ease',
@@ -102,10 +96,10 @@ export const authStyles = {
   linkButton: {
     mt: 2,
     textAlign: 'center',
-    color: colors.primary.main,
+    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
     textDecoration: 'none',
     '&:hover': {
-      color: colors.primary.accent,
+      color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
       textDecoration: 'underline',
     },
   },

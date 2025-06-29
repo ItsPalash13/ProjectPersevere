@@ -54,28 +54,28 @@ const createAppTheme = (isDark) => createTheme({
   palette: {
     mode: isDark ? 'dark' : 'light',
     primary: {
-      main: '#9667e0',
-      light: '#d4bbfc',
-      dark: '#7c3aed',
-      contrastText: '#ffffff',
+      main: isDark ? '#FBFBFA' : '#1F1F1F',
+      light: isDark ? '#FFFFFF' : '#666666',
+      dark: isDark ? '#CCCCCC' : '#000000',
+      contrastText: isDark ? '#1F1F1F' : '#FFFFFF',
     },
     secondary: {
-      main: '#d4bbfc',
-      light: '#ebd9fc',
-      dark: '#9667e0',
+      main: isDark ? '#CCCCCC' : '#666666',
+      light: isDark ? '#E5E5E5' : '#999999',
+      dark: isDark ? '#999999' : '#333333',
     },
     background: {
-      default: isDark ? '#1a1a2e' : '#fbfaff',
-      paper: isDark ? '#2d2d44' : '#ffffff',
+      default: isDark ? '#1F1F1F' : '#FFFFFF',
+      paper: isDark ? '#2A2A2A' : '#FBFBFA',
     },
     text: {
-      primary: isDark ? '#fbfaff' : '#2d2d44',
-      secondary: isDark ? 'rgba(251, 250, 255, 0.7)' : 'rgba(45, 45, 68, 0.7)',
+      primary: isDark ? '#FBFBFA' : '#1F1F1F',
+      secondary: isDark ? '#CCCCCC' : '#666666',
     },
-    divider: isDark ? 'rgba(150, 103, 224, 0.2)' : 'rgba(150, 103, 224, 0.1)',
+    divider: isDark ? '#404040' : '#E5E5E5',
     action: {
-      hover: isDark ? 'rgba(150, 103, 224, 0.1)' : '#f2ebfb',
-      selected: isDark ? 'rgba(150, 103, 224, 0.2)' : '#ebd9fc',
+      hover: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+      selected: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
     },
   },
   components: {
@@ -84,14 +84,12 @@ const createAppTheme = (isDark) => createTheme({
         root: {
           borderRadius: 12,
           boxShadow: isDark 
-            ? '0 2px 8px rgba(0, 0, 0, 0.2)' 
-            : '0 2px 8px rgba(150, 103, 224, 0.08)',
+            ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+            : '0 2px 8px rgba(0, 0, 0, 0.05)',
           border: isDark 
-            ? '1px solid rgba(150, 103, 224, 0.2)' 
-            : '1px solid rgba(242, 235, 251, 0.8)',
-          background: isDark 
-            ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-            : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+            ? '1px solid #404040' 
+            : '1px solid #E5E5E5',
+          background: isDark ? '#2A2A2A' : '#FBFBFA',
         },
       },
     },
@@ -105,24 +103,25 @@ const createAppTheme = (isDark) => createTheme({
           transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
         },
         contained: {
-          background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
+          background: isDark ? '#404040' : '#E5E5E5',
+          color: isDark ? '#FBFBFA' : '#1F1F1F',
           '&:hover': {
-            background: 'linear-gradient(135deg, #7c3aed 0%, #9667e0 100%)',
+            background: isDark ? '#555555' : '#DDDDDD',
           },
         },
         outlined: {
-          borderColor: '#9667e0',
-          color: '#9667e0',
+          borderColor: isDark ? '#555555' : '#CCCCCC',
+          color: isDark ? '#CCCCCC' : '#666666',
           '&:hover': {
-            backgroundColor: '#f2ebfb',
-            borderColor: '#9667e0',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+            borderColor: isDark ? '#666666' : '#999999',
           },
         },
       },
     },
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h4: {
       fontWeight: 700,
       fontSize: '1.75rem',

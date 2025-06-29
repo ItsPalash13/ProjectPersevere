@@ -1,5 +1,15 @@
-Question:-
+❓ Question:-
 Should one level have two modes or two modes have different levels :- 6/10
 
-TODO:-
-Make Levels and Question/Answer different modules in Quiz :- 5/10
+🎯 TODO:-
+Make Levels and Question/Answer different modules in Quiz :- 5/10-
+Centralized auth state management component :- 4/10
+
+
+Images on Dashboard:-7/10
+Design Thinking:-6.5/10
+Plan Next Week:-10/10
+
+✅ Done:-
+Color schema:-8/10
+Font Family:-8/10

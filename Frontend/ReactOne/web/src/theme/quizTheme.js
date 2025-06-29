@@ -14,20 +14,20 @@ export const QuestionCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(4),
   borderRadius: 16,
   background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-    : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+    ? colors.background.dark.paper
+    : colors.background.light.paper,
   border: theme.palette.mode === 'dark'
-    ? '1px solid rgba(150, 103, 224, 0.2)'
-    : '1px solid rgba(150, 103, 224, 0.1)',
+    ? `1px solid ${colors.border.dark.primary}`
+    : `1px solid ${colors.border.light.primary}`,
   boxShadow: theme.palette.mode === 'dark' 
-    ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
-    : '0 8px 32px rgba(150, 103, 224, 0.08)',
+    ? colors.shadow.dark.medium
+    : colors.shadow.light.medium,
   transition: 'all 0.3s ease-in-out',
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: theme.palette.mode === 'dark' 
-      ? '0 12px 40px rgba(0, 0, 0, 0.4)' 
-      : '0 12px 40px rgba(150, 103, 224, 0.15)',
+      ? colors.shadow.dark.high
+      : colors.shadow.light.high,
   },
 }));
 
@@ -41,36 +41,36 @@ export const OptionCard = styled(Card)(({ theme }) => ({
   justifyContent: 'center',
   padding: theme.spacing(2),
   background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-    : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+    ? colors.background.dark.accent
+    : colors.background.light.accent,
   border: theme.palette.mode === 'dark'
-    ? '2px solid rgba(150, 103, 224, 0.2)'
-    : '2px solid rgba(150, 103, 224, 0.1)',
+    ? `2px solid ${colors.border.dark.secondary}`
+    : `2px solid ${colors.border.light.secondary}`,
   boxShadow: theme.palette.mode === 'dark' 
-    ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
-    : '0 4px 16px rgba(150, 103, 224, 0.08)',
+    ? colors.shadow.dark.low
+    : colors.shadow.light.low,
   '&:hover:not(.selected):not(.correct):not(.wrong):not(.correct-answer)': {
     transform: 'translateY(-4px)',
     border: theme.palette.mode === 'dark'
-      ? '2px solid rgba(150, 103, 224, 0.4)'
-      : '2px solid rgba(150, 103, 224, 0.3)',
+      ? `2px solid ${colors.border.dark.accent}`
+      : `2px solid ${colors.border.light.accent}`,
     boxShadow: theme.palette.mode === 'dark' 
-      ? '0 8px 24px rgba(0, 0, 0, 0.3)' 
-      : '0 8px 24px rgba(150, 103, 224, 0.15)',
+      ? colors.shadow.dark.medium
+      : colors.shadow.light.medium,
   },
   '&.selected': {
-    border: '2px solid #9667e0',
-    background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
-    color: 'white',
+    border: `2px solid ${colors.app.light.border}`,
+    background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     transform: 'translateY(-2px)',
     '& .MuiTypography-root': {
-      color: 'white',
+      color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
       fontWeight: 600,
     }
   },
   '&.correct': {
     border: '2px solid #2e7d32',
-    background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+    background: colors.success.main,
     color: 'white',
     transform: 'translateY(-2px)',
     '& .MuiTypography-root': {
@@ -80,7 +80,7 @@ export const OptionCard = styled(Card)(({ theme }) => ({
   },
   '&.wrong': {
     border: '2px solid #d32f2f',
-    background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
+    background: colors.error.main,
     color: 'white',
     transform: 'translateY(-2px)',
     '& .MuiTypography-root': {
@@ -90,7 +90,7 @@ export const OptionCard = styled(Card)(({ theme }) => ({
   },
   '&.correct-answer': {
     border: '2px solid #2e7d32',
-    background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+    background: colors.success.main,
     color: 'white',
     transform: 'translateY(-2px)',
     '& .MuiTypography-root': {
@@ -107,15 +107,15 @@ export const QuizHeader = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(4),
   padding: theme.spacing(2),
   background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-    : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+    ? colors.background.dark.paper
+    : colors.background.light.paper,
   borderRadius: 16,
   border: theme.palette.mode === 'dark'
-    ? '1px solid rgba(150, 103, 224, 0.2)'
-    : '1px solid rgba(150, 103, 224, 0.1)',
+    ? `1px solid ${colors.border.dark.primary}`
+    : `1px solid ${colors.border.light.primary}`,
   boxShadow: theme.palette.mode === 'dark' 
-    ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
-    : '0 4px 16px rgba(150, 103, 224, 0.08)',
+    ? colors.shadow.dark.low
+    : colors.shadow.light.low,
 }));
 
 export const StyledButton = styled(Button)(({ theme }) => ({
@@ -127,18 +127,19 @@ export const StyledButton = styled(Button)(({ theme }) => ({
   boxShadow: 'none',
   transition: 'all 0.2s ease-in-out',
   '&.MuiButton-contained': {
-    background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
+    background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     '&:hover': {
-      background: 'linear-gradient(135deg, #7c3aed 0%, #9667e0 100%)',
+      background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
       transform: 'translateY(-2px)',
     },
   },
   '&.MuiButton-outlined': {
-    borderColor: '#9667e0',
-    color: '#9667e0',
+    borderColor: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
+    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
     '&:hover': {
-      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(150, 103, 224, 0.1)' : '#f2ebfb',
-      borderColor: '#9667e0',
+      backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+      borderColor: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
     },
   },
 }));
@@ -150,26 +151,26 @@ export const TimeDisplay = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   padding: theme.spacing(2, 4),
   background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-    : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+    ? colors.background.dark.paper
+    : colors.background.light.paper,
   borderRadius: 16,
   border: theme.palette.mode === 'dark'
-    ? '1px solid rgba(150, 103, 224, 0.2)'
-    : '1px solid rgba(150, 103, 224, 0.1)',
+    ? `1px solid ${colors.border.dark.primary}`
+    : `1px solid ${colors.border.light.primary}`,
   boxShadow: theme.palette.mode === 'dark' 
-    ? '0 4px 16px rgba(0, 0, 0, 0.2)' 
-    : '0 4px 16px rgba(150, 103, 224, 0.08)',
+    ? colors.shadow.dark.low
+    : colors.shadow.light.low,
   display: 'inline-flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  color: theme.palette.mode === 'dark' ? '#d4bbfc' : '#7c3aed',
+  color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
 }));
 
 export const XpDisplay = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+  background: colors.warning.main,
   padding: theme.spacing(1.5, 2.5),
   borderRadius: 12,
   color: 'white',
@@ -200,11 +201,11 @@ export const CongratsDialog = styled(Dialog)(({ theme }) => ({
     maxWidth: '400px',
     width: '100%',
     background: theme.palette.mode === 'dark' 
-      ? 'linear-gradient(145deg, #2d2d44 0%, #3a3a5c 100%)'
-      : 'linear-gradient(145deg, #ffffff 0%, #fbfaff 100%)',
+      ? colors.background.dark.paper
+      : colors.background.light.paper,
     border: theme.palette.mode === 'dark'
-      ? '1px solid rgba(150, 103, 224, 0.2)'
-      : '1px solid rgba(150, 103, 224, 0.1)',
+      ? `1px solid ${colors.border.dark.primary}`
+      : `1px solid ${colors.border.light.primary}`,
   },
 }));
 
@@ -230,32 +231,34 @@ export const FloatingButton = styled(Button)(({ theme }) => ({
   width: '64px',
   height: '64px',
   minWidth: '64px',
-  background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
-  color: 'white',
+  background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+  color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
   fontWeight: 'bold',
   fontSize: '1.2rem',
-  boxShadow: '0 8px 24px rgba(150, 103, 224, 0.3)',
+  boxShadow: getThemeColor(colors.shadow.light.medium, colors.shadow.dark.medium),
   transition: 'all 0.3s ease-in-out',
   '&:hover': {
-    background: 'linear-gradient(135deg, #7c3aed 0%, #9667e0 100%)',
+    background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
     transform: 'translateY(-4px)',
-    boxShadow: '0 12px 32px rgba(150, 103, 224, 0.4)',
+    boxShadow: getThemeColor(colors.shadow.light.high, colors.shadow.dark.high),
   },
 }));
 
 export const quizStyles = {
   backButton: {
     background: theme => theme.palette.mode === 'dark' 
-      ? 'rgba(150, 103, 224, 0.1)' 
-      : 'rgba(150, 103, 224, 0.05)',
-    color: '#9667e0',
-    border: '1px solid rgba(150, 103, 224, 0.2)',
+      ? colors.overlay.dark.medium
+      : colors.overlay.light.medium,
+    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
+    border: theme => theme.palette.mode === 'dark'
+      ? `1px solid ${colors.border.dark.secondary}`
+      : `1px solid ${colors.border.light.secondary}`,
     borderRadius: 2,
     transition: 'all 0.2s ease-in-out',
     '&:hover': {
       background: theme => theme.palette.mode === 'dark' 
-        ? 'rgba(150, 103, 224, 0.2)' 
-        : 'rgba(150, 103, 224, 0.1)',
+        ? colors.overlay.dark.high
+        : colors.overlay.light.high,
       transform: 'translateY(-1px)',
     },
   },
@@ -263,22 +266,22 @@ export const quizStyles = {
     p: 4,
   },
   questionChip: {
-    background: 'linear-gradient(135deg, #9667e0 0%, #d4bbfc 100%)',
-    color: 'white',
+    background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     fontWeight: 'bold',
   },
   questionTitle: {
     fontWeight: 600,
     lineHeight: 1.4,
-    color: theme => theme.palette.mode === 'dark' ? '#e3dff2' : '#2d1b69',
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
   },
   correctChip: {
-    background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+    background: colors.success.main,
     color: 'white',
     fontWeight: 'bold',
   },
   wrongChip: {
-    background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',
+    background: colors.error.main,
     color: 'white',
     fontWeight: 'bold',
   },
@@ -293,7 +296,7 @@ export const quizStyles = {
     mb: 2,
     p: 2,
     borderRadius: 3,
-    background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+    background: colors.warning.main,
     color: 'white',
   },
   progressContainer: {
@@ -303,11 +306,11 @@ export const quizStyles = {
     p: 3,
     borderRadius: 2,
     background: theme => theme.palette.mode === 'dark' 
-      ? 'rgba(150, 103, 224, 0.1)' 
-      : 'rgba(150, 103, 224, 0.05)',
+      ? colors.overlay.dark.medium
+      : colors.overlay.light.medium,
     border: theme => theme.palette.mode === 'dark'
-      ? '1px solid rgba(150, 103, 224, 0.2)'
-      : '1px solid rgba(150, 103, 224, 0.1)',
+      ? `1px solid ${colors.border.dark.secondary}`
+      : `1px solid ${colors.border.light.secondary}`,
     mb: 3,
   },
   statusContainer: {
@@ -316,9 +319,159 @@ export const quizStyles = {
     borderRadius: 2,
   },
   completedStatus: {
-    background: 'linear-gradient(135deg, rgba(46, 125, 50, 0.1) 0%, rgba(76, 175, 80, 0.1) 100%)',
+    background: colors.success.lighter,
   },
   inProgressStatus: {
-    background: 'linear-gradient(135deg, rgba(150, 103, 224, 0.1) 0%, rgba(212, 187, 252, 0.1) 100%)',
+    background: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+  },
+  
+  // Results page styles
+  resultsXpBox: {
+    display: 'inline-flex', 
+    alignItems: 'center', 
+    gap: 1, 
+    mb: 2,
+    p: 2,
+    borderRadius: 3,
+    background: '#f59e0b',
+    color: 'white'
+  },
+  
+  resultsStatsContainer: {
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    mb: 2
+  },
+  
+  progressBarContainer: {
+    mb: 3
+  },
+  
+  progressBar: {
+    height: 12, 
+    borderRadius: 2,
+    backgroundColor: theme => theme.palette.mode === 'dark' ? '#3a3a5c' : '#e5e7eb',
+    '& .MuiLinearProgress-bar': {
+      borderRadius: 2,
+    }
+  },
+  
+  progressBarCompleted: {
+    background: '#4caf50',
+  },
+  
+  progressBarIncomplete: {
+    background: theme => theme.palette.mode === 'dark' ? '#666666' : '#999999',
+  },
+  
+  resultsMessageBox: {
+    p: 3,
+    borderRadius: 2,
+    background: theme => theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : 'rgba(0, 0, 0, 0.03)',
+    border: theme => theme.palette.mode === 'dark'
+      ? '1px solid rgba(255, 255, 255, 0.1)'
+      : '1px solid rgba(0, 0, 0, 0.1)',
+    mb: 3
+  },
+  
+  resultsMessageText: {
+    fontWeight: 500,
+    textAlign: 'center',
+    lineHeight: 1.6
+  },
+  
+  resultsStatusBox: {
+    textAlign: 'center',
+    p: 2,
+    borderRadius: 2,
+  },
+  
+  resultsStatusCompleted: {
+    background: 'rgba(76, 175, 80, 0.1)',
+  },
+  
+  resultsStatusInProgress: {
+    background: theme => theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)' 
+      : 'rgba(0, 0, 0, 0.03)',
+  },
+  
+  resultsStatusTitle: {
+    fontWeight: 'bold',
+    mb: 1
+  },
+  
+  // Answer chips
+  correctAnswerChip: {
+    background: '#4caf50',
+    color: 'white',
+    fontWeight: 'bold'
+  },
+  
+  wrongAnswerChip: {
+    background: '#f44336',
+    color: 'white',
+    fontWeight: 'bold'
+  },
+  
+  // Error dialog styles
+  errorDialog: {
+    '& .MuiDialog-paper': {
+      borderRadius: 20,
+      padding: 3,
+      textAlign: 'center',
+      maxWidth: '400px',
+      width: '100%',
+      background: theme => theme.palette.mode === 'dark' 
+        ? '#2A2A2A'
+        : '#FBFBFA',
+      border: '1px solid rgba(211, 47, 47, 0.2)',
+    }
+  },
+  
+  errorDialogTitle: {
+    fontWeight: 'bold', 
+    fontSize: '1.5rem', 
+    color: '#d32f2f',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1
+  },
+  
+  errorMessageBox: {
+    p: 2,
+    borderRadius: 2,
+    background: 'rgba(244, 67, 54, 0.1)',
+    border: '1px solid rgba(211, 47, 47, 0.2)',
+    mb: 2
+  },
+  
+  errorMessageText: {
+    fontWeight: 500,
+    color: '#d32f2f',
+    mb: 1
+  },
+  
+  errorDialogButton: {
+    background: '#f44336',
+    '&:hover': {
+      background: '#d32f2f',
+    }
+  },
+  
+  // Results backdrop
+  resultsBackdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  
+  resultsDialogPaper: {
+    borderRadius: 3,
+    padding: 3,
+    textAlign: 'center',
+    maxWidth: '400px',
+    width: '100%',
   },
 }; 

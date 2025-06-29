@@ -29,10 +29,7 @@ export const levelsStyles = {
     mb: 3,
     fontWeight: 700,
     fontSize: '2rem',
-    background: colors.gradients.primary,
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     textAlign: 'center',
   },
   tabsContainer: {
@@ -82,8 +79,8 @@ export const levelsStyles = {
         transform: 'scale(1.02)',
       },
       '&.Mui-selected': {
-        background: colors.gradients.primary,
-        color: colors.special.white,
+        background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+        color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
         fontWeight: 700,
         boxShadow: getThemeColor(
           `0 0 0 1px ${colors.border.light.focus}, 0 2px 6px ${colors.shadow.light.primary}`,
@@ -97,7 +94,7 @@ export const levelsStyles = {
           left: 0,
           right: 0,
           bottom: 0,
-          background: colors.gradients.overlayLight,
+          background: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
           borderRadius: 3,
           pointerEvents: 'none',
         },
@@ -138,7 +135,7 @@ export const levelsStyles = {
       left: 0,
       right: 0,
       height: '3px',
-      background: colors.gradients.rainbow,
+      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
       opacity: 0,
       transition: 'opacity 0.3s ease',
     },
@@ -177,10 +174,7 @@ export const levelsStyles = {
   cardTitle: {
     fontWeight: 700,
     fontSize: '1.1rem',
-    background: colors.gradients.primary,
-    backgroundClip: 'text',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     letterSpacing: '-0.02em',
     lineHeight: 1.2,
   },
@@ -206,11 +200,11 @@ export const levelsStyles = {
     fontSize: '0.7rem',
     fontWeight: 500,
     height: 22,
-    background: getThemeGradient(colors.gradients.chipLight, colors.gradients.chipDark),
-    color: colors.primary.main,
+    background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
+    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
     border: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
     '&:hover': {
-      background: getThemeGradient(colors.gradients.chipLightHover, colors.gradients.chipDarkHover),
+      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
       transform: 'translateY(-1px)',
     },
     transition: 'all 0.2s ease',
@@ -224,7 +218,7 @@ export const levelsStyles = {
   metricCard: {
     p: 1.5,
     borderRadius: 2,
-    background: getThemeGradient(colors.gradients.cardLightGlass, colors.gradients.cardDarkGlass),
+    background: getThemeColor(colors.background.light.surface, colors.background.dark.surface),
     border: getThemeColor(colors.border.light.secondary, colors.border.dark.secondary),
     textAlign: 'center',
     transition: 'all 0.3s ease',
@@ -241,7 +235,7 @@ export const levelsStyles = {
   metricValue: {
     fontSize: '0.9rem',
     fontWeight: 700,
-    color: colors.primary.main,
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
     lineHeight: 1.1,
     mb: 0.3,
   },
@@ -260,7 +254,7 @@ export const levelsStyles = {
     borderRadius: 3,
     backgroundColor: colors.border.light.secondary,
     '& .MuiLinearProgress-bar': {
-      background: colors.gradients.primary,
+      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
       borderRadius: 3,
     },
   },
@@ -273,17 +267,17 @@ export const levelsStyles = {
   progressText: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: colors.primary.main,
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
   },
   progressPercentage: {
     fontSize: '0.85rem',
     fontWeight: 700,
-    color: colors.primary.main,
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
   },
   activeSessionContainer: {
     mt: 1.5,
     p: 2,
-    background: getThemeGradient(colors.gradients.sessionLight, colors.gradients.sessionDark),
+    background: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
     borderRadius: 2,
     border: getThemeColor(colors.warning.accent, colors.warning.lighter),
     position: 'relative',
@@ -294,7 +288,7 @@ export const levelsStyles = {
       left: 0,
       right: 0,
       height: '2px',
-      background: colors.gradients.sessionWarning,
+      background: colors.warning.main,
     },
   },
   activeSessionTitle: {
@@ -341,7 +335,7 @@ export const levelsStyles = {
     color: 'warning',
     variant: 'contained',
     sx: {
-      background: colors.gradients.warning,
+      background: colors.warning.main,
       color: colors.special.white,
       fontWeight: 600,
       textTransform: 'none',
@@ -351,7 +345,7 @@ export const levelsStyles = {
       fontSize: '0.8rem',
       boxShadow: colors.shadow.light.warning,
       '&:hover': {
-        background: colors.gradients.warningAlt,
+        background: colors.warning.dark,
         transform: 'translateY(-1px)',
         boxShadow: colors.shadow.light.warningHigh,
       },
@@ -384,8 +378,8 @@ export const levelsStyles = {
   startButton: {
     color: 'primary',
     sx: {
-      background: colors.gradients.primary,
-      color: colors.special.white,
+      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+      color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
       fontWeight: 600,
       textTransform: 'none',
       borderRadius: 1.5,
@@ -394,7 +388,7 @@ export const levelsStyles = {
       fontSize: '0.85rem',
       boxShadow: colors.shadow.light.primary,
       '&:hover': {
-        background: colors.gradients.primaryAlt,
+        background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
         transform: 'translateY(-1px)',
         boxShadow: colors.shadow.light.primaryHigh,
       },
