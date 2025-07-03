@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
   IconButton, 
@@ -19,6 +19,7 @@ import {
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
   Login as LoginIcon,
+  Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { authClient } from '../lib/auth-client';
 import { useDispatch } from 'react-redux';  
@@ -27,6 +28,7 @@ import { StyledAppBar, BrandText, navbarStyles } from '../theme/navbarTheme';
 
 const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle = false }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { data: session } = authClient.useSession();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -87,15 +89,6 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
         <Box sx={{ flexGrow: 1 }} />
         
         <Box sx={navbarStyles.rightSection}>
-          {/* Dark Mode Toggle */}
-          <IconButton
-            onClick={onDarkModeToggle}
-            sx={navbarStyles.themeToggle}
-            size="small"
-          >
-            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-          
           {/* Authenticated User Menu */}
           {session ? (
             <>
@@ -104,10 +97,10 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                 sx={{ 
                   p: '0 !important', 
                   m: '0 !important',
-                  minWidth: '24px !important', 
-                  minHeight: '24px !important',
-                  width: '24px',
-                  height: '24px'
+                  minWidth: '36px !important', 
+                  minHeight: '36px !important',
+                  width: '36px',
+                  height: '36px'
                 }}
               >
                 <Avatar sx={navbarStyles.avatar}>
@@ -134,6 +127,12 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                     secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary' }}
                   />
                 </MenuItem>
+                <MenuItem onClick={(e) => { e.stopPropagation(); onDarkModeToggle(); }} sx={navbarStyles.menuItem}>
+                  <ListItemIcon>
+                    {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+                  </ListItemIcon>
+                  <ListItemText primary={darkMode ? "Light Mode" : "Dark Mode"} />
+                </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout} sx={navbarStyles.logoutMenuItem}>
                   <ListItemIcon>
@@ -145,15 +144,24 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
             </>
           ) : (
             /* Unauthenticated User Buttons */
-            <Button
-              onClick={handleLogin}
-              variant="contained"
-              startIcon={<LoginIcon />}
-              size="small"
-              sx={navbarStyles.loginButton}
-            >
-              Login
-            </Button>
+            <>
+              <IconButton
+                onClick={onDarkModeToggle}
+                sx={navbarStyles.themeToggle}
+                size="small"
+              >
+                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+              <Button
+                onClick={handleLogin}
+                variant="contained"
+                startIcon={<LoginIcon />}
+                size="small"
+                sx={navbarStyles.loginButton}
+              >
+                Login
+              </Button>
+            </>
           )}
         </Box>
       </Toolbar>

@@ -38,7 +38,7 @@ const Chapters: React.FC = () => {
   }, []);
 
   const handleChapterClick = (chapterId: string) => {
-    navigate(`/levels/${chapterId}`);
+    navigate(`/chapter/${chapterId}`);
   };
 
   return (

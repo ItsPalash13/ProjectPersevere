@@ -7,7 +7,7 @@ export const levelApi = createApi({
     credentials: 'include'
   }),
   endpoints: (builder) => ({
-    getLevels: builder.query({
+    getChapterInfo: builder.query({
       query: (chapterId) => `/api/levels/${chapterId}`,
     }),
     startLevel: builder.mutation({
@@ -21,6 +21,6 @@ export const levelApi = createApi({
 });
 
 export const { 
-  useGetLevelsQuery,
+  useGetChapterInfoQuery,
   useStartLevelMutation
 } = levelApi; 

@@ -161,7 +161,7 @@ export const colors = {
     offWhite: '#FBFBFA',
     darkGray: '#0A0A0A',
     black: '#000000',
-    transparent: 'transparent',
+    transparent: 'rgb(255, 255, 255)',
     backdrop: 'rgba(0, 0, 0, 0.8)',
   },
 

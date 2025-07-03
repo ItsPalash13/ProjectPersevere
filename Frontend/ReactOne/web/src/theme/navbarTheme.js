@@ -11,8 +11,8 @@ export const StyledAppBar = styled(AppBar)(({ theme }) => ({
   padding: 0,
   margin: 0,
   '& .MuiToolbar-root': {
-    padding: '0 !important',
-    minHeight: '24px !important',
+    padding: '4px !important',
+    minHeight: '48px !important',
   },
 }));
 
@@ -28,15 +28,15 @@ export const BrandText = styled(Typography)(({ theme }) => ({
 
 export const navbarStyles = {
   toolbar: {
-    minHeight: '24px !important',
-    padding: '0px !important',
+    minHeight: '48px !important',
+    padding: '4px !important',
     margin: '10px !important',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     '&.MuiToolbar-root': {
-      padding: '0 !important',
-      minHeight: '24px !important',
+      padding: '4px !important',
+      minHeight: '48px !important',
     },
   },
   leftSection: {
@@ -54,13 +54,13 @@ export const navbarStyles = {
     marginRight: 1,
   },
   avatar: {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
     background: colors.gradients.primary,
     color: colors.special.white,
     fontWeight: 'bold',
     cursor: 'pointer',
-    fontSize: '0.75rem',
+    fontSize: '0.9rem',
     '&:hover': {
       background: colors.gradients.primaryDark,
       transform: 'scale(1.05)',
@@ -158,6 +158,76 @@ export const navbarStyles = {
     },
     '& .MuiListItemText-primary': {
       fontSize: '0.8rem',
+    },
+  },
+  searchBar: {
+    position: 'relative',
+    borderRadius: 12,
+    backgroundColor: 'transparent',
+    border: getThemeColor('1px solid rgba(0, 0, 0, 0.2)', '1px solid rgba(255, 255, 255, 0.3)'),
+    '&:hover': {
+      borderColor: getThemeColor('rgba(0, 0, 0, 0.3)', 'rgba(255, 255, 255, 0.4)'),
+    },
+    '&:focus-within': {
+      borderColor: getThemeColor('rgba(0, 0, 0, 0.4)', 'rgba(255, 255, 255, 0.5)'),
+    },
+    marginLeft: 1,
+    marginRight: 1,
+    width: '100%',
+    maxWidth: 500,
+    height: 40,
+    display: 'flex',
+    alignItems: 'center',
+    paddingRight: 0,
+    transition: 'all 0.2s ease',
+  },
+  searchInput: {
+    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    fontSize: '0.9rem',
+    padding: '8px 12px',
+    paddingRight: 0,
+    width: '100%',
+    border: 'none',
+    outline: 'none',
+    backgroundColor: 'transparent',
+    fontFamily: 'inherit',
+    '&::placeholder': {
+      color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
+      fontSize: '0.9rem',
+    },
+  },
+  searchActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 0.5,
+    height: '100%',
+  },
+  searchIconButton: {
+    padding: '0 12px',
+    minWidth: '40px',
+    height: '100%',
+    backgroundColor: getThemeColor('rgba(0, 0, 0, 0.06)', 'rgba(255, 255, 255, 0.1)'),
+    borderLeft: getThemeColor('1px solid rgba(0, 0, 0, 0.1)', '1px solid rgba(255, 255, 255, 0.15)'),
+    borderRadius: '0 16px 16px 0',
+    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.1rem',
+    },
+  },
+  clearButton: {
+    padding: '4px',
+    minWidth: '24px',
+    minHeight: '24px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: 1,
+    marginRight: 0.5,
+    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
+    '&:hover': {
+      backgroundColor: getThemeColor('rgba(0, 0, 0, 0.08)', 'rgba(255, 255, 255, 0.12)'),
+    },
+    '& .MuiSvgIcon-root': {
+      fontSize: '0.9rem',
     },
   },
 }; 

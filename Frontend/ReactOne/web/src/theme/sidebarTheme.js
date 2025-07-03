@@ -38,16 +38,12 @@ export const StyledListItemButton = styled(ListItemButton)(({ theme, selected })
   margin: theme.spacing(0.5, 1),
   borderRadius: theme.spacing(1.5),
   minHeight: 48,
-  background: selected 
-    ? getThemeColor(colors.app.light.border, colors.app.dark.border)(theme)
-    : colors.special.transparent,
+  backgroundColor: selected 
+    ? `${getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium)(theme)} !important`
+    : 'transparent !important',
   color: selected ? getThemeColor(colors.text.light.primary, colors.text.dark.primary)(theme) : themeColors.text.primary(theme),
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
-    background: selected 
-      ? getThemeColor(colors.app.light.accent, colors.app.dark.accent)(theme)
-      : getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium)(theme),
-    transform: 'translateX(4px)',
+    backgroundColor: `${getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium)(theme)} !important`,
   },
   '& .MuiListItemIcon-root': {
     minWidth: 0,
@@ -91,6 +87,32 @@ export const sidebarStyles = {
     p: 2,
     borderTop: themeColors.card.border,
     background: getThemeColor(colors.overlay.light.low, colors.overlay.dark.low),
+  },
+  listContainer: {
+    '& .MuiListItem-root': {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  },
+  listItemIcon: {
+    justifyContent: 'center',
+    color: 'inherit',
+  },
+  toggleButton: {
+    padding: '6px',
+    '& .MuiSvgIcon-root': {
+      fontSize: '1.2rem',
+    },
+  },
+  drawerPaper: {
+    '& .MuiDrawer-paper': {
+      width: 280,
+      boxSizing: 'border-box',
+      background: getThemeGradient(colors.gradients.cardLightGlass, colors.gradients.cardDarkAlt),
+      backdropFilter: 'blur(20px)',
+      borderRight: '1px solid',
+      borderColor: getThemeColor(colors.border.light.primary, colors.border.dark.primary),
+    },
   },
   navigationItems: [
     { text: 'Dashboard', icon: 'dashboard', path: '/dashboard' },

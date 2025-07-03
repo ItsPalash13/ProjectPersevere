@@ -14,8 +14,8 @@ const ChapterCard = ({ chapter, onClick }) => {
     if (onClick) {
       onClick(chapter);
     }
-    // Navigate to levels page
-    navigate(`/levels/${chapter._id}`);
+    // Navigate to chapter page
+    navigate(`/chapter/${chapter._id}`);
   };
 
   return (
@@ -39,27 +39,7 @@ const ChapterCard = ({ chapter, onClick }) => {
           {chapter.name}
         </Typography>
         
-        {chapter.topics && chapter.topics.length > 0 && (
-          <Box sx={chapterCardStyles.topicsContainer}>
-            {chapter.topics.slice(0, 4).map((topic, index) => (
-              <Typography 
-                key={index} 
-                variant="caption" 
-                sx={chapterCardStyles.topicChip}
-              >
-                {topic}
-              </Typography>
-            ))}
-            {chapter.topics.length > 4 && (
-              <Typography 
-                variant="caption" 
-                sx={chapterCardStyles.topicCount}
-              >
-                +{chapter.topics.length - 4}
-              </Typography>
-            )}
-          </Box>
-        )}
+
       </Box>
     </StyledChapterCard>
   );

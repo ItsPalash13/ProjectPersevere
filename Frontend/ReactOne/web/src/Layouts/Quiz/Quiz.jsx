@@ -155,7 +155,7 @@ const Quiz = ({ socket }) => {
   };
 
   const handleBack = () => {
-    navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
+    navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
   };
 
   const getLevelSession = () => {
@@ -575,7 +575,7 @@ const Quiz = ({ socket }) => {
               onClick={() => {
                 setShowCongrats(false);
                 confirmEndQuiz();
-                navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
+                navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
               }}
             >
               Back to Levels
@@ -612,7 +612,7 @@ const Quiz = ({ socket }) => {
               variant="contained"
               onClick={() => {
                 setShowResults(false);
-                navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
+                navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
               }}
             >
               Back to Levels
@@ -685,7 +685,7 @@ const Quiz = ({ socket }) => {
               sx={quizStyles.errorDialogButton}
               onClick={() => {
                 setShowError(false);
-                navigate(`/levels/${levelSession?.chapterId}`, { replace: true });
+                navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
               }}
             >
               Back to Levels

@@ -66,6 +66,7 @@ const createAppTheme = (isDark) => createTheme({
     },
     background: {
       default: isDark ? '#1F1F1F' : '#FFFFFF',
+      surface: isDark ? '#0A0A0A' : '#FFFFFF',
       paper: isDark ? '#2A2A2A' : '#FBFBFA',
     },
     text: {
@@ -166,7 +167,7 @@ function AppContent() {
   );
   
   // Device pixel ratio state for zoom level tracking
-  const [devicePixelRatio, setDevicePixelRatio] = useState(window.devicePixelRatio);
+  // const [devicePixelRatio, setDevicePixelRatio] = useState(window.devicePixelRatio);
 
   const theme = createAppTheme(darkMode);
   const isAuthenticated = !!session?.session;
@@ -184,30 +185,30 @@ function AppContent() {
   };
 
   // Track device pixel ratio changes (zoom level changes)
-  useEffect(() => {
-    const updateDevicePixelRatio = () => {
-      const newRatio = window.devicePixelRatio;
-      setDevicePixelRatio(newRatio);
-      
-      // At 90% zoom (approximately 0.9 ratio), if collapsed, set to expanded
-      if (Math.round(newRatio * 100) === 90 && !sidebarOpen) {
-        setSidebarOpen(true);
-        setStorageValue(STORAGE_KEYS.SIDEBAR_OPEN, true);
-      }
-    };
+  // useEffect(() => {
+  //   const updateDevicePixelRatio = () => {
+  //     const newRatio = window.devicePixelRatio;
+  //     setDevicePixelRatio(newRatio);
+  //     
+  //     // At 90% zoom (approximately 0.9 ratio), if collapsed, set to expanded
+  //     if (Math.round(newRatio * 100) === 90 && !sidebarOpen) {
+  //       setSidebarOpen(true);
+  //       setStorageValue(STORAGE_KEYS.SIDEBAR_OPEN, true);
+  //     }
+  //   };
 
-    // Listen for resize events (which occur when zooming)
-    window.addEventListener('resize', updateDevicePixelRatio);
-    
-    // Also listen for orientation changes on mobile
-    window.addEventListener('orientationchange', updateDevicePixelRatio);
+  //   // Listen for resize events (which occur when zooming)
+  //   window.addEventListener('resize', updateDevicePixelRatio);
+  //   
+  //   // Also listen for orientation changes on mobile
+  //   window.addEventListener('orientationchange', updateDevicePixelRatio);
 
-    // Cleanup event listeners
-    return () => {
-      window.removeEventListener('resize', updateDevicePixelRatio);
-      window.removeEventListener('orientationchange', updateDevicePixelRatio);
-    };
-  }, [sidebarOpen]);
+  //   // Cleanup event listeners
+  //   return () => {
+  //     window.removeEventListener('resize', updateDevicePixelRatio);
+  //     window.removeEventListener('orientationchange', updateDevicePixelRatio);
+  //   };
+  // }, [sidebarOpen]);
 
   useEffect(() => {
     console.log('Session data from auth client:', session); // Debug log
@@ -233,7 +234,7 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: theme.palette.background.surface}}>
         {showNavbar && (
           <Navbar 
             darkMode={darkMode} 
@@ -245,7 +246,7 @@ function AppContent() {
             <Sidebar 
               open={sidebarOpen} 
               onToggle={handleSidebarToggle}
-              devicePixelRatio={devicePixelRatio}
+              // devicePixelRatio={devicePixelRatio}
             />
           )}
           <Box 
@@ -271,7 +272,7 @@ function AppContent() {
               />
               <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz socket={socket} /></ProtectedRoute>} />
               <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
-              <Route path="/levels/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
+              <Route path="/chapter/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>

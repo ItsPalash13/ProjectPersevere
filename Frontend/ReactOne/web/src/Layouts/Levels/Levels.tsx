@@ -11,7 +11,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 // @ts-ignore
-import { useGetLevelsQuery, useStartLevelMutation } from '../../features/api/levelAPI';
+import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
 // @ts-ignore
 import { setLevelSession } from '../../features/auth/levelSessionSlice';
 // @ts-ignore
@@ -56,14 +56,25 @@ export interface Level {
   } | null;
 }
 
+export interface Chapter {
+  _id: string;
+  name: string;
+  description: string;
+  gameName: string;
+  topics: string[];
+  status: boolean;
+  thumbnailUrl?: string;
+}
+
 const Levels: React.FC = () => {
   const [levels, setLevels] = useState<{ timeRush: Level[], precisionPath: Level[] }>({ timeRush: [], precisionPath: [] });
+  const [chapter, setChapter] = useState<Chapter | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data: levelsData, isLoading, refetch } = useGetLevelsQuery(chapterId || '', {
+  const { data: chapterData, isLoading, refetch } = useGetChapterInfoQuery(chapterId || '', {
     skip: !chapterId
   });
   const [startLevel] = useStartLevelMutation();
@@ -75,10 +86,13 @@ const Levels: React.FC = () => {
   }, [chapterId, refetch]);
 
   useEffect(() => {
-    if (levelsData?.data) {
-      setLevels(levelsData.data);
+    if (chapterData?.data) {
+      setLevels(chapterData.data);
     }
-  }, [levelsData]);
+    if (chapterData?.meta?.chapter) {
+      setChapter(chapterData.meta.chapter);
+    }
+  }, [chapterData]);
 
   const handleLevelClick = async (levelId: string, mode: 'time_rush' | 'precision_path') => {
     try {
@@ -117,21 +131,64 @@ const Levels: React.FC = () => {
         <Box sx={levelsStyles.loadingContainer}>
           <CircularProgress color="primary" size={60} />
           <Typography variant="h6">
-            Starting Level...
+            Loading Chapter...
           </Typography>
         </Box>
       </Backdrop>
 
       <Container maxWidth="lg" sx={levelsStyles.pageContainer}>
-        <Typography variant="h4" component="h1" gutterBottom sx={levelsStyles.pageTitle}>
-          Levels
-        </Typography>
+        {chapter && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600 }}>
+              {chapter.name}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+              {chapter.topics.map((topic, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    px: 1,
+                    py: 0.25,
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    borderRadius: 0.75,
+                    fontSize: '0.75rem',
+                    fontWeight: 500
+                  }}
+                >
+                  {topic}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
         
-        <Box sx={levelsStyles.tabsContainer}>
-          <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tab label="Time Rush" />
-            <Tab label="Precision Path" />
-          </Tabs>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ flex: 1 }} />
+          <Box sx={{ ml: 'auto' }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={handleTabChange}
+              sx={{
+                minHeight: 'auto',
+                '& .MuiTabs-indicator': {
+                  height: 2,
+                },
+                '& .MuiTab-root': {
+                  minHeight: 'auto',
+                  minWidth: 'auto',
+                  px: 2,
+                  py: 1,
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                },
+              }}
+            >
+              <Tab label="Time Rush" />
+              <Tab label="Precision Path" />
+            </Tabs>
+          </Box>
         </Box>
 
         <Box sx={levelsStyles.gridContainer}>
@@ -140,6 +197,7 @@ const Levels: React.FC = () => {
                 <LevelCard 
                   key={`${level._id}_${level.mode}`}
                   level={level} 
+                  chapter={chapter}
                   onLevelClick={handleLevelClick} 
                 />
               ))
@@ -147,6 +205,7 @@ const Levels: React.FC = () => {
                 <LevelCard 
                   key={`${level._id}_${level.mode}`}
                   level={level} 
+                  chapter={chapter}
                   onLevelClick={handleLevelClick} 
                 />
               ))

@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { setLevelSession } from '../features/auth/levelSessionSlice';
 import { levelsStyles } from '../theme/levelsTheme';
 
-const LevelCard = ({ level, onLevelClick }) => {
+const LevelCard = ({ level, chapter, onLevelClick }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
@@ -36,17 +36,75 @@ const LevelCard = ({ level, onLevelClick }) => {
 
   return (
     <Card sx={cardStyles}>
+      {/* Chapter Image with Level Name Overlay */}
+      <Box 
+        sx={{ 
+          position: 'relative',
+          width: '100%',
+          height: 160,
+          borderRadius: '8px 8px 0 0',
+          overflow: 'hidden',
+          background: chapter?.thumbnailUrl 
+            ? `url(${chapter.thumbnailUrl}) center/cover no-repeat`
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        {/* Dark overlay for better text visibility */}
+        <Box 
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 1
+          }}
+        />
+        
+        {/* Lock Icon */}
+        {!level.status && (
+          <Box 
+            sx={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              zIndex: 3,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: '50%',
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <LockIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+          </Box>
+        )}
+        
+        {/* Level Name Overlay */}
+        <Typography 
+          variant="h5" 
+          component="h2"
+          sx={{ 
+            position: 'relative',
+            zIndex: 2,
+            color: 'white',
+            fontWeight: 700,
+            textAlign: 'center',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+            px: 2
+          }}
+        >
+          {level.name}
+        </Typography>
+      </Box>
+      
       <CardContent sx={levelsStyles.cardContent}>
-        <Box sx={levelsStyles.cardHeader}>
-          <Typography variant="h5" component="h2" sx={levelsStyles.cardTitle}>
-            {level.name}
-          </Typography>
-          {!level.status && (
-            <IconButton disabled size="small" sx={levelsStyles.lockIcon}>
-              <LockIcon />
-            </IconButton>
-          )}
-        </Box>
         
         <Typography variant="body2" paragraph sx={levelsStyles.cardDescription}>
           {level.description}

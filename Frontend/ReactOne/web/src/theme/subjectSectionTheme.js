@@ -5,11 +5,12 @@ export const subjectSectionStyles = {
     mb: 5,
   },
   sectionTitle: {
-    mb: 3,
+    mb: 1.5,
     display: 'flex',
     alignItems: 'center',
     gap: 1,
     color: 'text.primary',
+    fontWeight: 500,
   },
   scrollContainer: {
     position: 'relative',

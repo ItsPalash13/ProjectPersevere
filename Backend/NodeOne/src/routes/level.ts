@@ -1,5 +1,6 @@
 import express, { Request, Response, RequestHandler } from 'express';
 import { Level } from '../models/Level';
+import { Chapter } from '../models/Chapter';
 import { UserChapterLevel } from '../models/UserChapterLevel';
 import { UserLevelSession } from '../models/UserLevelSession';
 import { UserChapterLevelPerformanceLogs } from '../models/UserChapterLevelPerformanceLogs';
@@ -182,6 +183,17 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
       });
     }
 
+    // Get chapter information
+    const chapter = await Chapter.findById(chapterId)
+      .select('name description gameName topics status thumbnailUrl');
+
+    if (!chapter) {
+      return res.status(404).json({
+        success: false,
+        error: 'Chapter not found'
+      });
+    }
+
     // Get user progress for these levels for both modes
     const userProgress = await UserChapterLevel.find({
         userId: new mongoose.Types.ObjectId(userId),
@@ -243,6 +255,9 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         total: levels.length,
         timeRush: timeRushLevels.length,
         precisionPath: precisionPathLevels.length
+      },
+      meta: {
+        chapter: chapter.toObject()
       },
       data: {
         timeRush: timeRushLevels,
