@@ -16,7 +16,8 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
-  Chip
+  Chip,
+  Drawer
 } from '@mui/material';
 import { 
   ArrowBack as ArrowBackIcon, 
@@ -91,6 +92,7 @@ const Quiz = ({ socket }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [isSocketInitialized, setIsSocketInitialized] = useState(false);
+  const [showAnswerDrawer, setShowAnswerDrawer] = useState(false);
   const lastUpdateTimeRef = React.useRef(0);
   const timerIntervalRef = React.useRef(null);
   const [attemptType, setAttemptType] = useState(null);
@@ -137,6 +139,7 @@ const Quiz = ({ socket }) => {
 
   const handleNextQuestion = () => {
     setAnswerResult(null);
+    setShowAnswerDrawer(false);
     requestQuestion();
   };
 
@@ -277,6 +280,7 @@ const Quiz = ({ socket }) => {
       console.log("Received answer result:", { isCorrect, correctAnswer, currentXp });
       setAnswerResult({ isCorrect, correctAnswer });
       setCurrentXp(currentXp);
+      setShowAnswerDrawer(true);
     });
 
     socket.on('levelCompleted', ({ message, attemptType: eventAttemptType }) => {
@@ -418,23 +422,6 @@ const Quiz = ({ socket }) => {
                 {currentXp} XP
               </Typography>
             </XpDisplay>
-            {answerResult && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {answerResult.isCorrect ? (
-                  <Chip 
-                    icon={<CheckCircleIcon />}
-                    label="Correct!"
-                    sx={quizStyles.correctAnswerChip}
-                  />
-                ) : (
-                  <Chip 
-                    icon={<CancelIcon />}
-                    label="Try Again"
-                    sx={quizStyles.wrongAnswerChip}
-                  />
-                )}
-              </Box>
-            )}
           </Box>
           <StyledButton
             variant="contained"
@@ -692,6 +679,59 @@ const Quiz = ({ socket }) => {
             </StyledButton>
           </DialogActions>
         </Dialog>
+
+        {/* Answer Result Drawer */}
+        <Drawer
+          anchor="bottom"
+          open={showAnswerDrawer}
+          onClose={() => setShowAnswerDrawer(false)}
+          PaperProps={{
+            sx: {
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              backgroundColor: answerResult?.isCorrect ? '#2e7d32' : '#d32f2f',
+              color: 'white',
+              padding: 2,
+              textAlign: 'center',
+              minHeight: '120px',
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 3,
+            }
+          }}
+        >
+          <Box sx={{ fontSize: '2.5rem' }}>
+            {answerResult?.isCorrect ? '😊' : '😔'}
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {answerResult?.isCorrect ? 'Correct!' : 'Try Again'}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              {answerResult?.isCorrect 
+                ? 'Great job! You got it right!' 
+                : 'Don\'t worry, keep trying!'
+              }
+            </Typography>
+          </Box>
+          <StyledButton
+            variant="contained"
+            size="medium"
+            onClick={handleNextQuestion}
+            disabled={isLoading}
+            sx={{
+              backgroundColor: 'white',
+              color: answerResult?.isCorrect ? '#2e7d32' : '#d32f2f',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              },
+            }}
+          >
+            Next Question
+          </StyledButton>
+        </Drawer>
       </QuizContainer>
   );
 };

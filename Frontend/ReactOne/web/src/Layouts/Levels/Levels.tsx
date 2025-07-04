@@ -4,9 +4,7 @@ import {
   Typography, 
   Box,
   Backdrop,
-  CircularProgress,
-  Tabs,
-  Tab
+  CircularProgress
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -70,7 +68,6 @@ const Levels: React.FC = () => {
   const [levels, setLevels] = useState<{ timeRush: Level[], precisionPath: Level[] }>({ timeRush: [], precisionPath: [] });
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [isStarting, setIsStarting] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -104,10 +101,6 @@ const Levels: React.FC = () => {
       console.error('Failed to start level:', error);
       setIsStarting(false);
     }
-  };
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
   };
 
   if (isLoading) {
@@ -163,53 +156,15 @@ const Levels: React.FC = () => {
           </Box>
         )}
         
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ flex: 1 }} />
-          <Box sx={{ ml: 'auto' }}>
-            <Tabs 
-              value={activeTab} 
-              onChange={handleTabChange}
-              sx={{
-                minHeight: 'auto',
-                '& .MuiTabs-indicator': {
-                  height: 2,
-                },
-                '& .MuiTab-root': {
-                  minHeight: 'auto',
-                  minWidth: 'auto',
-                  px: 2,
-                  py: 1,
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  textTransform: 'none',
-                },
-              }}
-            >
-              <Tab label="Time Rush" />
-              <Tab label="Precision Path" />
-            </Tabs>
-          </Box>
-        </Box>
-
         <Box sx={levelsStyles.gridContainer}>
-          {activeTab === 0 
-            ? levels.timeRush.map(level => (
-                <LevelCard 
-                  key={`${level._id}_${level.mode}`}
-                  level={level} 
-                  chapter={chapter}
-                  onLevelClick={handleLevelClick} 
-                />
-              ))
-            : levels.precisionPath.map(level => (
-                <LevelCard 
-                  key={`${level._id}_${level.mode}`}
-                  level={level} 
-                  chapter={chapter}
-                  onLevelClick={handleLevelClick} 
-                />
-              ))
-          }
+          {levels.precisionPath.map(level => (
+            <LevelCard 
+              key={`${level._id}_${level.mode}`}
+              level={level} 
+              chapter={chapter}
+              onLevelClick={handleLevelClick} 
+            />
+          ))}
         </Box>
       </Container>
     </Box>

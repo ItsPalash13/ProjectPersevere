@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { Box, IconButton } from '@mui/material';
-import { Search as SearchIcon, Close as CloseIcon } from '@mui/icons-material';
+import React from 'react';
+import { Box, Chip } from '@mui/material';
 import SubjectSection from '../Subjects/SubjectSection';
 import { dashboardStyles } from '../../theme/dashboardTheme';
-import { navbarStyles } from '../../theme/navbarTheme';
 
 // Chapters by Subject Component
 const ChaptersBySubject = ({ darkMode }) => {
@@ -21,63 +19,68 @@ const ChaptersBySubject = ({ darkMode }) => {
 };
 
 const Dashboard = ({ darkMode, onDarkModeToggle }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  const handleSearchSubmit = (event) => {
-    event.preventDefault();
-    if (searchQuery.trim()) {
-      // Implement search functionality here
-      console.log('Searching for:', searchQuery);
-      // You can add navigation to search results page or API call here
-    }
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery('');
-  };
+  const [selectedTopic, setSelectedTopic] = React.useState('All');
+  
+  const jeeTopics = [
+    'All',
+    'Calculus',
+    'Algebra',
+    'Trigonometry',
+    'Mechanics',
+    'Electromagnetism',
+    'Thermodynamics',
+    'Organic Chemistry',
+    'Inorganic Chemistry',
+    'Physical Chemistry',
+    'Coordination Chemistry',
+    'Electrochemistry',
+    'Chemical Kinetics'
+  ];
 
   return (
     <Box sx={dashboardStyles.container}>
-      {/* Search Bar */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center', px: 2 }}>
-        <Box component="form" onSubmit={handleSearchSubmit} sx={navbarStyles.searchBar}>
-          <Box
-            component="input"
-            sx={{
-              ...navbarStyles.searchInput,
-              '&::placeholder': {
-                color: (theme) => theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.3)' 
-                  : 'rgba(0, 0, 0, 0.5)',
-                fontSize: '0.9rem',
-                fontWeight: 400,
-              },
-            }}
-            placeholder="Search chapters, subjects, or topics..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-          <Box sx={navbarStyles.searchActions}>
-            {searchQuery && (
-              <IconButton
-                onClick={handleClearSearch}
-                sx={navbarStyles.clearButton}
+      {/* JEE Topic Tags */}
+      <Box sx={{ mb: 1.25, px: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          pt:1.5,
+          gap: 1, 
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          whiteSpace: 'nowrap',
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none', // IE and Edge
+          '&::-webkit-scrollbar': { // Chrome, Safari, Opera
+            display: 'none'
+          },
+          pb: 1 // Add padding bottom for hidden scrollbar
+        }}>
+          {jeeTopics.map((topic, index) => {
+            const isSelected = selectedTopic === topic;
+            return (
+              <Chip
+                key={index}
+                label={topic}
                 size="small"
-              >
-                <CloseIcon />
-              </IconButton>
-            )}
-            <IconButton
-              type="submit"
-              sx={navbarStyles.searchIconButton}
-            >
-              <SearchIcon />
-            </IconButton>
-          </Box>
+                clickable
+                onClick={() => setSelectedTopic(topic)}
+                sx={{
+                  backgroundColor: isSelected ? 'primary.main' : 'background.paper',
+                  color: isSelected ? 'primary.contrastText' : 'text.secondary',
+                  borderRadius: '10px',
+                  fontSize: '0.85rem',
+                  fontWeight: isSelected ? 600 : 500,
+                  flexShrink: 0, // Prevent chips from shrinking
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: isSelected ? 'primary.dark' : 'action.hover',
+                    borderColor: isSelected ? 'transparent' : 'primary.main',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              />
+            );
+          })}
         </Box>
       </Box>
 

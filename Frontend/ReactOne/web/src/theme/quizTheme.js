@@ -4,8 +4,8 @@ import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.j
 
 export const QuizContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
-  backgroundColor: theme.palette.background.default,
-  backgroundImage: themeColors.background.main(theme),
+  backgroundColor: theme.palette.mode === 'dark' ? '#0A0A0A' : theme.palette.background.default,
+  backgroundImage: theme.palette.mode === 'dark' ? 'none' : themeColors.background.main(theme),
   position: 'relative',
   minHeight: 'calc(100vh - 64px)', // Account for navbar height
 }));
@@ -14,7 +14,7 @@ export const QuestionCard = styled(Card)(({ theme }) => ({
   marginBottom: theme.spacing(4),
   borderRadius: 16,
   background: theme.palette.mode === 'dark' 
-    ? colors.background.dark.paper
+    ? '#111111'
     : colors.background.light.paper,
   border: theme.palette.mode === 'dark'
     ? `1px solid ${colors.border.dark.primary}`
@@ -41,7 +41,7 @@ export const OptionCard = styled(Card)(({ theme }) => ({
   justifyContent: 'center',
   padding: theme.spacing(2),
   background: theme.palette.mode === 'dark' 
-    ? colors.background.dark.accent
+    ? '#111111'
     : colors.background.light.accent,
   border: theme.palette.mode === 'dark'
     ? `2px solid ${colors.border.dark.secondary}`
@@ -107,7 +107,7 @@ export const QuizHeader = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(4),
   padding: theme.spacing(2),
   background: theme.palette.mode === 'dark' 
-    ? colors.background.dark.paper
+    ? '#111111'
     : colors.background.light.paper,
   borderRadius: 16,
   border: theme.palette.mode === 'dark'
@@ -145,15 +145,15 @@ export const StyledButton = styled(Button)(({ theme }) => ({
 }));
 
 export const TimeDisplay = styled(Box)(({ theme }) => ({
-  fontSize: '1.4rem',
+  fontSize: '1rem',
   fontWeight: 'bold',
   textAlign: 'center',
   marginBottom: theme.spacing(2),
-  padding: theme.spacing(2, 4),
+  padding: theme.spacing(1, 3),
   background: theme.palette.mode === 'dark' 
-    ? colors.background.dark.paper
+    ? '#111111'
     : colors.background.light.paper,
-  borderRadius: 16,
+  borderRadius: 12,
   border: theme.palette.mode === 'dark'
     ? `1px solid ${colors.border.dark.primary}`
     : `1px solid ${colors.border.light.primary}`,

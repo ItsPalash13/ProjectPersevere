@@ -19,6 +19,9 @@ import {
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
   Login as LoginIcon,
+  Search as SearchIcon,
+  Close as CloseIcon,
+  Notifications as NotificationsIcon,
   Palette as PaletteIcon,
 } from '@mui/icons-material';
 import { authClient } from '../lib/auth-client';
@@ -32,6 +35,10 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
   const dispatch = useDispatch();
   const { data: session } = authClient.useSession();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Only show search bar on dashboard
+  const showSearchBar = location.pathname === '/dashboard';
 
   const handleLogout = async () => {
     try {
@@ -69,6 +76,23 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
     navigate(session ? '/dashboard' : '/');
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    if (searchQuery.trim()) {
+      // Implement search functionality here
+      console.log('Searching for:', searchQuery);
+      // You can add navigation to search results page or API call here
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <StyledAppBar position="static" elevation={0}>
       <Toolbar sx={navbarStyles.toolbar}>
@@ -86,12 +110,87 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
           )}
         </Box>
         
-        <Box sx={{ flexGrow: 1 }} />
+        {/* Search Bar - Only visible on dashboard */}
+        {showSearchBar ? (
+          <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', px: 2 }}>
+            <Box component="form" onSubmit={handleSearchSubmit} sx={navbarStyles.searchBar}>
+              <Box
+                component="input"
+                sx={{
+                  ...navbarStyles.searchInput,
+                  '&::placeholder': {
+                    color: (theme) => theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.3)' 
+                      : 'rgba(0, 0, 0, 0.5)',
+                    fontSize: '0.9rem',
+                    fontWeight: 400,
+                  },
+                }}
+                placeholder="Search chapters, subjects, or topics..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              <Box sx={navbarStyles.searchActions}>
+                {searchQuery && (
+                  <IconButton
+                    onClick={handleClearSearch}
+                    sx={navbarStyles.clearButton}
+                    size="small"
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                )}
+                <IconButton
+                  type="submit"
+                  sx={navbarStyles.searchIconButton}
+                >
+                  <SearchIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ flexGrow: 1 }} />
+        )}
         
         <Box sx={navbarStyles.rightSection}>
           {/* Authenticated User Menu */}
           {session ? (
             <>
+              {/* Notifications Bell */}
+              <Box sx={{ position: 'relative', mr: 1 }}>
+                <IconButton
+                  sx={{
+                    p: '8px',
+                    minWidth: 'auto',
+                    minHeight: 'auto',
+                    color: 'text.primary',
+                  }}
+                >
+                  <NotificationsIcon fontSize="medium" />
+                </IconButton>
+                {/* Notification Badge */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    backgroundColor: '#6C05FA',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  3
+                </Box>
+              </Box>
+              
               <IconButton
                 onClick={handleAvatarClick}
                 sx={{ 
