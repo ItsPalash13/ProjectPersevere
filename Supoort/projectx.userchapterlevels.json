@@ -1,0 +1,47 @@
+[
+  {
+    "_id": {
+      "$oid": "6842ce3965221aeef7c41c9c"
+    },
+    "userId": {
+      "$oid": "68282f7ddbdd9eb022d7cce5"
+    },
+    "chapterId": {
+      "$oid": "684178b759aa59113383b7bc"
+    },
+    "levelId": {
+      "$oid": "684178b759aa59113383b7c1"
+    },
+    "levelNumber": 1,
+    "status": "not_started",
+    "attemptType": "time_rush",
+    "timeRush": {
+      "attempts": 0,
+      "maxXp": null,
+      "requiredXp": 15,
+      "timeLimit": 30
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6843319a65221aeef7c41caa"
+    },
+    "userId": {
+      "$oid": "68282f7ddbdd9eb022d7cce5"
+    },
+    "chapterId": {
+      "$oid": "684178b759aa59113383b7bc"
+    },
+    "levelId": {
+      "$oid": "684178b759aa59113383b7c4"
+    },
+    "levelNumber": 1,
+    "status": "not_started",
+    "attemptType": "precision_path",
+    "precisionPath": {
+      "attempts": 0,
+      "requiredXp": 15,
+      "minTime": null
+    }
+  }
+]

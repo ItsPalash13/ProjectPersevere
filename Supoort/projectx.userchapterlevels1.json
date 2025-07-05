@@ -1,0 +1,80 @@
+[{
+  "_id": {
+    "$oid": "6842ce3965221aeef7c41c9c"
+  },
+  "userId": {
+    "$oid": "68282f7ddbdd9eb022d7cce5"
+  },
+  "chapterId": {
+    "$oid": "684178b759aa59113383b7bc"
+  },
+  "levelId": {
+    "$oid": "684178b759aa59113383b7c1"
+  },
+  "levelNumber": 1,
+  "status": "not_started",
+  "attemptType": "time_rush",
+  "timeRush": {
+    "attempts": 0,
+    "maxXp": null,
+    "requiredXp": 15,
+    "timeLimit": 30
+  },
+  "lastAttemptedAt": {
+    "$date": "2025-07-05T15:50:43.215Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6843319a65221aeef7c41caa"
+  },
+  "userId": {
+    "$oid": "68282f7ddbdd9eb022d7cce5"
+  },
+  "chapterId": {
+    "$oid": "684178b759aa59113383b7bc"
+  },
+  "levelId": {
+    "$oid": "684178b759aa59113383b7c4"
+  },
+  "levelNumber": 1,
+  "status": "completed",
+  "attemptType": "precision_path",
+  "precisionPath": {
+    "attempts": 0,
+    "requiredXp": 15,
+    "minTime": 32
+  },
+  "lastAttemptedAt": {
+    "$date": "2025-07-05T15:51:29.637Z"
+  },
+  "completedAt": {
+    "$date": "2025-07-05T15:52:05.186Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68694a2581865dcf98fadb0a"
+  },
+  "userId": {
+    "$oid": "68282f7ddbdd9eb022d7cce5"
+  },
+  "levelId": {
+    "$oid": "684178b759aa59113383b7c5"
+  },
+  "attemptType": "precision_path",
+  "chapterId": {
+    "$oid": "684178b759aa59113383b7bc"
+  },
+  "__v": 0,
+  "lastAttemptedAt": {
+    "$date": "2025-07-05T15:52:05.240Z"
+  },
+  "levelNumber": 2,
+  "precisionPath": {
+    "attempts": 0,
+    "minTime": null,
+    "requiredXp": 18
+  },
+  "status": "not_started"
+}]

@@ -305,7 +305,12 @@ const Quiz = ({ socket }) => {
         setShowError(true);
         setQuizFinished(true);
       } else {
+        // For non-critical errors, show as temporary message
         setQuizMessage(message);
+        // Clear the message after 5 seconds for better UX
+        setTimeout(() => {
+          setQuizMessage('');
+        }, 5000);
       }
     });
 

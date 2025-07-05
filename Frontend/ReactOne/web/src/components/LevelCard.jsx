@@ -122,41 +122,54 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
         </Box>
         
         <Box sx={levelsStyles.metricsGrid}>
-          <Box sx={levelsStyles.metricCard}>
-            <Typography sx={levelsStyles.metricIcon}>🎯</Typography>
-            <Typography sx={levelsStyles.metricValue}>
-              {progress?.requiredXp || level.requiredXP || 0}
-            </Typography>
-            <Typography sx={levelsStyles.metricLabel}>
-              Target XP
-            </Typography>
-          </Box>
-          
-          {isTimeRush && level.timeRushTime && (
+          {/* Target XP - Always show if available */}
+          {(isTimeRush ? level.timeRush?.requiredXp : level.precisionPath?.requiredXp) && (
             <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>⏱️</Typography>
+              <Typography sx={levelsStyles.metricIcon}>🎯</Typography>
               <Typography sx={levelsStyles.metricValue}>
-                {formatTime(level.timeRushTime)}
+                {isTimeRush ? level.timeRush.requiredXp : level.precisionPath.requiredXp}
               </Typography>
               <Typography sx={levelsStyles.metricLabel}>
-                Time Limit
+                Target XP
               </Typography>
             </Box>
           )}
           
-          {progress && (
+          {/* Time Rush: Total Time */}
+          {isTimeRush && level.timeRush?.totalTime && (
             <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>
-                {isTimeRush ? '🏆' : '⚡'}
-              </Typography>
+              <Typography sx={levelsStyles.metricIcon}>⏱️</Typography>
               <Typography sx={levelsStyles.metricValue}>
-                {isTimeRush 
-                  ? `${progress.maxXp || 0}`
-                  : formatTime(progress.minTime || 0)
-                }
+                {formatTime(level.timeRush.totalTime)}
               </Typography>
               <Typography sx={levelsStyles.metricLabel}>
-                {isTimeRush ? 'Best' : 'Fastest'}
+                Total Time
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Time Rush: Best Score (Max XP) */}
+          {isTimeRush && progress?.maxXp !== null && progress?.maxXp !== undefined && (
+            <Box sx={levelsStyles.metricCard}>
+              <Typography sx={levelsStyles.metricIcon}>🏆</Typography>
+              <Typography sx={levelsStyles.metricValue}>
+                {progress.maxXp}
+              </Typography>
+              <Typography sx={levelsStyles.metricLabel}>
+                Best Score
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Precision Path: Min Time */}
+          {!isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && (
+            <Box sx={levelsStyles.metricCard}>
+              <Typography sx={levelsStyles.metricIcon}>⚡</Typography>
+              <Typography sx={levelsStyles.metricValue}>
+                {formatTime(progress.minTime)}
+              </Typography>
+              <Typography sx={levelsStyles.metricLabel}>
+                Best Time
               </Typography>
             </Box>
           )}

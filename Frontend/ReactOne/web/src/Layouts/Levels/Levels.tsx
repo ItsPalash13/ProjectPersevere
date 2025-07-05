@@ -4,7 +4,9 @@ import {
   Typography, 
   Box,
   Backdrop,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -22,11 +24,25 @@ export interface Level {
   name: string;
   levelNumber: number;
   description: string;
-  requiredXP: number;
   topics: string[];
   status: boolean;
+  type: 'time_rush' | 'precision_path';
+  
+  // Mode-specific nested fields from Level model (conditional based on type)
+  timeRush?: {
+    requiredXp: number;
+    totalTime: number;
+  };
+  precisionPath?: {
+    requiredXp: number;
+  };
+  
+  // Runtime mode for display (derived from type)
   mode: 'time_rush' | 'precision_path';
-  timeRushTime?: number;
+  
+  // Additional fields from API response
+  isStarted: boolean;
+  
   activeSession?: {
     _id: string;
     attemptType: 'time_rush' | 'precision_path';
@@ -45,12 +61,23 @@ export interface Level {
       maxXp: number;
       attempts: number;
       requiredXp: number;
+      timeLimit?: number;
     };
     precisionPath?: {
-      minTime: number;
+      minTime: number | null;
       attempts: number;
       requiredXp: number;
     };
+    _id: string;
+    userId: string;
+    chapterId: string;
+    levelId: string;
+    levelNumber: number;
+    status: string;
+    lastAttemptedAt: string;
+    attemptType: 'time_rush' | 'precision_path';
+    completedAt?: string;
+    __v?: number;
   } | null;
 }
 
@@ -68,6 +95,7 @@ const Levels: React.FC = () => {
   const [levels, setLevels] = useState<{ timeRush: Level[], precisionPath: Level[] }>({ timeRush: [], precisionPath: [] });
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -84,7 +112,16 @@ const Levels: React.FC = () => {
 
   useEffect(() => {
     if (chapterData?.data) {
-      setLevels(chapterData.data);
+      // Filter levels based on their actual type, not the API array they come from
+      const allLevels = [...chapterData.data.timeRush, ...chapterData.data.precisionPath];
+      
+      const timeRushLevels = allLevels.filter(level => level.type === 'time_rush');
+      const precisionPathLevels = allLevels.filter(level => level.type === 'precision_path');
+      
+      setLevels({
+        timeRush: timeRushLevels,
+        precisionPath: precisionPathLevels
+      });
     }
     if (chapterData?.meta?.chapter) {
       setChapter(chapterData.meta.chapter);
@@ -93,14 +130,34 @@ const Levels: React.FC = () => {
 
   const handleLevelClick = async (levelId: string, mode: 'time_rush' | 'precision_path') => {
     try {
+      // Find the level to validate mode compatibility
+      const allLevels = [...levels.timeRush, ...levels.precisionPath];
+      const level = allLevels.find(l => l._id === levelId);
+      
+      if (!level) {
+        console.error('Level not found');
+        return;
+      }
+      
+      // Use the level's actual type for the request
+      const attemptType = level.type;
+      
       setIsStarting(true);
-      const result = await startLevel({ levelId, attemptType: mode }).unwrap();
+      const result = await startLevel({ levelId, attemptType }).unwrap();
       dispatch(setLevelSession(result.data.session));
       navigate(`/quiz/${levelId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to start level:', error);
+      if (error?.data?.error) {
+        console.error('Server error:', error.data.error);
+        // Could show user-friendly error message based on error.data.error
+      }
       setIsStarting(false);
     }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
   if (isLoading) {
@@ -156,10 +213,31 @@ const Levels: React.FC = () => {
           </Box>
         )}
         
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={handleTabChange} aria-label="level mode tabs">
+            <Tab 
+              label={`Time Rush (${levels.timeRush.length})`} 
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            />
+            <Tab 
+              label={`Precision Path (${levels.precisionPath.length})`} 
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            />
+          </Tabs>
+        </Box>
+
         <Box sx={levelsStyles.gridContainer}>
-          {levels.precisionPath.map(level => (
+          {activeTab === 0 && levels.timeRush.map(level => (
             <LevelCard 
-              key={`${level._id}_${level.mode}`}
+              key={`${level._id}_time_rush`}
+              level={level} 
+              chapter={chapter}
+              onLevelClick={handleLevelClick} 
+            />
+          ))}
+          {activeTab === 1 && levels.precisionPath.map(level => (
+            <LevelCard 
+              key={`${level._id}_precision_path`}
               level={level} 
               chapter={chapter}
               onLevelClick={handleLevelClick} 

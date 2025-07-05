@@ -4,11 +4,22 @@ export interface ILevel extends Document {
   name: string;
   levelNumber: number;
   description: string;
-  requiredXp: number;
   topics: string[];
   status: boolean;
-  totalTime: number;
   chapterId: mongoose.Types.ObjectId;
+  type: 'time_rush' | 'precision_path';
+  
+  // Time Rush specific fields (only present when type is 'time_rush')
+  timeRush?: {
+    requiredXp: number;
+    totalTime: number;
+  };
+
+  // Precision Path specific fields (only present when type is 'precision_path')
+  precisionPath?: {
+    requiredXp: number;
+  };
+
   difficultyParams: {
     mean: number;
     sd: number;
@@ -32,23 +43,18 @@ export const LevelSchema = new Schema<ILevel>({
     required: true,
     trim: true
   },
-  requiredXp: { 
-    type: Number, 
-    required: true,
-    min: 0
-  },
   status: {
     type: Boolean,
     default: false
   },
-  totalTime: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
   chapterId: {
     type: Schema.Types.ObjectId,
     ref: 'Chapter',
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['time_rush', 'precision_path'],
     required: true
   },
   topics: [{ 
@@ -56,6 +62,33 @@ export const LevelSchema = new Schema<ILevel>({
     required: true,
     trim: true
   }],
+  
+  // Time Rush specific fields (conditional)
+  timeRush: {
+    type: {
+      requiredXp: {
+        type: Number,
+        min: 0
+      },
+      totalTime: {
+        type: Number,
+        min: 0
+      }
+    },
+    required: false
+  },
+
+  // Precision Path specific fields (conditional)
+  precisionPath: {
+    type: {
+      requiredXp: {
+        type: Number,
+        min: 0
+      }
+    },
+    required: false
+  },
+
   difficultyParams: {
     mean: {
       type: Number,
@@ -75,7 +108,8 @@ export const LevelSchema = new Schema<ILevel>({
   }
 }, { timestamps: true });
 
-// Index for faster queries
+// Indexes for faster queries
 LevelSchema.index({ chapterId: 1 });
+LevelSchema.index({ chapterId: 1, type: 1 });
 
 export const Level = mongoose.model<ILevel>('Level', LevelSchema); 

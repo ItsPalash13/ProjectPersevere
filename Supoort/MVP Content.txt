@@ -1,0 +1,25 @@
+Probability
+
+🔢 Recommended Levels: 10 to 15 Levels
+This gives enough granularity for:
+
+Purpose	Reason
+🧠 Cognitive Load	Don’t overload learners—3 to 5 new concepts per level max
+🎯 Gamification	Frequent progress boosts motivation and retention
+⛰️ Difficulty Curve	You can start simple and increase challenge gradually
+🧩 Topic Coverage	Distribute 34 topics meaningfully across levels
+
+🎯 Suggested Distribution (Example: 12 Levels)
+Level	Topics
+1	Basic Probability Formula, Sample Space, Favorable Outcomes
+2	Tossing Coins (1 & 2), Rolling Dice (1 & 2)
+3	Drawing from Deck (1 & 2), Simple vs Compound Events
+4	Equally Likely Outcomes, Mutually Exclusive, Complementary
+5	Certain/Impossible Events, Not A (Complement Rule), Word Problems
+6	Independent vs Dependent Events
+7	Union & Intersection of Events
+8	Conditional Probability, Tree Diagrams
+9	“At Least / At Most / Exactly” Probabilities
+10	Combinatorics: Pascal’s Triangle, nCr
+11	Permutations & Combinations in Probability
+12	Bayes’, Total Probability, Binomial, Geometric, Expected Value, Variance

@@ -11,19 +11,19 @@ export interface IUserChapterLevel extends Document {
   completedAt?: Date;
   lastAttemptedAt: Date;
 
-  // Time Rush specific fields
-  timeRush: {
-    attempts: number;
-    maxXp: number;
-    requiredXp: number;
-    timeLimit: number;  // Time limit for Time Rush mode
+  // Time Rush specific fields (only present when attemptType is 'time_rush')
+  timeRush?: {
+    attempts?: number;
+    maxXp?: number | null;
+    requiredXp?: number;
+    timeLimit?: number;  // Time limit for Time Rush mode
   };
 
-  // Precision Path specific fields
-  precisionPath: {
-    attempts: number;
-    minTime: number;
-    requiredXp: number;
+  // Precision Path specific fields (only present when attemptType is 'precision_path')
+  precisionPath?: {
+    attempts?: number;
+    minTime?: number | null;
+    requiredXp?: number;
   };
 }
 
@@ -69,46 +69,38 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
     required: true
   },
 
-  // Time Rush specific fields
+  // Time Rush specific fields (conditional based on attemptType)
   timeRush: {
     attempts: {
       type: Number,
-      min: 0,
-      required: true
+      min: 0
     },
     maxXp: {
       type: Number,
-      min: 0,
-      required: true
+      min: 0
     },
     requiredXp: {
       type: Number,
-      required: true,
       min: 0
     },
     timeLimit: {
       type: Number,
-      required: true,
       min: 0
     }
   },
 
-  // Precision Path specific fields
+  // Precision Path specific fields (conditional based on attemptType)
   precisionPath: {
     attempts: {
       type: Number,
       default: 0,
-      min: 0,
-      required: true
+      min: 0
     },
     minTime: {
-      type: Number,
-      default: Infinity,
-      required: true
+      type: Number
     },
     requiredXp: {
       type: Number,
-      required: true,
       min: 0
     }
   }
@@ -119,18 +111,19 @@ UserChapterLevelSchema.index({ userId: 1, chapterId: 1, levelId: 1, attemptType:
 
 // Pre-save middleware to update appropriate high score
 UserChapterLevelSchema.pre('save', function(next) {
-  if (this.attemptType === 'time_rush') {
+  if (this.attemptType === 'time_rush' && this.timeRush) {
     // Time Rush: Increment attempts
-    this.timeRush.attempts += 1;
-  } else {
+    this.timeRush.attempts = (this.timeRush.attempts || 0) + 1;
+  } else if (this.attemptType === 'precision_path' && this.precisionPath) {
     // Precision Path: Update min time if current time is faster
     if (this.completedAt && this.lastAttemptedAt) {
       const timeTaken = (this.completedAt.getTime() - this.lastAttemptedAt.getTime()) / 1000;
-      if (timeTaken < this.precisionPath.minTime) {
+      const currentMinTime = this.precisionPath.minTime;
+      if (currentMinTime === null || currentMinTime === undefined || timeTaken < currentMinTime) {
         this.precisionPath.minTime = timeTaken;
       }
       // Increment attempts
-      this.precisionPath.attempts += 1;
+      this.precisionPath.attempts = (this.precisionPath.attempts || 0) + 1;
     }
   }
   next();

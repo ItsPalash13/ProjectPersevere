@@ -1,0 +1,163 @@
+[
+    {
+      "_id": {
+        "$oid": "684178b759aa59113383b7c1"
+      },
+      "name": "Level 1",
+      "levelNumber": 1,
+      "description": "Basic arithmetic and number sense.",
+      "topics": [
+        "addition",
+        "subtraction",
+        "place value"
+      ],
+      "status": true,
+      "chapterId": {
+        "$oid": "684178b759aa59113383b7bc"
+      },
+      "type": "time_rush",
+      "timeRush": {
+        "requiredXp": 15,
+        "totalTime": 30
+      },
+      "difficultyParams": {
+        "mean": 750,
+        "sd": 150,
+        "alpha": 5
+      }
+    },
+    {
+      "_id": {
+        "$oid": "684178b759aa59113383b7c2"
+      },
+      "name": "Level 2",
+      "levelNumber": 2,
+      "description": "Fractions and decimals introduction.",
+      "topics": [
+        "fractions",
+        "decimals",
+        "simple word problems"
+      ],
+      "status": true,
+      "chapterId": {
+        "$oid": "684178b759aa59113383b7bc"
+      },
+      "type": "time_rush",
+      "timeRush": {
+        "requiredXp": 18,
+        "totalTime": 30
+      },
+      "difficultyParams": {
+        "mean": 750,
+        "sd": 150,
+        "alpha": 0
+      }
+    },
+    {
+      "_id": {
+        "$oid": "684178b759aa59113383b7c3"
+      },
+      "name": "Level 3",
+      "levelNumber": 3,
+      "description": "Intro to measurement and geometry.",
+      "topics": [
+        "measurement",
+        "shapes",
+        "perimeter",
+        "area"
+      ],
+      "status": true,
+      "chapterId": {
+        "$oid": "684178b759aa59113383b7bc"
+      },
+      "type": "time_rush",
+      "timeRush": {
+        "requiredXp": 20,
+        "totalTime": 30
+      },
+      "difficultyParams": {
+        "mean": 750,
+        "sd": 150,
+        "alpha": -5
+      }
+    },
+    {
+      "_id": {
+        "$oid": "684178b759aa59113383b7c4"
+      },
+      "name": "Level 1",
+      "levelNumber": 1,
+      "description": "Basic arithmetic and number sense.",
+      "topics": [
+        "addition",
+        "subtraction",
+        "place value"
+      ],
+      "status": true,
+      "chapterId": {
+        "$oid": "684178b759aa59113383b7bc"
+      },
+      "type": "precision_path",
+      "precisionPath": {
+        "requiredXp": 15
+      },
+      "difficultyParams": {
+        "mean": 750,
+        "sd": 150,
+        "alpha": 5
+      }
+    },
+    {
+      "_id": {
+        "$oid": "684178b759aa59113383b7c5"
+      },
+      "name": "Level 2",
+      "levelNumber": 2,
+      "description": "Fractions and decimals introduction.",
+      "topics": [
+        "fractions",
+        "decimals",
+        "simple word problems"
+      ],
+      "status": true,
+      "chapterId": {
+        "$oid": "684178b759aa59113383b7bc"
+      },
+      "type": "precision_path",
+      "precisionPath": {
+        "requiredXp": 18
+      },
+      "difficultyParams": {
+        "mean": 750,
+        "sd": 150,
+        "alpha": 0
+      }
+    },
+    {
+      "_id": {
+        "$oid": "684178b759aa59113383b7c6"
+      },
+      "name": "Level 3",
+      "levelNumber": 3,
+      "description": "Intro to measurement and geometry.",
+      "topics": [
+        "measurement",
+        "shapes",
+        "perimeter",
+        "area"
+      ],
+      "status": true,
+      "chapterId": {
+        "$oid": "684178b759aa59113383b7bc"
+      },
+      "type": "precision_path",
+      "precisionPath": {
+        "requiredXp": 20
+      },
+      "difficultyParams": {
+        "mean": 750,
+        "sd": 150,
+        "alpha": -5
+      }
+    }
+  ] 
