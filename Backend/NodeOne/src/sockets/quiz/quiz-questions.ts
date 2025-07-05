@@ -35,13 +35,19 @@ export const quizQuestionHandlers = (socket: Socket) => {
         level.difficultyParams.alpha
       );
 
-      // Find a question matching the generated difficulty
-      const questionTs = await QuestionTs.findOne({
+      // Find a question with difficulty greater than or equal to the generated difficulty
+      let questionTs = await QuestionTs.findOne({
         'difficulty.mu': { $gte: difficulty }
       }).sort({ 'difficulty.mu': 1 }).populate('quesId');
 
       if (!questionTs) {
-        throw new Error('Question not found');
+        // If no question found with difficulty greater than or equal to the generated difficulty, find one with maximum difficulty less than or equal to the generated difficulty
+        questionTs = await QuestionTs.findOne({
+          'difficulty.mu': { $lte: difficulty }
+        }).sort({ 'difficulty.mu': -1 }).populate('quesId');
+        if (!questionTs) {
+          throw new Error('Question not found');
+        } 
       }
 
       const question = await Question.findById(questionTs.quesId);

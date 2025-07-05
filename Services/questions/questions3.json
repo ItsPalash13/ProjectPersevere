@@ -1,0 +1,234 @@
+[
+    {
+      "ques": "Which of the following is a certain event?",
+      "options": ["Getting heads on a coin", "Rolling a number on a die", "Drawing a red card", "Sun rising in the east"],
+      "correct": 3,
+      "topics": ["Certain & Impossible Events"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which is an impossible event when tossing a fair die?",
+      "options": ["Getting 6", "Getting 0", "Getting 3", "Getting an odd number"],
+      "correct": 1,
+      "topics": ["Certain & Impossible Events", "Rolling a Die"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the sample space for tossing a single coin?",
+      "options": ["{H}", "{H, T}", "{T}", "{H, T, Edge}"],
+      "correct": 1,
+      "topics": ["Sample Space", "Tossing a Single Coin"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the sample space when rolling a 6-sided die?",
+      "options": ["{1, 2, 3, 4, 5, 6}", "{0, 1, 2, 3, 4, 5}", "{1–6}", "{1,2,3,4}"],
+      "correct": 0,
+      "topics": ["Sample Space", "Rolling a Die"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "How many favorable outcomes are there when rolling a die and getting an even number?",
+      "options": ["2", "3", "4", "6"],
+      "correct": 1,
+      "topics": ["Favorable Outcomes", "Rolling a Die"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "If a coin is fair, are heads and tails equally likely?",
+      "options": ["Yes", "No", "Only for biased coins", "Depends on toss"],
+      "correct": 0,
+      "topics": ["Equally Likely Outcomes", "Tossing a Single Coin"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which event is impossible when drawing from a standard deck?",
+      "options": ["Drawing a red card", "Drawing a king", "Drawing a joker", "Drawing a queen"],
+      "correct": 2,
+      "topics": ["Certain & Impossible Events", "Drawing a Card from a Deck"],
+      "difficulty": {"mu": 180},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "The event 'rolling a number less than 7' on a fair die is:",
+      "options": ["Certain", "Impossible", "Equally likely", "Favorable"],
+      "correct": 0,
+      "topics": ["Certain & Impossible Events", "Rolling a Die"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the total number of equally likely outcomes when tossing two coins?",
+      "options": ["2", "3", "4", "6"],
+      "correct": 2,
+      "topics": ["Sample Space", "Equally Likely Outcomes"],
+      "difficulty": {"mu": 160},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which of the following is NOT a favorable outcome when trying to get an odd number from 1–6?",
+      "options": ["1", "3", "5", "6"],
+      "correct": 3,
+      "topics": ["Favorable Outcomes", "Rolling a Die"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the probability of an impossible event?",
+      "options": ["0", "1", "1/2", "Cannot be determined"],
+      "correct": 0,
+      "topics": ["Certain & Impossible Events"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the probability of a certain event?",
+      "options": ["0", "1", "1/2", "Depends"],
+      "correct": 1,
+      "topics": ["Certain & Impossible Events"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the sample space for tossing two coins?",
+      "options": ["{H, T}", "{HH, TT}", "{HH, HT, TH, TT}", "{HT, TH}"],
+      "correct": 2,
+      "topics": ["Sample Space", "Tossing Two Coins"],
+      "difficulty": {"mu": 160},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Favorable outcomes are those that:",
+      "options": ["Always occur", "We don't want", "Satisfy the event condition", "Are impossible"],
+      "correct": 2,
+      "topics": ["Favorable Outcomes"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "If an event has all outcomes equally likely, the probability is:",
+      "options": ["Favorable / Total", "0", "1", "Favorable × Total"],
+      "correct": 0,
+      "topics": ["Equally Likely Outcomes", "Basic Probability Formula"],
+      "difficulty": {"mu": 180},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which is a favorable outcome for getting a king from a deck?",
+      "options": ["Only red kings", "Only black kings", "All 4 kings", "All red cards"],
+      "correct": 2,
+      "topics": ["Favorable Outcomes", "Drawing a Card from a Deck"],
+      "difficulty": {"mu": 160},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "How many outcomes are there in the sample space of rolling two dice?",
+      "options": ["6", "12", "36", "24"],
+      "correct": 2,
+      "topics": ["Sample Space", "Rolling Two Dice"],
+      "difficulty": {"mu": 160},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "In tossing a coin once, which are favorable outcomes for 'getting heads'?",
+      "options": ["Tails", "Heads", "H or T", "None"],
+      "correct": 1,
+      "topics": ["Favorable Outcomes", "Tossing a Single Coin"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Are the outcomes of rolling a die equally likely?",
+      "options": ["Yes", "No", "Only for even numbers", "Only for odd numbers"],
+      "correct": 0,
+      "topics": ["Equally Likely Outcomes", "Rolling a Die"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the number of favorable outcomes for getting a black card?",
+      "options": ["26", "13", "52", "39"],
+      "correct": 0,
+      "topics": ["Favorable Outcomes", "Drawing a Card from a Deck"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which of these describes a sample space?",
+      "options": ["Single outcome", "Set of favorable outcomes", "All possible outcomes", "Equally likely outcomes"],
+      "correct": 2,
+      "topics": ["Sample Space"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "In rolling a die, what’s the total number of equally likely outcomes?",
+      "options": ["6", "12", "3", "2"],
+      "correct": 0,
+      "topics": ["Equally Likely Outcomes", "Rolling a Die"],
+      "difficulty": {"mu": 120},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "What is the sample space of drawing one card from a deck?",
+      "options": ["Only face cards", "Only red cards", "All 52 cards", "26 cards"],
+      "correct": 2,
+      "topics": ["Sample Space", "Drawing a Card from a Deck"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "If an event has no favorable outcomes, what is its probability?",
+      "options": ["1", "0", "1/2", "Depends"],
+      "correct": 1,
+      "topics": ["Favorable Outcomes", "Certain & Impossible Events"],
+      "difficulty": {"mu": 180},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "How many favorable outcomes are there for getting a vowel from A to F?",
+      "options": ["1", "2", "3", "4"],
+      "correct": 1,
+      "topics": ["Favorable Outcomes"],
+      "difficulty": {"mu": 180},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Are ‘even’ and ‘odd’ results from a die equally likely?",
+      "options": ["Yes", "No", "Only for coins", "Only in cards"],
+      "correct": 0,
+      "topics": ["Equally Likely Outcomes", "Rolling a Die"],
+      "difficulty": {"mu": 160},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which of these is a certain event?",
+      "options": ["Rolling a 1", "Drawing a king", "Tossing heads", "Getting a number from 1 to 6 on a fair die"],
+      "correct": 3,
+      "topics": ["Certain & Impossible Events"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Which of the following is an impossible event when rolling a standard die?",
+      "options": ["Rolling 6", "Rolling 0", "Rolling an even number", "Rolling odd number"],
+      "correct": 1,
+      "topics": ["Certain & Impossible Events"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    },
+    {
+      "ques": "Are drawing a red or black card from a full deck equally likely?",
+      "options": ["Yes", "No", "Only red is more likely", "Not enough info"],
+      "correct": 0,
+      "topics": ["Equally Likely Outcomes", "Drawing a Card from a Deck"],
+      "difficulty": {"mu": 140},
+      "xp": {"correct": 2, "incorrect": 0}
+    }
+  ]

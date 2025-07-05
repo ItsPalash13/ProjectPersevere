@@ -111,10 +111,7 @@ UserChapterLevelSchema.index({ userId: 1, chapterId: 1, levelId: 1, attemptType:
 
 // Pre-save middleware to update appropriate high score
 UserChapterLevelSchema.pre('save', function(next) {
-  if (this.attemptType === 'time_rush' && this.timeRush) {
-    // Time Rush: Increment attempts
-    this.timeRush.attempts = (this.timeRush.attempts || 0) + 1;
-  } else if (this.attemptType === 'precision_path' && this.precisionPath) {
+  if (this.attemptType === 'precision_path' && this.precisionPath) {
     // Precision Path: Update min time if current time is faster
     if (this.completedAt && this.lastAttemptedAt) {
       const timeTaken = (this.completedAt.getTime() - this.lastAttemptedAt.getTime()) / 1000;
@@ -122,34 +119,9 @@ UserChapterLevelSchema.pre('save', function(next) {
       if (currentMinTime === null || currentMinTime === undefined || timeTaken < currentMinTime) {
         this.precisionPath.minTime = timeTaken;
       }
-      // Increment attempts
-      this.precisionPath.attempts = (this.precisionPath.attempts || 0) + 1;
     }
   }
   next();
 });
 
 export const UserChapterLevel = mongoose.model<IUserChapterLevel>('UserChapterLevel', UserChapterLevelSchema);
-
-// Example Time Rush UserChapterLevel document
-const timeRushUCL = {
-  _id: "683317d460cc5230f6f12c90",
-  userId: "68282f7ddbdd9eb022d7cce5",
-  chapterId: "684178b759aa59113383b7bc",
-  levelId: "684178b759aa59113383b7c1",
-  levelNumber: 1,
-  status: "not_started",
-  attemptType: "time_rush",
-  lastAttemptedAt: new Date(),
-  timeRush: {
-    attempts: 0,
-    maxXp: 0,
-    requiredXp: 100,  // Example required XP
-    timeLimit: 300    // Example time limit in seconds (5 minutes)
-  },
-  precisionPath: {
-    attempts: 0,
-    minTime: Infinity,
-    requiredXp: 100   // Same required XP as Time Rush
-  }
-};

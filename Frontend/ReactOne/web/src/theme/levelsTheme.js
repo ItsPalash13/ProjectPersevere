@@ -107,7 +107,13 @@ export const levelsStyles = {
   },
   gridContainer: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    gridTemplateColumns: {
+      xs: '1fr',
+      sm: 'repeat(2, 1fr)',
+      md: 'repeat(3, 1fr)',
+      lg: 'repeat(4, 1fr)',
+      xl: 'repeat(5, 1fr)'
+    },
     gap: 2,
     alignItems: 'stretch',
     px: 1,
@@ -116,6 +122,17 @@ export const levelsStyles = {
   },
   levelCard: {
     height: '100%',
+    width: '100%',
+    minWidth: {
+      xs: '280px',
+      sm: '300px',
+      md: '320px'
+    },
+    maxWidth: {
+      xs: '100%',
+      sm: '350px',
+      md: '380px'
+    },
     display: 'flex',
     flexDirection: 'column',
     borderRadius: 3,

@@ -64,19 +64,63 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       });
     }
 
-    // Find or create UserChapterLevel
-    let userChapterLevel = await UserChapterLevel.findOneAndUpdate({
+    // Find existing UserChapterLevel
+    let userChapterLevel = await UserChapterLevel.findOne({
       userId,
       levelId,
       chapterId: level.chapterId,
       attemptType
-    }, {
-      $inc: {
-        [`${attemptType}.attempts`]: 1
-      },
+    });
+
+    // Prepare update object
+    const updateObj: any = {
       $set: {
         lastAttemptedAt: new Date()
       }
+    };
+
+    // Handle attempts differently for new vs existing documents
+    if (!userChapterLevel) {
+      // New document - set attempts to 1 and initialize the mode-specific object
+      const fieldName = attemptType === 'time_rush' ? 'timeRush' : 'precisionPath';
+      updateObj.$set[fieldName] = {
+        attempts: 1,
+        requiredXp: attemptType === 'time_rush' ? (level.timeRush?.requiredXp || 0) : (level.precisionPath?.requiredXp || 0),
+        ...(attemptType === 'time_rush' ? {
+          maxXp: null,
+          timeLimit: level.timeRush?.totalTime || 0
+        } : {
+          minTime: null
+        })
+      };
+      updateObj.$set.status = 'in_progress';
+    } else {
+      // Existing document - update the entire mode-specific object with incremented attempts
+      const fieldName = attemptType === 'time_rush' ? 'timeRush' : 'precisionPath';
+      const currentAttempts = (userChapterLevel as any)[fieldName]?.attempts || 0;
+      const newAttempts = currentAttempts + 1;
+      
+      // Set the entire object to ensure proper update
+      updateObj.$set[fieldName] = {
+        ...(userChapterLevel as any)[fieldName],
+        attempts: newAttempts
+      };
+      
+      // Only update status to 'in_progress' if it's currently 'not_started'
+      if (userChapterLevel.status === 'not_started') {
+        updateObj.$set.status = 'in_progress';
+      }
+    }
+
+    // Update or create UserChapterLevel
+    userChapterLevel = await UserChapterLevel.findOneAndUpdate({
+      userId,
+      levelId,
+      chapterId: level.chapterId,
+      attemptType
+    }, updateObj, {
+      new: true, // Return the updated document
+      upsert: true // Create if doesn't exist
     });
 
     // Delete all existing sessions for this userChapterLevelId
@@ -108,22 +152,6 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
     // Extract question IDs for the question bank
     const questionBank = questionTsList.map(qt => qt.quesId);
 
-    console.log((attemptType === 'time_rush' ? {
-      timeRush: {
-        requiredXp: level.timeRush?.requiredXp || 0,
-        currentXp: 0,
-        maxXp: userChapterLevel?.timeRush?.maxXp || 0,
-        timeLimit: level.timeRush?.totalTime || 0,
-        currentTime: level.timeRush?.totalTime || 0
-      }
-    } : {
-      precisionPath: {
-        requiredXp: level.precisionPath?.requiredXp || 0,
-        currentXp: 0,
-        currentTime: 0,
-        minTime: userChapterLevel?.precisionPath?.minTime || Infinity
-      }
-    }));
     // Create new session with question bank
     const session = await UserLevelSession.create({
       userChapterLevelId: userChapterLevel?._id,
@@ -159,7 +187,6 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       throw new Error('Question not found');
     }
 
-    console.log('New session created with question bank');
     return res.status(201).json({
       success: true,
       data: {
@@ -256,7 +283,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         isStarted: hasProgress,
         status: isAvailable,
         activeSession: activeSession || null,
-        mode: level.type as const
+        mode: level.type
       };
     });
 
@@ -488,7 +515,6 @@ router.post('/end', (async (req: Request, res: Response) => {
           chapterId: session.chapterId,
           levelNumber: currentLevel.levelNumber + 1
         }).select('_id levelNumber type');
-        console.log("finalTime", finalTime);
 
         // Update UserChapterLevel for current level
         await UserChapterLevel.findOneAndUpdate(

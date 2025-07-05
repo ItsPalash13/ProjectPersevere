@@ -1,0 +1,28 @@
+{
+  "name": "Probability Basics - Time Rush",
+  "levelNumber": 2,
+  "description": "Test your knowledge of basic probability concepts including coin tosses, dice rolls, and sample spaces. Complete the level within the time limit!",
+  "topics": [
+    "Basic Probability Formula",
+    "Tossing a Single Coin", 
+    "Tossing Two Coins",
+    "Rolling a Die",
+    "Rolling Two Dice",
+    "Sample Space",
+    "Complementary Events",
+    "Favorable Outcomes",
+    "Equally Likely Outcomes"
+  ],
+  "status": true,
+  "chapterId": "686923b0a6d909494cadaeaf",
+  "type": "time_rush",
+  "timeRush": {
+    "requiredXp": 12,
+    "totalTime": 300
+  },
+  "difficultyParams": {
+    "mean": 150,
+    "sd": 50,
+    "alpha": -2
+  }
+} 

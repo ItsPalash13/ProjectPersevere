@@ -1,0 +1,27 @@
+{
+  "name": "Probability Basics - Precision Path",
+  "levelNumber": 1,
+  "description": "Master basic probability concepts with focus on accuracy and efficiency. Complete the level with the minimum number of questions!",
+  "topics": [
+    "Basic Probability Formula",
+    "Tossing a Single Coin", 
+    "Tossing Two Coins",
+    "Rolling a Die",
+    "Rolling Two Dice",
+    "Sample Space",
+    "Complementary Events",
+    "Favorable Outcomes",
+    "Equally Likely Outcomes"
+  ],
+  "status": true,
+  "chapterId": "686923b0a6d909494cadaeaf",
+  "type": "precision_path",
+  "precisionPath": {
+    "requiredXp": 10
+  },
+  "difficultyParams": {
+    "mean": 150,
+    "sd": 50,
+    "alpha": 0
+  }
+} 
