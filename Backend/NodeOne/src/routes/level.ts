@@ -232,79 +232,45 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
       activeSessions.map(session => [`${session.levelId.toString()}_${session.attemptType}`, session])
     );
 
-    // Process levels for both modes - filter by actual level type
-    const timeRushLevels = levels
-      .filter(level => level.type === 'time_rush')
-      .map(level => {
-        const progressKey = `${level._id.toString()}_time_rush`;
-        const hasProgress = progressMap.has(progressKey);
-        const isAvailable = level.status && hasProgress;
-        const activeSession = sessionMap.get(progressKey);
-        const rawProgress = progressMap.get(progressKey);
-        
-        // Clean user progress to only include relevant fields for time_rush
-        let cleanProgress = null;
-        if (rawProgress) {
-          cleanProgress = {
-            ...rawProgress.toObject(),
-            // Remove precisionPath data for time_rush levels
-            precisionPath: undefined
-          };
-        }
-        
-        return {
-          ...level,
-          userProgress: cleanProgress,
-          isStarted: hasProgress,
-          status: isAvailable,
-          activeSession: activeSession || null,
-          mode: 'time_rush' as const
+    // Process levels in mixed sequence - return single array sorted by levelNumber
+    const mixedLevels = levels.map(level => {
+      const progressKey = `${level._id.toString()}_${level.type}`;
+      const hasProgress = progressMap.has(progressKey);
+      const isAvailable = level.status && hasProgress;
+      const activeSession = sessionMap.get(progressKey);
+      const rawProgress = progressMap.get(progressKey);
+      
+      // Clean user progress to only include relevant fields for the level's type
+      let cleanProgress = null;
+      if (rawProgress) {
+        cleanProgress = {
+          ...rawProgress.toObject(),
+          // Remove irrelevant mode data based on level type
+          ...(level.type === 'time_rush' ? { precisionPath: undefined } : { timeRush: undefined })
         };
-      });
-
-    const precisionPathLevels = levels
-      .filter(level => level.type === 'precision_path')
-      .map(level => {
-        const progressKey = `${level._id.toString()}_precision_path`;
-        const hasProgress = progressMap.has(progressKey);
-        const isAvailable = level.status && hasProgress;
-        const activeSession = sessionMap.get(progressKey);
-        const rawProgress = progressMap.get(progressKey);
-        
-        // Clean user progress to only include relevant fields for precision_path
-        let cleanProgress = null;
-        if (rawProgress) {
-          cleanProgress = {
-            ...rawProgress.toObject(),
-            // Remove timeRush data for precision_path levels
-            timeRush: undefined
-          };
-        }
-        
-        return {
-          ...level,
-          userProgress: cleanProgress,
-          isStarted: hasProgress,
-          status: isAvailable,
-          activeSession: activeSession || null,
-          mode: 'precision_path' as const
-        };
-      });
+      }
+      
+      return {
+        ...level,
+        userProgress: cleanProgress,
+        isStarted: hasProgress,
+        status: isAvailable,
+        activeSession: activeSession || null,
+        mode: level.type as const
+      };
+    });
 
     return res.status(200).json({
       success: true,
       count: {
-        total: timeRushLevels.length + precisionPathLevels.length,
-        timeRush: timeRushLevels.length,
-        precisionPath: precisionPathLevels.length
+        total: mixedLevels.length,
+        timeRush: mixedLevels.filter(level => level.type === 'time_rush').length,
+        precisionPath: mixedLevels.filter(level => level.type === 'precision_path').length
       },
       meta: {
         chapter: chapter
       },
-      data: {
-        timeRush: timeRushLevels,
-        precisionPath: precisionPathLevels
-      }
+      data: mixedLevels
     });
   } catch (error) {
     console.error('Error fetching levels:', error);
@@ -387,9 +353,8 @@ router.post('/end', (async (req: Request, res: Response) => {
         // Find the next level in the same chapter with the same type
         const nextLevel = await Level.findOne({
           chapterId: session.chapterId,
-          levelNumber: currentLevel.levelNumber + 1,
-          type: 'time_rush'
-        }).select('_id levelNumber requiredXp');
+          levelNumber: currentLevel.levelNumber + 1
+        }).select('_id levelNumber type');
 
         // Update UserChapterLevel for current level
         await UserChapterLevel.findOneAndUpdate(
@@ -409,23 +374,30 @@ router.post('/end', (async (req: Request, res: Response) => {
           { upsert: true }
         );
 
-        // If next level exists, create UserChapterLevel for it
+        // If next level exists, create UserChapterLevel for it with the correct attemptType
         if (nextLevel && typeof nextLevel.levelNumber === 'number' && !isNaN(nextLevel.levelNumber)) {
           await UserChapterLevel.findOneAndUpdate(
             {
               userId,
               chapterId: session.chapterId,
               levelId: nextLevel._id,
-              attemptType: 'time_rush'
+              attemptType: nextLevel.type
             },
             {
               $set: {
                 status: 'not_started',
                 levelNumber: nextLevel.levelNumber,
-                'timeRush.maxXp': null,
-                'timeRush.attempts': 0,
-                'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
-                'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0
+                // Set mode-specific fields based on next level's type
+                ...(nextLevel.type === 'time_rush' ? {
+                  'timeRush.maxXp': null,
+                  'timeRush.attempts': 0,
+                  'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
+                  'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0
+                } : {
+                  'precisionPath.minTime': null,
+                  'precisionPath.attempts': 0,
+                  'precisionPath.requiredXp': nextLevel.precisionPath?.requiredXp || 0
+                })
               }
             },
             { upsert: true }
@@ -514,9 +486,8 @@ router.post('/end', (async (req: Request, res: Response) => {
         // Find the next level in the same chapter with the same type
         const nextLevel = await Level.findOne({
           chapterId: session.chapterId,
-          levelNumber: currentLevel.levelNumber + 1,
-          type: 'precision_path'
-        }).select('_id levelNumber requiredXp');
+          levelNumber: currentLevel.levelNumber + 1
+        }).select('_id levelNumber type');
         console.log("finalTime", finalTime);
 
         // Update UserChapterLevel for current level
@@ -537,22 +508,30 @@ router.post('/end', (async (req: Request, res: Response) => {
           { upsert: true }
         );
 
-        // If next level exists, create UserChapterLevel for it
+        // If next level exists, create UserChapterLevel for it with the correct attemptType
         if (nextLevel && typeof nextLevel.levelNumber === 'number' && !isNaN(nextLevel.levelNumber)) {
           await UserChapterLevel.findOneAndUpdate(
             {
               userId,
               chapterId: session.chapterId,
               levelId: nextLevel._id,
-              attemptType: 'precision_path'
+              attemptType: nextLevel.type
             },
             {
               $set: {
                 status: 'not_started',
                 levelNumber: nextLevel.levelNumber,
-                'precisionPath.minTime': null,
-                'precisionPath.requiredXp': nextLevel.precisionPath?.requiredXp || 0,
-                'precisionPath.attempts': 0
+                // Set mode-specific fields based on next level's type
+                ...(nextLevel.type === 'time_rush' ? {
+                  'timeRush.maxXp': null,
+                  'timeRush.attempts': 0,
+                  'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
+                  'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0
+                } : {
+                  'precisionPath.minTime': null,
+                  'precisionPath.attempts': 0,
+                  'precisionPath.requiredXp': nextLevel.precisionPath?.requiredXp || 0
+                })
               }
             },
             { upsert: true }

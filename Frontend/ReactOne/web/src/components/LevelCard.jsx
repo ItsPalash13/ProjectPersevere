@@ -86,6 +86,26 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
           </Box>
         )}
         
+        {/* Mode Indicator */}
+        <Box 
+          sx={{
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            zIndex: 3,
+            backgroundColor: isTimeRush ? 'rgba(255, 165, 0, 0.9)' : 'rgba(138, 43, 226, 0.9)',
+            color: 'white',
+            borderRadius: '12px',
+            px: 1.5,
+            py: 0.5,
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
+          }}
+        >
+          {isTimeRush ? '⏱️ Time Rush' : '⚡ Precision Path'}
+        </Box>
+        
         {/* Level Name Overlay */}
         <Typography 
           variant="h5" 

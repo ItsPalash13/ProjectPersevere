@@ -111,5 +111,6 @@ export const LevelSchema = new Schema<ILevel>({
 // Indexes for faster queries
 LevelSchema.index({ chapterId: 1 });
 LevelSchema.index({ chapterId: 1, type: 1 });
+LevelSchema.index({ chapterId: 1, levelNumber: 1 });
 
 export const Level = mongoose.model<ILevel>('Level', LevelSchema); 

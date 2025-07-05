@@ -15,10 +15,9 @@
       "chapterId": {
         "$oid": "684178b759aa59113383b7bc"
       },
-      "type": "time_rush",
-      "timeRush": {
-        "requiredXp": 15,
-        "totalTime": 30
+      "type": "precision_path",
+      "precisionPath": {
+        "requiredXp": 15
       },
       "difficultyParams": {
         "mean": 750,
@@ -42,10 +41,9 @@
       "chapterId": {
         "$oid": "684178b759aa59113383b7bc"
       },
-      "type": "time_rush",
-      "timeRush": {
-        "requiredXp": 18,
-        "totalTime": 30
+      "type": "precision_path",
+      "precisionPath": {
+        "requiredXp": 18
       },
       "difficultyParams": {
         "mean": 750,
@@ -85,13 +83,14 @@
       "_id": {
         "$oid": "684178b759aa59113383b7c4"
       },
-      "name": "Level 1",
-      "levelNumber": 1,
-      "description": "Basic arithmetic and number sense.",
+      "name": "Level 4",
+      "levelNumber": 4,
+      "description": "Advanced arithmetic and problem solving.",
       "topics": [
-        "addition",
-        "subtraction",
-        "place value"
+        "multiplication",
+        "division",
+        "word problems",
+        "patterns"
       ],
       "status": true,
       "chapterId": {
@@ -99,25 +98,26 @@
       },
       "type": "precision_path",
       "precisionPath": {
-        "requiredXp": 15
+        "requiredXp": 22
       },
       "difficultyParams": {
-        "mean": 750,
+        "mean": 800,
         "sd": 150,
-        "alpha": 5
+        "alpha": 2
       }
     },
     {
       "_id": {
         "$oid": "684178b759aa59113383b7c5"
       },
-      "name": "Level 2",
-      "levelNumber": 2,
-      "description": "Fractions and decimals introduction.",
+      "name": "Level 5",
+      "levelNumber": 5,
+      "description": "Complex problem solving and critical thinking.",
       "topics": [
-        "fractions",
-        "decimals",
-        "simple word problems"
+        "algebraic thinking",
+        "multi-step problems",
+        "data analysis",
+        "reasoning"
       ],
       "status": true,
       "chapterId": {
@@ -125,10 +125,10 @@
       },
       "type": "precision_path",
       "precisionPath": {
-        "requiredXp": 18
+        "requiredXp": 25
       },
       "difficultyParams": {
-        "mean": 750,
+        "mean": 850,
         "sd": 150,
         "alpha": 0
       }
@@ -137,27 +137,28 @@
       "_id": {
         "$oid": "684178b759aa59113383b7c6"
       },
-      "name": "Level 3",
-      "levelNumber": 3,
-      "description": "Intro to measurement and geometry.",
+      "name": "Level 6",
+      "levelNumber": 6,
+      "description": "Mastery challenge and advanced concepts.",
       "topics": [
-        "measurement",
-        "shapes",
-        "perimeter",
-        "area"
+        "advanced geometry",
+        "statistics",
+        "probability",
+        "critical thinking"
       ],
       "status": true,
       "chapterId": {
         "$oid": "684178b759aa59113383b7bc"
       },
-      "type": "precision_path",
-      "precisionPath": {
-        "requiredXp": 20
+      "type": "time_rush",
+      "timeRush": {
+        "requiredXp": 30,
+        "totalTime": 45
       },
       "difficultyParams": {
-        "mean": 750,
+        "mean": 900,
         "sd": 150,
-        "alpha": -5
+        "alpha": -3
       }
     }
   ] 

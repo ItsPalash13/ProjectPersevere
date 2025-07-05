@@ -14,12 +14,11 @@
     },
     "levelNumber": 1,
     "status": "not_started",
-    "attemptType": "time_rush",
-    "timeRush": {
+    "attemptType": "precision_path",
+    "precisionPath": {
       "attempts": 0,
-      "maxXp": null,
       "requiredXp": 15,
-      "timeLimit": 30
+      "minTime": null
     }
   },
   {
@@ -33,15 +32,16 @@
       "$oid": "684178b759aa59113383b7bc"
     },
     "levelId": {
-      "$oid": "684178b759aa59113383b7c4"
+      "$oid": "684178b759aa59113383b7c3"
     },
-    "levelNumber": 1,
+    "levelNumber": 3,
     "status": "not_started",
-    "attemptType": "precision_path",
-    "precisionPath": {
+    "attemptType": "time_rush",
+    "timeRush": {
       "attempts": 0,
-      "requiredXp": 15,
-      "minTime": null
+      "maxXp": null,
+      "requiredXp": 20,
+      "timeLimit": 30
     }
   }
 ]
