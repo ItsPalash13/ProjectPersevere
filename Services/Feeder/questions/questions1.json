@@ -1,0 +1,234 @@
+[
+  {
+    "ques": "What is the sample space when tossing one coin?",
+    "options": ["{H}", "{T}", "{H, T}", "{Head or nothing}"],
+    "correct": 2,
+    "topics": ["Sample Space"],
+    "difficulty": {"mu": 100},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Which of the following are complementary events?",
+    "options": ["Heads and Tails", "Even and Odd numbers", "Getting 6 and not getting 6", "Red and Black cards"],
+    "correct": 2,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 200},
+    "xp": {"correct": 4, "incorrect": 0}
+  },
+  {
+    "ques": "What are favorable outcomes when rolling a die to get a number greater than 4?",
+    "options": ["5, 6", "1, 2, 3", "1, 2", "2, 3, 4"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes", "Rolling a Die"],
+    "difficulty": {"mu": 160},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "If a coin is fair, heads and tails are:",
+    "options": ["Equally likely", "Heads is more likely", "Tails is more likely", "Impossible"],
+    "correct": 0,
+    "topics": ["Equally Likely Outcomes", "Tossing a Single Coin"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "What is the sample space for rolling a die?",
+    "options": ["{1,2,3,4,5,6}", "{1-6}", "{Even, Odd}", "{All numbers}"],
+    "correct": 0,
+    "topics": ["Sample Space", "Rolling a Die"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "If the probability of event A is 1/4, what is the probability of its complement?",
+    "options": ["3/4", "1/2", "1/4", "0"],
+    "correct": 0,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 220},
+    "xp": {"correct": 4, "incorrect": 0}
+  },
+  {
+    "ques": "Favorable outcomes are those that:",
+    "options": ["Satisfy the event", "Always occur", "Are random", "Are unwanted"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "How many equally likely outcomes are there when rolling a fair die?",
+    "options": ["5", "6", "2", "10"],
+    "correct": 1,
+    "topics": ["Equally Likely Outcomes"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "The sum of probabilities of an event and its complement is:",
+    "options": ["0", "1", "1/2", "It depends"],
+    "correct": 1,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 140},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "What is the number of favorable outcomes for getting a face card from a deck?",
+    "options": ["12", "4", "16", "3"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "If all outcomes are equally likely, P(E) = ?",
+    "options": ["Favorable / Total", "Total / Favorable", "Only Total", "Favorable × Total"],
+    "correct": 0,
+    "topics": ["Equally Likely Outcomes", "Basic Probability Formula"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Sample space refers to:",
+    "options": ["Only favorable outcomes", "Only impossible events", "All possible outcomes", "Expected outcomes"],
+    "correct": 2,
+    "topics": ["Sample Space"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Which event is the complement of getting an even number on a die?",
+    "options": ["Getting a prime", "Getting odd", "Getting number > 3", "Getting 6"],
+    "correct": 1,
+    "topics": ["Complementary Events", "Rolling a Die"],
+    "difficulty": {"mu": 160},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Which of these events are not favorable when trying to get a queen?",
+    "options": ["King", "Queen", "Hearts", "Red"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "When are outcomes said to be equally likely?",
+    "options": ["They have same chance", "They are random", "One is sure", "Depends on situation"],
+    "correct": 0,
+    "topics": ["Equally Likely Outcomes"],
+    "difficulty": {"mu": 140},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "What is the sample space of tossing two coins?",
+    "options": ["{HH, HT, TH, TT}", "{H, T}", "{HH, TT}", "{H, H, T, T}"],
+    "correct": 0,
+    "topics": ["Sample Space", "Tossing Two Coins"],
+    "difficulty": {"mu": 160},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "The complement of drawing an ace is:",
+    "options": ["Not drawing an ace", "Drawing a spade", "Drawing a face card", "Drawing red card"],
+    "correct": 0,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "If 3 out of 5 outcomes are favorable, the probability is:",
+    "options": ["3/5", "2/5", "5/3", "1/2"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes", "Basic Probability Formula"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "What is the complement of getting a number less than 4 on a die?",
+    "options": ["Getting 4, 5, or 6", "Getting 1, 2, 3", "Getting 6", "Getting 1"],
+    "correct": 0,
+    "topics": ["Complementary Events", "Rolling a Die"],
+    "difficulty": {"mu": 200},
+    "xp": {"correct": 4, "incorrect": 0}
+  },
+  {
+    "ques": "Are red and black cards in a standard deck equally likely?",
+    "options": ["Yes", "No", "Black is more", "Depends"],
+    "correct": 0,
+    "topics": ["Equally Likely Outcomes", "Drawing a Card from a Deck"],
+    "difficulty": {"mu": 140},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "If the probability of an event is 0.6, its complement is:",
+    "options": ["0.4", "0.6", "1", "0.2"],
+    "correct": 0,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 220},
+    "xp": {"correct": 4, "incorrect": 0}
+  },
+  {
+    "ques": "In rolling a die, how many outcomes are favorable to getting a prime number?",
+    "options": ["3", "2", "4", "1"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes", "Rolling a Die"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "The sample space for rolling two dice has how many outcomes?",
+    "options": ["6", "12", "36", "18"],
+    "correct": 2,
+    "topics": ["Sample Space", "Rolling Two Dice"],
+    "difficulty": {"mu": 160},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Equally likely outcomes means:",
+    "options": ["Same chance", "Different chance", "Random", "None"],
+    "correct": 0,
+    "topics": ["Equally Likely Outcomes"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Complement of 'drawing a face card' is:",
+    "options": ["Not drawing a face card", "Drawing king", "Drawing a number card", "Drawing ace"],
+    "correct": 0,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 180},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "If an event is certain, its complement is:",
+    "options": ["Impossible", "Also certain", "Half likely", "Equally likely"],
+    "correct": 0,
+    "topics": ["Complementary Events"],
+    "difficulty": {"mu": 200},
+    "xp": {"correct": 4, "incorrect": 0}
+  },
+  {
+    "ques": "Getting a king from a deck has how many favorable outcomes?",
+    "options": ["4", "2", "1", "13"],
+    "correct": 0,
+    "topics": ["Favorable Outcomes", "Drawing a Card from a Deck"],
+    "difficulty": {"mu": 160},
+    "xp": {"correct": 2, "incorrect": 0}
+  },
+  {
+    "ques": "Which of these are complementary in tossing a coin?",
+    "options": ["Heads and not heads", "Heads and tails", "Tails and not tails", "All of the above"],
+    "correct": 3,
+    "topics": ["Complementary Events", "Tossing a Single Coin"],
+    "difficulty": {"mu": 200},
+    "xp": {"correct": 4, "incorrect": 0}
+  },
+  {
+    "ques": "If all outcomes in a sample space are equally likely, total probability is:",
+    "options": ["1", "0", "Depends", "Cannot say"],
+    "correct": 0,
+    "topics": ["Equally Likely Outcomes"],
+    "difficulty": {"mu": 120},
+    "xp": {"correct": 2, "incorrect": 0}
+  }
+]

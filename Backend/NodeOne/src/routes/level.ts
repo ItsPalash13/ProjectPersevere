@@ -4,6 +4,7 @@ import { Chapter } from '../models/Chapter';
 import { UserChapterLevel } from '../models/UserChapterLevel';
 import { UserLevelSession } from '../models/UserLevelSession';
 import { UserChapterLevelPerformanceLogs } from '../models/UserChapterLevelPerformanceLogs';
+import { UserLevelSessionTopicsLogs } from '../models/Performance/UserLevelSessionTopicsLogs';
 import { QuestionTs } from '../models/QuestionTs';
 import { Question } from '../models/Questions';
 import authMiddleware from '../middleware/authMiddleware';
@@ -355,6 +356,31 @@ router.post('/end', (async (req: Request, res: Response) => {
     };
 
     await UserChapterLevelPerformanceLogs.create(performanceLogData);
+
+    // Phase 2: Set status to 1 for all session topic logs for this session TODAY
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const updateResult = await UserLevelSessionTopicsLogs.updateMany(
+        { 
+          userChapterLevelId: session.userChapterLevelId,
+          userLevelSessionId: userLevelSessionId,
+          createdAt: { 
+            $gte: today, 
+            $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) 
+          }
+        },
+        { 
+          $set: { status: 1 } 
+        }
+      );
+      
+      console.log(`Updated ${updateResult.modifiedCount} session topic logs to status 1`);
+    } catch (sessionLogError) {
+      console.error('Error updating session topic logs status:', sessionLogError);
+      // Don't break the level end flow if session logging fails
+    }
 
     let highScoreMessage = '';
     let newHighScore = false;

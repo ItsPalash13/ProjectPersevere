@@ -13,8 +13,8 @@ export const initializeApp = async (app: Express) => {
         // Then initialize auth
         await getAuth();
         logger.info('Database connected successfully');
-        await connectRedis();
-        logger.info('Redis connected successfully');
+        //await connectRedis();
+        //logger.info('Redis connected successfully');
         
         // Get server from app and initialize Socket.IO
         const server = app.get('server');

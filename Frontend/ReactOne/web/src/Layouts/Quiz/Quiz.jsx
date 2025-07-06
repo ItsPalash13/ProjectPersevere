@@ -96,6 +96,7 @@ const Quiz = ({ socket }) => {
   const lastUpdateTimeRef = React.useRef(0);
   const timerIntervalRef = React.useRef(null);
   const [attemptType, setAttemptType] = useState(null);
+  const [questionStartTime, setQuestionStartTime] = useState(null);
 
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
@@ -129,17 +130,26 @@ const Quiz = ({ socket }) => {
       setQuizMessage('Please select an answer');
       return;
     }
+    
+    // Calculate time spent on this question
+    const timeSpent = questionStartTime ? Date.now() - questionStartTime : 0;
+    
     socket.emit('answer', {
       userLevelSessionId: levelSession?._id,
       answer: parseInt(selectedAnswer),
-      currentTime: currentTime
+      currentTime: currentTime,
+      timeSpent: timeSpent
     });
     console.log("currentTime", currentTime);
+    console.log("timeSpent on question (ms):", timeSpent);
   };
 
   const handleNextQuestion = () => {
-    setAnswerResult(null);
     setShowAnswerDrawer(false);
+    // Reset answerResult after drawer closes with a small delay
+    setTimeout(() => {
+      setAnswerResult(null);
+    }, 300);
     requestQuestion();
   };
 
@@ -218,7 +228,6 @@ const Quiz = ({ socket }) => {
         }
 
         if (Math.floor(newTime) % 1 === 0 && levelSession._id && !quizFinished && now - lastUpdateTimeRef.current >= 1000) {
-          console.log('sending update time');
           socket.emit('sendUpdateTime', { currentTime: Math.floor(newTime), userLevelSessionId: levelSession._id });
           lastUpdateTimeRef.current = now;
         }
@@ -250,12 +259,15 @@ const Quiz = ({ socket }) => {
       setAttemptType(data.attemptType);
       
       if (data.currentQuestion) {
+        console.log("Received current question from level session:", data.currentQuestion);
         setCurrentQuestion({
           question: data.currentQuestion.ques,
           options: data.currentQuestion.options,
           correctAnswer: data.currentQuestion.correct
         });
         setIsLoading(false);
+        // Note the time when question is initialized
+        setQuestionStartTime(Date.now());
       } else {
         requestQuestion();
       }
@@ -274,6 +286,8 @@ const Quiz = ({ socket }) => {
       setCurrentQuestion(data);
       setSelectedAnswer('');
       setIsLoading(false);
+      // Note the time when question is initialized
+      setQuestionStartTime(Date.now());
     });
 
     socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp }) => {

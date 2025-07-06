@@ -5,6 +5,7 @@ import { Question } from '../../models/Questions';
 import { QuestionTs } from '../../models/QuestionTs';
 import { UserChapterLevel } from '../../models/UserChapterLevel';
 import { Level } from '../../models/Level';
+import { UserLevelSessionTopicsLogs } from '../../models/Performance/UserLevelSessionTopicsLogs';
 import { getSkewNormalRandom } from '../../utils/math';
 import axios from 'axios';
 
@@ -65,7 +66,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
       });
       const endTime = Date.now();
       const timeTaken = endTime - startTime;
-      console.log('timeTaken seconds',timeTaken/1000);
+      console.log('timeTaken seconds to get question',timeTaken/1000);
 
     } catch (error) {
       logger.error('Error in question:', error);
@@ -85,7 +86,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
 
   // Handle answer submission
   // Processes user's answer and updates XP
-  socket.on('answer', async ({ userLevelSessionId, answer, currentTime }) => {
+  socket.on('answer', async ({ userLevelSessionId, answer, currentTime, timeSpent }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
@@ -103,6 +104,50 @@ export const quizQuestionHandlers = (socket: Socket) => {
       }
 
       const isCorrect = answer === question.correct;
+      
+      // Log time spent on this question
+      console.log(`Time spent on question ${question._id}: ${timeSpent}ms (${(timeSpent/1000).toFixed(2)}s)`);
+      
+      // Phase 1: Create/Update UserLevelSessionTopicsLogs
+      try {
+        const topicIds = question.topics.map(topic => topic.id);
+        
+        // Get today's date (start of day for consistency)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        await UserLevelSessionTopicsLogs.findOneAndUpdate(
+          { 
+            userChapterLevelId: session.userChapterLevelId,
+            userLevelSessionId,
+            topics: topicIds,
+            createdAt: { 
+              $gte: today, 
+              $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) 
+            }
+          },
+          {
+            $setOnInsert: {
+              status: 0,
+              createdAt: new Date()
+            },
+            $push: {
+              questionsAnswered: {
+                questionId: session.currentQuestion,
+                timeSpent,
+                userAnswer: answer,
+                isCorrect
+              }
+            }
+          },
+          { upsert: true }
+        );
+        
+        console.log(`Session topics log updated for topics: ${topicIds}`);
+      } catch (sessionLogError) {
+        logger.error('Error updating session topics log:', sessionLogError);
+        // Don't break the quiz flow if session logging fails
+      }
       
       // Get question details for XP calculation
       const questionTs = await QuestionTs.findOne({ quesId: session.currentQuestion });

@@ -1,0 +1,18 @@
+Subject Level:-
+Completion %
+Weakest/Strongest Chapters
+Chapter Mastery TierMap
+
+Chapter-Level:- 
+Progress Bar
+Topic Mastery TierMap
+Improvement Rating
+
+Level-Level:-
+Accuracy histogram
+Time taken histogram
+
+Topic-Level:-
+Topic Accuracy
+Average Time
+
