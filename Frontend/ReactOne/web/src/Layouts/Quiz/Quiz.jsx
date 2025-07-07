@@ -93,10 +93,11 @@ const Quiz = ({ socket }) => {
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
   const [isSocketInitialized, setIsSocketInitialized] = useState(false);
   const [showAnswerDrawer, setShowAnswerDrawer] = useState(false);
-  const lastUpdateTimeRef = React.useRef(0);
   const timerIntervalRef = React.useRef(null);
   const [attemptType, setAttemptType] = useState(null);
   const [questionStartTime, setQuestionStartTime] = useState(null);
+  const [showBackConfirmDialog, setShowBackConfirmDialog] = useState(false);
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
 
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
@@ -168,7 +169,21 @@ const Quiz = ({ socket }) => {
   };
 
   const handleBack = () => {
-    navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
+    // Stop the timer and show confirmation dialog
+    setIsTimerPaused(true);
+    setShowBackConfirmDialog(true);
+  };
+
+  const confirmBack = () => {
+    // Delete the session and navigate back
+    socket.emit('sendDeleteSession', { userLevelSessionId: levelSession?._id });
+    setShowBackConfirmDialog(false);
+  };
+
+  const cancelBack = () => {
+    // Resume timer and close dialog
+    setIsTimerPaused(false);
+    setShowBackConfirmDialog(false);
   };
 
   const getLevelSession = () => {
@@ -203,7 +218,7 @@ const Quiz = ({ socket }) => {
   }, [levelSession?._id, quizFinished, socket, showResults]);
 
   useEffect(() => {
-    if (quizFinished || isLoading) {
+    if (quizFinished || isLoading || isTimerPaused) {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -213,7 +228,6 @@ const Quiz = ({ socket }) => {
 
     timerIntervalRef.current = setInterval(() => {
       setCurrentTime(prev => {
-        const now = Date.now();
         let newTime;
         
         if (attemptType === 'time_rush') {
@@ -226,11 +240,6 @@ const Quiz = ({ socket }) => {
           // Precision Path: increment time
           newTime = prev + 0.1;
         }
-
-        if (Math.floor(newTime) % 1 === 0 && levelSession._id && !quizFinished && now - lastUpdateTimeRef.current >= 1000) {
-          socket.emit('sendUpdateTime', { currentTime: Math.floor(newTime), userLevelSessionId: levelSession._id });
-          lastUpdateTimeRef.current = now;
-        }
         
         return Number(newTime.toFixed(1));
       });
@@ -242,7 +251,7 @@ const Quiz = ({ socket }) => {
         timerIntervalRef.current = null;
       }
     };
-  }, [quizFinished, isLoading, levelSession?._id, socket, attemptType]);
+  }, [quizFinished, isLoading, isTimerPaused, levelSession?._id, socket, attemptType]);
 
   useEffect(() => {
     if (!levelSession?._id || quizFinished || socketInitializedRef.current) {
@@ -328,6 +337,11 @@ const Quiz = ({ socket }) => {
       }
     });
 
+    socket.on('sessionDeleted', () => {
+      console.log("Session deleted by server. Navigating back to levels.");
+      navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
+    });
+
     socketInitializedRef.current = true;
 
     return () => {
@@ -339,6 +353,7 @@ const Quiz = ({ socket }) => {
       socket.off('answerResult');
       socket.off('levelCompleted');
       socket.off('levelSession');
+      socket.off('sessionDeleted');
       socketInitializedRef.current = false;
       initializedRef.current = false;
     };
@@ -751,6 +766,44 @@ const Quiz = ({ socket }) => {
             Next Question
           </StyledButton>
         </Drawer>
+
+        {/* Back Confirmation Dialog */}
+        <Dialog
+          open={showBackConfirmDialog}
+          onClose={cancelBack}
+          disableBackdropClick
+          disableEscapeKeyDown
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              padding: 2
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 'bold' }}>
+            Leave Quiz?
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to leave the quiz? Your progress will be lost and cannot be recovered.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ padding: 2 }}>
+            <Button
+              onClick={cancelBack}
+              variant="outlined"
+            >
+              Continue Quiz
+            </Button>
+            <Button
+              onClick={confirmBack}
+              color="error"
+              variant="contained"
+            >
+              Leave Quiz
+            </Button>
+          </DialogActions>
+        </Dialog>
       </QuizContainer>
   );
 };

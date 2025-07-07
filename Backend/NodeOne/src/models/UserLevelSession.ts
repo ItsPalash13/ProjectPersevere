@@ -8,8 +8,6 @@ export interface IUserLevelSession extends Document {
   levelId: mongoose.Types.ObjectId;
   status: 0 | 1;
   attemptType: 'time_rush' | 'precision_path';
-  reconnectCount: number;
-  reconnectExpiresAt: Date | null;
   currentQuestion: mongoose.Types.ObjectId | null;
   questionsAnswered: {
     correct: mongoose.Types.ObjectId[];
@@ -66,16 +64,6 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     type: String,
     enum: ['time_rush', 'precision_path'],
     required: true
-  },
-  reconnectCount: {
-    type: Number,
-    default: 0,
-    min: 0,
-  },
-  reconnectExpiresAt: {
-    type: Date,
-    default: null,
-    index: { expires: 0 }
   },
   currentQuestion: {
     type: Schema.Types.ObjectId,
@@ -143,9 +131,6 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
 
 // Index for faster queries
 UserLevelSessionSchema.index({ userChapterLevelId: 1 });
-
-// Add TTL index for reconnectExpiresAt
-UserLevelSessionSchema.index({ reconnectExpiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Pre-save middleware to validate session type constraints
 UserLevelSessionSchema.pre('save', function(next) {

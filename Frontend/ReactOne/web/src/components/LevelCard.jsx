@@ -28,7 +28,6 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
 
   const isTimeRush = level.mode === 'time_rush';
   const progress = isTimeRush ? level.userProgress?.timeRush : level.userProgress?.precisionPath;
-  const activeSession = level.activeSession;
   const cardStyles = {
     ...levelsStyles.levelCard,
     ...(level.status ? levelsStyles.activeCard : levelsStyles.lockedCard)
@@ -194,80 +193,22 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
             </Box>
           )}
         </Box>
-        
-        {activeSession && (
-          <Box sx={levelsStyles.activeSessionContainer}>
-            <Typography variant="body2" sx={levelsStyles.activeSessionTitle}>
-              🔥 Active Session
-            </Typography>
-            <Box sx={levelsStyles.activeSessionStats}>
-              <Box sx={levelsStyles.activeSessionStat}>
-                <Typography sx={levelsStyles.activeSessionStatValue}>
-                  {isTimeRush 
-                    ? formatTime(activeSession.timeRush?.currentTime || 0)
-                    : formatTime(activeSession.precisionPath?.currentTime || 0)
-                  }
-                </Typography>
-                <Typography sx={levelsStyles.activeSessionStatLabel}>
-                  {isTimeRush ? 'Time Left' : 'Elapsed'}
-                </Typography>
-              </Box>
-              <Box sx={levelsStyles.activeSessionStat}>
-                <Typography sx={levelsStyles.activeSessionStatValue}>
-                  {isTimeRush 
-                    ? (activeSession.timeRush?.currentXp || 0)
-                    : (activeSession.precisionPath?.currentXp || 0)
-                  }
-                </Typography>
-                <Typography sx={levelsStyles.activeSessionStatLabel}>
-                  Current XP
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        )}
       </CardContent>
       
       <CardActions sx={{ p: 0 }}>
-        {activeSession ? (
-          <Box sx={levelsStyles.buttonsContainer}>
-            <Button 
-              {...levelsStyles.reconnectButton}
-              sx={levelsStyles.reconnectButton.sx}
-              onClick={async (e) => {
-                e.stopPropagation();
-                await dispatch(setLevelSession(activeSession));
-                navigate(`/quiz/${level._id}`, { replace: true });
-              }}
-            >
-              🔄 Reconnect
-            </Button>
-            <Button 
-              {...levelsStyles.startFreshButton}
-              sx={levelsStyles.startFreshButton.sx}
-              onClick={(e) => {
-                e.stopPropagation();
-                onLevelClick(level._id, level.mode);
-              }}
-            >
-              🆕 Start Fresh
-            </Button>
-          </Box>
-        ) : (
-          <Box sx={levelsStyles.buttonsContainer}>
-            <Button 
-              fullWidth
-              disabled={!level.status}
-              sx={level.status ? levelsStyles.startButton.sx : levelsStyles.lockedButton.sx}
-              onClick={(e) => {
-                e.stopPropagation();
-                level.status && onLevelClick(level._id, level.mode);
-              }}
-            >
-              {level.status ? 'Start Level' : '🔒 Locked'}
-            </Button>
-          </Box>
-        )}
+        <Box sx={levelsStyles.buttonsContainer}>
+          <Button 
+            fullWidth
+            disabled={!level.status}
+            sx={level.status ? levelsStyles.startButton.sx : levelsStyles.lockedButton.sx}
+            onClick={(e) => {
+              e.stopPropagation();
+              level.status && onLevelClick(level._id, level.mode);
+            }}
+          >
+            {level.status ? 'Start Level' : '🔒 Locked'}
+          </Button>
+        </Box>
       </CardActions>
     </Card>
   );

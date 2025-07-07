@@ -4,10 +4,16 @@ import {
   Typography, 
   Box,
   Backdrop,
-  CircularProgress
+  CircularProgress,
+  IconButton,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon } from '@mui/icons-material';
 // @ts-ignore
 import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
 // @ts-ignore
@@ -16,6 +22,8 @@ import { setLevelSession } from '../../features/auth/levelSessionSlice';
 import { levelsStyles } from '../../theme/levelsTheme';
 // @ts-ignore
 import LevelCard from '../../components/LevelCard';
+// @ts-ignore
+import Performance from '../../components/Performance';
 
 export interface Level {
   _id: string;
@@ -41,19 +49,6 @@ export interface Level {
   // Additional fields from API response
   isStarted: boolean;
   
-  activeSession?: {
-    _id: string;
-    attemptType: 'time_rush' | 'precision_path';
-    timeRush?: {
-      currentTime: number;
-      currentXp: number;
-      timeLimit: number;
-    };
-    precisionPath?: {
-      currentTime: number;
-      currentXp: number;
-    };
-  } | null;
   userProgress?: {
     timeRush?: {
       maxXp: number;
@@ -93,6 +88,10 @@ const Levels: React.FC = () => {
   const [levels, setLevels] = useState<Level[]>([]);
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [isStarting, setIsStarting] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
+  const [showPerformance, setShowPerformance] = useState(false);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -134,7 +133,12 @@ const Levels: React.FC = () => {
       setIsStarting(true);
       const result = await startLevel({ levelId, attemptType }).unwrap();
       dispatch(setLevelSession(result.data.session));
-      navigate(`/quiz/${levelId}`);
+      
+      // Store selected level ID and start countdown
+      setSelectedLevelId(levelId);
+      setCountdown(3);
+      setShowCountdown(true);
+      setIsStarting(false);
     } catch (error: any) {
       console.error('Failed to start level:', error);
       if (error?.data?.error) {
@@ -143,6 +147,28 @@ const Levels: React.FC = () => {
       }
       setIsStarting(false);
     }
+  };
+
+  // Countdown effect
+  useEffect(() => {
+    if (showCountdown && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else if (showCountdown && countdown === 0) {
+      // Navigate to quiz when countdown reaches 0
+      if (selectedLevelId) {
+        navigate(`/quiz/${selectedLevelId}`);
+      }
+    }
+  }, [showCountdown, countdown, selectedLevelId, navigate]);
+
+  const handleCancelCountdown = () => {
+    setShowCountdown(false);
+    setCountdown(3);
+    setSelectedLevelId(null);
   };
 
   if (isLoading) {
@@ -162,11 +188,79 @@ const Levels: React.FC = () => {
 
   return (
     <Box sx={levelsStyles.container}>
+      {/* Countdown Fullscreen Overlay */}
+      {showCountdown && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+            color: 'white'
+          }}
+        >
+          {/* Back Button */}
+          <IconButton
+            onClick={handleCancelCountdown}
+            sx={{
+              position: 'absolute',
+              top: 20,
+              left: 20,
+              color: 'white',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              }
+            }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+
+          {/* Countdown Display */}
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography 
+              variant="h1" 
+              sx={{ 
+                fontSize: '8rem', 
+                fontWeight: 'bold',
+                color: 'white',
+                textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
+                animation: countdown > 0 ? 'pulse 1s ease-in-out' : 'none',
+                '@keyframes pulse': {
+                  '0%': { transform: 'scale(1)' },
+                  '50%': { transform: 'scale(1.1)' },
+                  '100%': { transform: 'scale(1)' }
+                }
+              }}
+            >
+              {countdown}
+            </Typography>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                mt: 2,
+                color: 'white',
+                opacity: 0.8
+              }}
+            >
+              {countdown > 0 ? 'Get Ready!' : 'Starting...'}
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
       <Backdrop sx={levelsStyles.backdrop} open={isStarting}>
         <Box sx={levelsStyles.loadingContainer}>
           <CircularProgress color="primary" size={60} />
           <Typography variant="h6">
-            Loading Chapter...
+            Loading Session...
           </Typography>
         </Box>
       </Backdrop>
@@ -174,9 +268,19 @@ const Levels: React.FC = () => {
       <Container maxWidth="lg" sx={levelsStyles.pageContainer}>
         {chapter && (
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600 }}>
-              {chapter.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
+                {chapter.name}
+              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<AnalyticsIcon />}
+                onClick={() => setShowPerformance(true)}
+                sx={{ ml: 2 }}
+              >
+                Performance Analytics
+              </Button>
+            </Box>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
               {chapter.topics.map((topic, index) => (
                 <Box
@@ -209,6 +313,39 @@ const Levels: React.FC = () => {
           ))}
         </Box>
       </Container>
+
+      {/* Performance Analytics Dialog */}
+      <Dialog
+        open={showPerformance}
+        onClose={() => setShowPerformance(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '90vh',
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h6">
+              Performance Analytics - {chapter?.name}
+            </Typography>
+            <IconButton onClick={() => setShowPerformance(false)}>
+              <ArrowBackIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {chapterId && (
+            <Performance
+              chapterId={chapterId}
+              onClose={() => setShowPerformance(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

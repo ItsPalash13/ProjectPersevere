@@ -5,8 +5,13 @@ import { Question } from '../../models/Questions';
 import { UserChapterLevel } from '../../models/UserChapterLevel';
 import axios from 'axios';
 
+// Extend Socket interface to include session tracking
+interface ExtendedSocket extends Socket {
+  userLevelSessionId?: string;
+}
+
 // Socket event handlers for quiz session management
-export const quizSessionHandlers = (socket: Socket) => {
+export const quizSessionHandlers = (socket: ExtendedSocket) => {
   logger.info(`Quiz session socket connected: ${socket.id}`);
 
   // Handle initial level session retrieval
@@ -16,6 +21,9 @@ export const quizSessionHandlers = (socket: Socket) => {
       if (!userLevelSessionId) {
         throw new Error('Session ID is required');
       }
+
+      // Store session ID for disconnect handling
+      socket.userLevelSessionId = userLevelSessionId;
 
       // Find the existing session
       const session = await UserLevelSession.findById(userLevelSessionId);
@@ -69,51 +77,6 @@ export const quizSessionHandlers = (socket: Socket) => {
     }
   });
 
-  // Handle time updates from client
-  // This keeps the server in sync with the client's timer
-  socket.on('sendUpdateTime', async ({ currentTime, userLevelSessionId }) => {
-    try {
-      const session = await UserLevelSession.findById(userLevelSessionId);
-      if (!session) {
-        throw new Error('Session not found');
-      }
-
-      if (session.attemptType === 'time_rush') {
-        // Time Rush mode validation:
-        // 1. Current time can't be greater than stored time (prevents time manipulation)
-        // 2. Current time can't be negative
-        if (currentTime > session.timeRush?.currentTime) {
-          throw new Error('Invalid time update: current time cannot be greater than stored time');
-        }
-        if (currentTime < 0) {
-          throw new Error('Invalid time update: current time cannot be negative');
-        }
-
-        // Update time and set reconnection window
-        session.timeRush.currentTime = currentTime;
-        const remainingTime = (session.timeRush.timeLimit - currentTime) * 1000; // Convert to milliseconds
-        const baseTime = session.reconnectExpiresAt ? session.reconnectExpiresAt.getTime() : Date.now();
-        session.reconnectExpiresAt = new Date(baseTime + remainingTime + 20000); // Add 20s buffer
-      } else {
-        // Precision Path mode validation:
-        // Only check for negative time
-        if (currentTime < 0) {
-          throw new Error('Invalid time update: current time cannot be negative');
-        }
-        session.precisionPath.currentTime = currentTime;
-      }
-      
-      await session.save();
-      
-    } catch (error) {
-      logger.error('Error updating time:', error);
-      socket.emit('quizError', { 
-        type: 'error',
-        message: error.message || 'Failed to update time' 
-      });
-    }
-  });
-
   // Handle manual quiz end
   // Called when user clicks "End Quiz" button
   socket.on('sendQuizEnd', async ({ userLevelSessionId }) => {
@@ -163,6 +126,34 @@ export const quizSessionHandlers = (socket: Socket) => {
     }
   });
 
+  // Handle session deletion when back button is confirmed
+  // Called when user confirms they want to leave the quiz
+  socket.on('sendDeleteSession', async ({ userLevelSessionId }) => {
+    try {
+      const session = await UserLevelSession.findById(userLevelSessionId);
+      if (!session) {
+        throw new Error('Session not found');
+      }
+
+      // Delete the session
+      await UserLevelSession.findByIdAndDelete(userLevelSessionId);
+      logger.info(`Session deleted by user: ${userLevelSessionId}`);
+
+      // Confirm deletion to client
+      socket.emit('sessionDeleted', { 
+        message: 'Quiz session has been deleted successfully.' 
+      });
+      socket.disconnect();
+
+    } catch (error) {
+      logger.error('Error deleting session:', error);
+      socket.emit('quizError', { 
+        type: 'failure',
+        message: error.message || 'Failed to delete session' 
+      });
+    }
+  });
+
   // Handle time up event
   // Called when time runs out in Time Rush mode
   socket.on('sendTimesUp', async ({ userLevelSessionId }) => {
@@ -208,6 +199,21 @@ export const quizSessionHandlers = (socket: Socket) => {
         type: 'failure',
         message: error.message || 'Failed to end quiz' 
       });
+    }
+  });
+
+  // Handle socket disconnection
+  // Basic cleanup on disconnect (no reconnect logic)
+  socket.on('disconnect', async () => {
+    try {
+      logger.info(`Quiz session socket disconnected: ${socket.id}`);
+      
+      if (socket.userLevelSessionId) {
+        logger.info(`Session ${socket.userLevelSessionId} disconnected - no reconnect logic`);
+      }
+      
+    } catch (error) {
+      logger.error('Error handling socket disconnect:', error);
     }
   });
 }; 

@@ -76,4 +76,4 @@ UserChapterLevelTopicsPerformanceLogsSchema.index({ userChapterLevelId: 1, topic
 
 
 
-export const UserChapterLevelTopicsPerformanceLogs = mongoose.model<IUserChapterLevelTopicsPerformanceLogs>('UserChapterLevelTopicsPerformanceLogs', UserChapterLevelTopicsPerformanceLogsSchema); 
+export const UserChapterLevelTopicsPerformanceLogs = mongoose.model<IUserChapterLevelTopicsPerformanceLogs>('UserChapterLevelsTopicsPerformanceLogs', UserChapterLevelTopicsPerformanceLogsSchema); 

@@ -161,7 +161,6 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       levelId: level._id,
       attemptType,
       status: 0,
-      reconnectCount: 0,
       currentQuestion: null,
       ...(attemptType === 'time_rush' ? {
         timeRush: {
@@ -245,19 +244,9 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         levelId: { $in: levels.map(level => new mongoose.Types.ObjectId(level._id)) }
       });
 
-    // Get active sessions for this chapter
-    const activeSessions = await UserLevelSession.find({
-      userId: new mongoose.Types.ObjectId(userId),
-      chapterId: new mongoose.Types.ObjectId(chapterId)
-    });
-
-    // Create maps for progress and sessions
+    // Create maps for progress
     const progressMap = new Map(
       userProgress.map(progress => [`${progress.levelId.toString()}_${progress.attemptType}`, progress])
-    );
-
-    const sessionMap = new Map(
-      activeSessions.map(session => [`${session.levelId.toString()}_${session.attemptType}`, session])
     );
 
     // Process levels in mixed sequence - return single array sorted by levelNumber
@@ -265,7 +254,6 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
       const progressKey = `${level._id.toString()}_${level.type}`;
       const hasProgress = progressMap.has(progressKey);
       const isAvailable = level.status && hasProgress;
-      const activeSession = sessionMap.get(progressKey);
       const rawProgress = progressMap.get(progressKey);
       
       // Clean user progress to only include relevant fields for the level's type
@@ -283,7 +271,6 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         userProgress: cleanProgress,
         isStarted: hasProgress,
         status: isAvailable,
-        activeSession: activeSession || null,
         mode: level.type
       };
     });
