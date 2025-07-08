@@ -15,9 +15,25 @@ export const performanceApi = createApi({
       }),
       providesTags: ['Performance'],
     }),
+    getTopicDailyAccuracy: builder.query({
+      query: ({ chapterId, topicId }) => ({
+        url: `/api/performance/chapter-topic-daily-accuracy/${chapterId}/${topicId}`,
+        method: 'GET',
+      }),
+      providesTags: ['Performance'],
+    }),
+    getTopicSetDailyAccuracy: builder.query({
+      query: ({ chapterId, topicIds }) => ({
+        url: `/api/performance/chapter-topicset-daily-accuracy/${chapterId}?topicIds=${topicIds.join(',')}`,
+        method: 'GET',
+      }),
+      providesTags: ['Performance'],
+    }),
   }),
 });
 
 export const {
   useGetChapterTopicsPerformanceQuery,
+  useGetTopicDailyAccuracyQuery,
+  useGetTopicSetDailyAccuracyQuery,
 } = performanceApi; 

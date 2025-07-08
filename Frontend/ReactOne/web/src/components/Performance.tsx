@@ -34,7 +34,8 @@ import {
   Bar
 } from 'recharts';
 // @ts-ignore
-import { useGetChapterTopicsPerformanceQuery } from '../features/api/performanceAPI';
+import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery } from '../features/api/performanceAPI';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 interface PerformanceData {
   topicSetId: string;
@@ -47,6 +48,7 @@ interface PerformanceData {
     topicId: string;
     topicName: string;
   }>;
+  totalDatesPracticed?: number;
 }
 
 interface PerformanceMeta {
@@ -71,8 +73,8 @@ interface PerformanceProps {
 }
 
 const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
-  const [showGraph, setShowGraph] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<'accuracy' | 'questions' | 'time'>('accuracy');
+  const [selectedTopicSet, setSelectedTopicSet] = useState<string[] | null>(null);
+  const [selectedTopicSetNames, setSelectedTopicSetNames] = useState<string[] | null>(null);
 
   const { data: performanceResponse, isLoading, error, refetch } = useGetChapterTopicsPerformanceQuery(chapterId, {
     skip: !chapterId,
@@ -80,7 +82,17 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
   });
 
   const performanceData = performanceResponse?.data || [];
-  const meta = performanceResponse?.meta || null;
+  // meta is only used for display, not destructured if not needed
+
+  // Fetch day-wise accuracy for selected topic set
+  const {
+    data: topicSetAccuracyData,
+    isLoading: isTopicSetAccuracyLoading,
+    error: topicSetAccuracyError
+  } = useGetTopicSetDailyAccuracyQuery(
+    selectedTopicSet && chapterId ? { chapterId, topicIds: selectedTopicSet } : skipToken,
+    { skip: !selectedTopicSet || !chapterId }
+  );
 
   // Refetch data when component mounts
   useEffect(() => {
@@ -89,66 +101,32 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
     }
   }, [chapterId, refetch]);
 
-  const handleShowGraph = (metric: 'accuracy' | 'questions' | 'time') => {
-    setSelectedMetric(metric);
-    setShowGraph(true);
-  };
-
-  const handleBackToTable = () => {
-    setShowGraph(false);
+  // Handler for row click
+  const handleRowClick = (topicSet: { topicId: string; topicName: string }[]) => {
+    setSelectedTopicSet(topicSet.map(t => t.topicId));
+    setSelectedTopicSetNames(topicSet.map(t => t.topicName));
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getGraphData = () => {
-    return performanceData.map((item: PerformanceData, index: number) => ({
-      topicSet: `Topic Set ${index + 1}`,
-      accuracy: parseFloat(item.accuracy),
-      questions: item.totalQuestionsAnswered,
-      time: parseFloat(item.averageTimePerQuestion),
-      sessions: item.totalSessions,
-      correct: item.correctAnswers
-    }));
-  };
-
-  const getGraphTitle = () => {
-    switch (selectedMetric) {
-      case 'accuracy':
-        return 'Accuracy Over Time';
-      case 'questions':
-        return 'Questions Answered Over Time';
-      case 'time':
-        return 'Average Time Spent Over Time';
-      default:
-        return 'Performance Metrics';
-    }
-  };
-
-  const getGraphColor = () => {
-    switch (selectedMetric) {
-      case 'accuracy':
-        return '#2196f3';
-      case 'questions':
-        return '#4caf50';
-      case 'time':
-        return '#ff9800';
-      default:
-        return '#2196f3';
-    }
-  };
-
-  const getYAxisLabel = () => {
-    switch (selectedMetric) {
-      case 'accuracy':
-        return 'Accuracy (%)';
-      case 'questions':
-        return 'Questions';
-      case 'time':
-        return 'Time (seconds)';
-      default:
-        return '';
+  const formatTime = (milliseconds: string | number) => {
+    const totalMs = parseFloat(milliseconds.toString());
+    if (isNaN(totalMs) || totalMs === 0) return '0ms';
+    
+    const totalSeconds = totalMs / 1000;
+    const minutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = totalSeconds % 60;
+    const wholeSeconds = Math.floor(remainingSeconds);
+    const remainingMs = Math.round((remainingSeconds - wholeSeconds) * 1000);
+    
+    if (minutes > 0) {
+      return `${minutes}m ${wholeSeconds}.${remainingMs.toString().padStart(3, '0')}s`;
+    } else if (wholeSeconds > 0) {
+      return `${wholeSeconds}.${remainingMs.toString().padStart(3, '0')}s`;
+    } else {
+      return `${totalMs.toFixed(0)}ms`;
     }
   };
 
@@ -168,73 +146,18 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
     );
   }
 
-  if (showGraph) {
-    return (
-      <Card sx={{ height: '600px', position: 'relative' }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <IconButton onClick={handleBackToTable} sx={{ mr: 2 }}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6">{getGraphTitle()}</Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            <Button
-              variant={selectedMetric === 'accuracy' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => setSelectedMetric('accuracy')}
-            >
-              Accuracy
-            </Button>
-            <Button
-              variant={selectedMetric === 'questions' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => setSelectedMetric('questions')}
-            >
-              Questions
-            </Button>
-            <Button
-              variant={selectedMetric === 'time' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => setSelectedMetric('time')}
-            >
-              Time
-            </Button>
-          </Box>
+  // Remove showGraph and related logic
 
-          <ResponsiveContainer width="100%" height="500px">
-            <BarChart data={getGraphData()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="topicSet" />
-              <YAxis label={{ value: getYAxisLabel(), angle: -90, position: 'insideLeft' }} />
-              <Tooltip />
-              <Bar
-                dataKey={selectedMetric}
-                fill={getGraphColor()}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Remove View Graphs button and showGraph UI
 
   return (
-    <Card>
+    <Card sx={{ backgroundColor: '#23272b', color: 'white' }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" component="h2">
             Performance Analytics
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              startIcon={<BarChartIcon />}
-              onClick={() => handleShowGraph('accuracy')}
-            >
-              View Graphs
-            </Button>
             {onClose && (
               <IconButton onClick={onClose}>
                 <ArrowBackIcon />
@@ -243,50 +166,47 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
           </Box>
         </Box>
 
-        {meta && (
+        {performanceResponse?.meta && (
           <Box sx={{ mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              {meta.chapterName}
+              {performanceResponse.meta.chapterName}
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Chip label={`${meta.totalDays} days`} size="small" />
-              <Chip label={`${meta.totalSessions} sessions`} size="small" />
-              <Chip label={`${meta.totalQuestions} questions`} size="small" />
-              {meta.startDate && meta.endDate && (
-                <Chip label={`${formatDate(meta.startDate)} - ${formatDate(meta.endDate)}`} size="small" />
+              <Chip label={`${performanceResponse.meta.totalDays} days`} size="small" />
+              <Chip label={`${performanceResponse.meta.totalSessions} sessions`} size="small" />
+              <Chip label={`${performanceResponse.meta.totalQuestions} questions`} size="small" />
+              {performanceResponse.meta.startDate && performanceResponse.meta.endDate && (
+                <Chip label={`${formatDate(performanceResponse.meta.startDate)} - ${formatDate(performanceResponse.meta.endDate)}`} size="small" />
               )}
             </Box>
           </Box>
         )}
 
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ backgroundColor: '#23272b' }}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Topic Set</TableCell>
+                <TableCell>Topics</TableCell>
                 <TableCell align="center">Sessions</TableCell>
+                <TableCell align="center">Days Practiced</TableCell>
                 <TableCell align="center">Questions</TableCell>
                 <TableCell align="center">Correct</TableCell>
                 <TableCell align="center">Accuracy</TableCell>
                 <TableCell align="center">Avg Time/Question (s)</TableCell>
-                <TableCell>Topics</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {performanceData.map((row: PerformanceData, index: number) => (
-                <TableRow key={index} hover>
-                  <TableCell>Topic Set {index + 1}</TableCell>
-                  <TableCell align="center">{row.totalSessions}</TableCell>
-                  <TableCell align="center">{row.totalQuestionsAnswered}</TableCell>
-                  <TableCell align="center">{row.correctAnswers}</TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={`${row.accuracy}%`}
-                      size="small"
-                      color={parseFloat(row.accuracy) >= 80 ? 'success' : parseFloat(row.accuracy) >= 60 ? 'warning' : 'error'}
-                    />
-                  </TableCell>
-                  <TableCell align="center">{row.averageTimePerQuestion}</TableCell>
+                <TableRow
+                  key={index}
+                  hover
+                  sx={{
+                    backgroundColor: index % 2 === 0 ? 'grey.900' : 'grey.800',
+                    color: 'white',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handleRowClick(row.topics)}
+                >
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                       {row.topics.map((topic: { topicId: string; topicName: string }, topicIndex: number) => (
@@ -294,11 +214,31 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
                           key={topicIndex}
                           label={topic.topicName}
                           size="small"
-                          variant="outlined"
+                          variant="filled"
+                          sx={{
+                            backgroundColor: '#1976d2',
+                            color: 'white',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            ':hover': { backgroundColor: '#1565c0' }
+                          }}
                         />
                       ))}
                     </Box>
                   </TableCell>
+                  <TableCell align="center">{row.totalSessions}</TableCell>
+                  <TableCell align="center">{row.totalDatesPracticed}</TableCell>
+                  <TableCell align="center">{row.totalQuestionsAnswered}</TableCell>
+                  <TableCell align="center">{row.correctAnswers}</TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={`${row.accuracy}%`}
+                      size="small"
+                      color={parseFloat(row.accuracy) >= 80 ? 'success' : parseFloat(row.accuracy) >= 60 ? 'warning' : 'error'}
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </TableCell>
+                  <TableCell align="center">{formatTime(row.averageTimePerQuestion)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -313,8 +253,37 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
           </Box>
         )}
       </CardContent>
+      {selectedTopicSet && (
+        <Box sx={{ mt: 3, p: 2, backgroundColor: '#1a1d20', borderRadius: 2 }}>
+          <Typography variant="subtitle1" sx={{ mb: 2 }}>
+            Day-wise Accuracy Trend for <b>{selectedTopicSetNames?.join(', ')}</b>
+          </Typography>
+          {isTopicSetAccuracyLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {topicSetAccuracyError && (
+            <Alert severity="error">Error loading accuracy data.</Alert>
+          )}
+          {topicSetAccuracyData && topicSetAccuracyData.data && topicSetAccuracyData.data.length > 0 && (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={topicSetAccuracyData.data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fill: '#fff' }} />
+                <YAxis domain={[0, 100]} tick={{ fill: '#fff' }} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#fff' }} />
+                <Tooltip />
+                <Line type="monotone" dataKey="accuracy" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+          {topicSetAccuracyData && topicSetAccuracyData.data && topicSetAccuracyData.data.length === 0 && !isTopicSetAccuracyLoading && (
+            <Typography color="text.secondary">No accuracy data available for this topic set.</Typography>
+          )}
+        </Box>
+      )}
     </Card>
   );
 };
 
-export default Performance; 
+export default Performance;

@@ -82,7 +82,8 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
                     correctAnswers: 0,
                     totalTimeSpent: 0,
                     topics: new Map(), // Store topic ID and name
-                    questionsAnswered: []
+                    questionsAnswered: [],
+                    datesPracticed: new Set()
                 };
             }
 
@@ -101,6 +102,8 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
             });
             
             acc[topicSetKey].questionsAnswered.push(...log.questionsAnswered);
+            // Add date practiced
+            acc[topicSetKey].datesPracticed.add(log.date.toISOString().split('T')[0]);
 
             return acc;
         }, {} as any);
@@ -124,7 +127,8 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
                 topics: Array.from(topicSetData.topics.entries()).map((entry: any) => ({
                     topicId: entry[0],
                     topicName: entry[1]
-                }))
+                })),
+                totalDatesPracticed: topicSetData.datesPracticed.size
             };
         });
         
@@ -300,6 +304,75 @@ router.get('/questions-answered/:chapterId/:levelId', async (req: Request, res: 
     }
 });
 
+// API: Get day-wise accuracy for a given set of topics in a chapter for the current user
+router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { chapterId } = req.params;
+    const topicIdsParam = req.query.topicIds;
+    if (!chapterId || !topicIdsParam) {
+      return res.status(400).json({ error: 'Chapter ID and topicIds are required' });
+    }
+    const topicIds = (typeof topicIdsParam === 'string' ? topicIdsParam.split(',') : []).map(id => id.trim());
+    if (!topicIds.length) {
+      return res.status(400).json({ error: 'At least one topicId required' });
+    }
+    // Get topic names
+    const topics = await Topic.find({ _id: { $in: topicIds } });
+    if (!topics.length) {
+      return res.status(404).json({ error: 'Topics not found' });
+    }
+    // Get user's chapter levels
+    const userChapterLevels = await UserChapterLevel.find({ userId, chapterId });
+    if (userChapterLevels.length === 0) {
+      return res.json({ data: [], meta: { chapterId, topicIds, topicNames: topics.map(t => t.topic) } });
+    }
+    const userChapterLevelIds = userChapterLevels.map(l => l._id);
+    // Get all logs for this user/chapter where all topicIds are present in log.topics
+    const logs = await UserChapterLevelTopicsPerformanceLogs.find({
+      userChapterLevelId: { $in: userChapterLevelIds },
+      topics: { $all: topicIds }
+    });
+
+    // Filter for exact topic set match (same topics, same count)
+    const exactMatchLogs = logs.filter(log => {
+      const logTopicIds = log.topics.map(id => id.toString()).sort();
+      const requestedTopicIds = topicIds.sort();
+      return logTopicIds.length === requestedTopicIds.length && 
+             logTopicIds.every((id, index) => id === requestedTopicIds[index]);
+    });
+
+    // Group by date using filtered logs
+    const statsByDate: { [date: string]: { questionsAnswered: number; correctAnswers: number } } = {};
+    exactMatchLogs.forEach(log => {
+      const dateKey = log.date.toISOString().split('T')[0];
+      if (!statsByDate[dateKey]) {
+        statsByDate[dateKey] = { questionsAnswered: 0, correctAnswers: 0 };
+      }
+      log.questionsAnswered.forEach(q => {
+        statsByDate[dateKey].questionsAnswered++;
+        if (q.isCorrect) statsByDate[dateKey].correctAnswers++;
+      });
+    });
+    const data = Object.entries(statsByDate).map(([date, stats]) => {
+      const s = stats as { questionsAnswered: number; correctAnswers: number };
+      return {
+        date,
+        questionsAnswered: s.questionsAnswered,
+        correctAnswers: s.correctAnswers,
+        accuracy: s.questionsAnswered > 0 ? ((s.correctAnswers / s.questionsAnswered) * 100).toFixed(2) : '0.00'
+      };
+    });
+    return res.json({
+      data,
+      meta: { chapterId, topicIds, topicNames: topics.map(t => t.topic) }
+    });
+  } catch (error) {
+    console.error('Error fetching topic set daily accuracy:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Debug endpoint to create sample performance data
 router.post('/create-sample-data/:chapterId', async (req: Request, res: Response) => {
     try {
@@ -368,152 +441,5 @@ router.post('/create-sample-data/:chapterId', async (req: Request, res: Response
     }
 });
 
-// Debug endpoint to view sample performance data structure
-router.get('/sample-structure', async (req: Request, res: Response) => {
-    try {
-        // Create a sample performance log structure (without saving)
-        const sampleStructure = {
-            userChapterLevelId: new mongoose.Types.ObjectId(),
-            date: new Date(),
-            topics: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
-            totalSessions: 2,
-            questionsAnswered: [
-                {
-                    questionId: new mongoose.Types.ObjectId(),
-                    timeSpent: 30,
-                    userAnswer: 1,
-                    isCorrect: true
-                },
-                {
-                    questionId: new mongoose.Types.ObjectId(),
-                    timeSpent: 45,
-                    userAnswer: 2,
-                    isCorrect: false
-                },
-                {
-                    questionId: new mongoose.Types.ObjectId(),
-                    timeSpent: 25,
-                    userAnswer: 0,
-                    isCorrect: true
-                }
-            ]
-        };
-
-        return res.json({
-            message: 'Sample UserChapterLevelTopicsPerformanceLogs structure',
-            sampleStructure,
-            schema: {
-                userChapterLevelId: 'ObjectId (reference to UserChapterLevel)',
-                date: 'Date (daily aggregation date)',
-                topics: 'Array of ObjectIds (reference to Topic)',
-                totalSessions: 'Number (sessions for this day)',
-                questionsAnswered: 'Array of objects with: questionId, timeSpent, userAnswer, isCorrect'
-            }
-        });
-
-    } catch (error) {
-        console.error('Error creating sample structure:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-// Simple endpoint to create one test performance log
-router.post('/create-test-log/:chapterId', async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user.id;
-        const { chapterId } = req.params;
-
-        // Get first UserChapterLevel for this user and chapter
-        const userChapterLevel = await UserChapterLevel.findOne({
-            userId,
-            chapterId
-        });
-
-        if (!userChapterLevel) {
-            return res.status(404).json({ error: 'No UserChapterLevel found' });
-        }
-
-        // Get a topic for this chapter
-        const topic = await Topic.findOne({ chapterId });
-        if (!topic) {
-            return res.status(404).json({ error: 'No topics found for this chapter' });
-        }
-
-        // Create a simple test performance log
-        const testLog = new UserChapterLevelTopicsPerformanceLogs({
-            userChapterLevelId: userChapterLevel._id,
-            date: new Date(),
-            topics: [topic._id],
-            totalSessions: 1,
-            questionsAnswered: [
-                {
-                    questionId: new mongoose.Types.ObjectId(),
-                    timeSpent: 30,
-                    userAnswer: 1,
-                    isCorrect: true
-                },
-                {
-                    questionId: new mongoose.Types.ObjectId(),
-                    timeSpent: 45,
-                    userAnswer: 2,
-                    isCorrect: false
-                }
-            ]
-        });
-
-        await testLog.save();
-
-        return res.json({
-            message: 'Test performance log created successfully',
-            logId: testLog._id,
-            userChapterLevelId: userChapterLevel._id,
-            topicId: topic._id
-        });
-
-    } catch (error) {
-        console.error('Error creating test log:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-// Debug endpoint to list all collections
-router.get('/debug/collections', async (req: Request, res: Response) => {
-    try {
-        // Get the database connection
-        const db = mongoose.connection.db;
-        
-        if (!db) {
-            return res.status(500).json({ error: 'Database connection not available' });
-        }
-        
-        // List all collections
-        const collections = await db.listCollections().toArray();
-        const collectionNames = collections.map(col => col.name);
-        
-        console.log("All collections in database:", collectionNames);
-        
-        // Get counts for each collection
-        const collectionCounts: { [key: string]: number | string } = {};
-        for (const collectionName of collectionNames) {
-            try {
-                const count = await db.collection(collectionName).countDocuments();
-                collectionCounts[collectionName] = count;
-            } catch (error) {
-                collectionCounts[collectionName] = 'Error getting count';
-            }
-        }
-        
-        return res.json({
-            message: 'Database collections and counts',
-            collections: collectionNames,
-            counts: collectionCounts,
-            totalCollections: collectionNames.length
-        });
-
-    } catch (error) {
-        console.error('Error listing collections:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
 export default router; 
