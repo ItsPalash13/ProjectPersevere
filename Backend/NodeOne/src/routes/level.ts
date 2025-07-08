@@ -11,6 +11,74 @@ import authMiddleware from '../middleware/authMiddleware';
 import mongoose, { Document } from 'mongoose';
 import { getSkewNormalRandom } from '../utils/math';
 
+// Helper function to calculate percentile for Time Rush (maxXp)
+const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxXp: number, userId: string): Promise<number> => {
+  try {
+    // Get all completed Time Rush attempts for this level, excluding current user
+    const allScores = await UserChapterLevel.find({
+      chapterId,
+      levelId,
+      attemptType: 'time_rush',
+      userId: { $ne: userId }, // Exclude current user
+      'timeRush.maxXp': { $ne: null, $exists: true }
+    }).select('timeRush.maxXp');
+
+    if (allScores.length === 0) return 100; // Only user who completed this level
+
+    // Extract maxXp values and filter out null/undefined
+    const maxXpValues = allScores
+      .map(score => score.timeRush?.maxXp)
+      .filter(xp => xp !== null && xp !== undefined) as number[];
+
+    if (maxXpValues.length === 0) return 100;
+
+    // Count how many users have lower maxXp than current user
+    const usersWithLowerXp = maxXpValues.filter(xp => xp < userMaxXp).length;
+    
+    // Calculate percentile (percentage of users with lower score)
+    const percentile = Math.round((usersWithLowerXp / maxXpValues.length) * 100);
+    
+    return percentile;
+  } catch (error) {
+    console.error('Error calculating Time Rush percentile:', error);
+    return 0; // Return 0 on error
+  }
+};
+
+// Helper function to calculate percentile for Precision Path (minTime)
+const calculatePrecisionPathPercentile = async (chapterId: string, levelId: string, userMinTime: number, userId: string): Promise<number> => {
+  try {
+    // Get all completed Precision Path attempts for this level, excluding current user
+    const allTimes = await UserChapterLevel.find({
+      chapterId,
+      levelId,
+      attemptType: 'precision_path',
+      userId: { $ne: userId }, // Exclude current user
+      'precisionPath.minTime': { $exists: true, $nin: [null, Infinity] }
+    }).select('precisionPath.minTime');
+
+    if (allTimes.length === 0) return 100; // Only user who completed this level
+
+    // Extract minTime values and filter out null/undefined/Infinity
+    const minTimeValues = allTimes
+      .map(time => time.precisionPath?.minTime)
+      .filter(time => time !== null && time !== undefined && time !== Infinity) as number[];
+
+    if (minTimeValues.length === 0) return 100;
+
+    // Count how many users have higher minTime (slower) than current user
+    const usersWithHigherTime = minTimeValues.filter(time => time > userMinTime).length;
+    
+    // Calculate percentile (percentage of users with slower time)
+    const percentile = Math.round((usersWithHigherTime / minTimeValues.length) * 100);
+    
+    return percentile;
+  } catch (error) {
+    console.error('Error calculating Precision Path percentile:', error);
+    return 0; // Return 0 on error
+  }
+};
+
 interface AuthRequest extends Request {
   user: {
     id: string;
@@ -444,6 +512,14 @@ router.post('/end', (async (req: Request, res: Response) => {
           );
         }
 
+        // Calculate percentile based on maxXp
+        const percentile = await calculateTimeRushPercentile(
+          session.chapterId.toString(),
+          session.levelId.toString(),
+          Math.max(currentXp, maxXp),
+          userId
+        );
+
         // Delete the session
         await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -458,7 +534,8 @@ router.post('/end', (async (req: Request, res: Response) => {
             maxXp: Math.max(currentXp, maxXp),
             hasNextLevel: !!nextLevel,
             nextLevelNumber: nextLevel?.levelNumber,
-            isNewHighScore: newHighScore
+            isNewHighScore: newHighScore,
+            percentile
           }
         });
       } else {
@@ -480,6 +557,14 @@ router.post('/end', (async (req: Request, res: Response) => {
           );
         }
 
+        // Calculate percentile based on maxXp
+        const percentile = await calculateTimeRushPercentile(
+          session.chapterId.toString(),
+          session.levelId.toString(),
+          Math.max(currentXp, maxXp),
+          userId
+        );
+
         // Delete the session
         await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -493,7 +578,8 @@ router.post('/end', (async (req: Request, res: Response) => {
             requiredXp: session.timeRush?.requiredXp,
             maxXp: Math.max(currentXp, maxXp),
             xpNeeded: (session.timeRush?.requiredXp || 0) - currentXp,
-            isNewHighScore: newHighScore
+            isNewHighScore: newHighScore,
+            percentile
           }
         });
       }
@@ -577,6 +663,14 @@ router.post('/end', (async (req: Request, res: Response) => {
           );
         }
 
+        // Calculate percentile based on minTime
+        const percentile = await calculatePrecisionPathPercentile(
+          session.chapterId.toString(),
+          session.levelId.toString(),
+          Math.min(finalTime, minTime),
+          userId
+        );
+
         // Delete the session
         await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -592,11 +686,20 @@ router.post('/end', (async (req: Request, res: Response) => {
             bestTime: Math.min(finalTime, minTime),
             hasNextLevel: !!nextLevel,
             nextLevelNumber: nextLevel?.levelNumber,
-            isNewHighScore: newHighScore
+            isNewHighScore: newHighScore,
+            percentile
           }
         });
       } else {
         // Level not completed - don't update best time
+        // Calculate percentile based on current best time (if available)
+        const percentile = minTime !== Infinity ? await calculatePrecisionPathPercentile(
+          session.chapterId.toString(),
+          session.levelId.toString(),
+          minTime,
+          userId
+        ) : 0;
+
         // Delete the session
         await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -608,7 +711,8 @@ router.post('/end', (async (req: Request, res: Response) => {
             requiredXp: session.precisionPath?.requiredXp,
             timeTaken: finalTime,
             bestTime: minTime,
-            xpNeeded: (session.precisionPath?.requiredXp || 0) - currentXp
+            xpNeeded: (session.precisionPath?.requiredXp || 0) - currentXp,
+            percentile
           }
         });
       }

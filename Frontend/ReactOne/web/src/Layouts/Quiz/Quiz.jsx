@@ -394,6 +394,32 @@ const Quiz = ({ socket }) => {
             </Typography>
           )}
           </Box>
+
+          {/* Percentile Display */}
+          {data.percentile !== undefined && (
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              borderRadius: 2, 
+              backgroundColor: 'rgba(46, 125, 50, 0.1)',
+              border: '1px solid rgba(46, 125, 50, 0.3)',
+              textAlign: 'center'
+            }}>
+              <Typography variant="h5" sx={{ 
+                fontWeight: 'bold', 
+                color: '#2e7d32',
+                mb: 1
+              }}>
+                {data.percentile}th Percentile
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {isTimeRush 
+                  ? `You scored better than ${data.percentile}% of players on this level!`
+                  : `You completed this level faster than ${data.percentile}% of players!`
+                }
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Box sx={quizStyles.progressBarContainer}>

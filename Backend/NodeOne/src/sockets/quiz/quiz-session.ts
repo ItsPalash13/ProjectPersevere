@@ -92,30 +92,32 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         userId: session.userId
       });
 
-      // Send final results to client
-      socket.emit('quizFinished', { 
-        message: response.data.message,
-        attemptType: session.attemptType,
-        ...(session.attemptType === 'time_rush' ? {
-          timeRush: {
-            currentXp: response.data.data.currentXp,
-            requiredXp: response.data.data.requiredXp,
-            maxXp: response.data.data.maxXp,
-            timeTaken: response.data.data.timeTaken
-          }
-        } : {
-          precisionPath: {
-            currentXp: response.data.data.currentXp,
-            requiredXp: response.data.data.requiredXp,
-            timeTaken: response.data.data.timeTaken,
-            bestTime: response.data.data.bestTime
-          }
-        }),
-        hasNextLevel: response.data.data.hasNextLevel,
-        nextLevelNumber: response.data.data.nextLevelNumber,
-        xpNeeded: response.data.data.xpNeeded
-      });
-      socket.disconnect();
+          // Send final results to client
+    socket.emit('quizFinished', { 
+      message: response.data.message,
+      attemptType: session.attemptType,
+      ...(session.attemptType === 'time_rush' ? {
+        timeRush: {
+          currentXp: response.data.data.currentXp,
+          requiredXp: response.data.data.requiredXp,
+          maxXp: response.data.data.maxXp,
+          timeTaken: response.data.data.timeTaken,
+          percentile: response.data.data.percentile
+        }
+      } : {
+        precisionPath: {
+          currentXp: response.data.data.currentXp,
+          requiredXp: response.data.data.requiredXp,
+          timeTaken: response.data.data.timeTaken,
+          bestTime: response.data.data.bestTime,
+          percentile: response.data.data.percentile
+        }
+      }),
+      hasNextLevel: response.data.data.hasNextLevel,
+      nextLevelNumber: response.data.data.nextLevelNumber,
+      xpNeeded: response.data.data.xpNeeded
+    });
+    socket.disconnect();
 
     } catch (error) {
       logger.error('Error ending quiz:', error);
@@ -178,14 +180,16 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
             currentXp: response.data.data.currentXp,
             requiredXp: response.data.data.requiredXp,
             maxXp: response.data.data.maxXp,
-            timeTaken: response.data.data.timeTaken
+            timeTaken: response.data.data.timeTaken,
+            percentile: response.data.data.percentile
           }
         } : {
           precisionPath: {
             currentXp: response.data.data.currentXp,
             requiredXp: response.data.data.requiredXp,
             timeTaken: response.data.data.timeTaken,
-            bestTime: response.data.data.bestTime
+            bestTime: response.data.data.bestTime,
+            percentile: response.data.data.percentile
           }
         }),
         hasNextLevel: response.data.data.hasNextLevel,
