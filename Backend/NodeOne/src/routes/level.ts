@@ -3,7 +3,6 @@ import { Level } from '../models/Level';
 import { Chapter } from '../models/Chapter';
 import { UserChapterLevel } from '../models/UserChapterLevel';
 import { UserLevelSession } from '../models/UserLevelSession';
-import { UserChapterLevelPerformanceLogs } from '../models/UserChapterLevelPerformanceLogs';
 import { UserLevelSessionTopicsLogs } from '../models/Performance/UserLevelSessionTopicsLogs';
 import { QuestionTs } from '../models/QuestionTs';
 import { Question } from '../models/Questions';
@@ -393,24 +392,7 @@ router.post('/end', (async (req: Request, res: Response) => {
       attemptType: session.attemptType
     });
 
-    // Save session data to performance logs before processing
-    const performanceLogData = {
-      userChapterLevelId: session.userChapterLevelId,
-      userId: session.userId,
-      chapterId: session.chapterId,
-      levelId: session.levelId,
-      attemptType: session.attemptType,
-      currentQuestion: session.currentQuestion,
-      questionsAnswered: session.questionsAnswered,
-      // Only include the relevant mode data
-      ...(session.attemptType === 'time_rush' ? {
-        timeRush: session.timeRush,
-      } : {
-        precisionPath: session.precisionPath,
-      })
-    };
 
-    await UserChapterLevelPerformanceLogs.create(performanceLogData);
 
     // Phase 2: Set status to 1 for all session topic logs for this session TODAY
     try {
