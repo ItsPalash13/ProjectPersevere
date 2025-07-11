@@ -22,6 +22,7 @@ import {
   BarChart as BarChartIcon,
   TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
+import { Switch, FormControlLabel } from '@mui/material';
 import {
   LineChart,
   Line,
@@ -34,7 +35,7 @@ import {
   Bar
 } from 'recharts';
 // @ts-ignore
-import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery } from '../features/api/performanceAPI';
+import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery, useGetTopicSetSessionAccuracyQuery } from '../features/api/performanceAPI';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 interface PerformanceData {
@@ -75,6 +76,7 @@ interface PerformanceProps {
 const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
   const [selectedTopicSet, setSelectedTopicSet] = useState<string[] | null>(null);
   const [selectedTopicSetNames, setSelectedTopicSetNames] = useState<string[] | null>(null);
+  const [isSessionView, setIsSessionView] = useState(false);
 
   const { data: performanceResponse, isLoading, error, refetch } = useGetChapterTopicsPerformanceQuery(chapterId, {
     skip: !chapterId,
@@ -86,12 +88,22 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
 
   // Fetch day-wise accuracy for selected topic set
   const {
-    data: topicSetAccuracyData,
-    isLoading: isTopicSetAccuracyLoading,
-    error: topicSetAccuracyError
+    data: topicSetDailyAccuracyData,
+    isLoading: isTopicSetDailyAccuracyLoading,
+    error: topicSetDailyAccuracyError
   } = useGetTopicSetDailyAccuracyQuery(
-    selectedTopicSet && chapterId ? { chapterId, topicIds: selectedTopicSet } : skipToken,
-    { skip: !selectedTopicSet || !chapterId }
+    selectedTopicSet && chapterId && !isSessionView ? { chapterId, topicIds: selectedTopicSet } : skipToken,
+    { skip: !selectedTopicSet || !chapterId || isSessionView }
+  );
+
+  // Fetch session-wise accuracy for selected topic set
+  const {
+    data: topicSetSessionAccuracyData,
+    isLoading: isTopicSetSessionAccuracyLoading,
+    error: topicSetSessionAccuracyError
+  } = useGetTopicSetSessionAccuracyQuery(
+    selectedTopicSet && chapterId && isSessionView ? { chapterId, topicIds: selectedTopicSet } : skipToken,
+    { skip: !selectedTopicSet || !chapterId || !isSessionView }
   );
 
   // Refetch data when component mounts
@@ -255,31 +267,100 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
       </CardContent>
       {selectedTopicSet && (
         <Box sx={{ mt: 3, p: 2, backgroundColor: '#1a1d20', borderRadius: 2 }}>
-          <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            Day-wise Accuracy Trend for <b>{selectedTopicSetNames?.join(', ')}</b>
-          </Typography>
-          {isTopicSetAccuracyLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="subtitle1">
+              {isSessionView ? 'Session-wise' : 'Day-wise'} Accuracy Trend for <b>{selectedTopicSetNames?.join(', ')}</b>
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isSessionView}
+                  onChange={(e) => setIsSessionView(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Session View"
+              sx={{ color: 'white' }}
+            />
+          </Box>
+          
+          {(isTopicSetDailyAccuracyLoading || isTopicSetSessionAccuracyLoading) && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
               <CircularProgress />
             </Box>
           )}
-          {topicSetAccuracyError && (
+          
+          {(topicSetDailyAccuracyError || topicSetSessionAccuracyError) && (
             <Alert severity="error">Error loading accuracy data.</Alert>
           )}
-          {topicSetAccuracyData && topicSetAccuracyData.data && topicSetAccuracyData.data.length > 0 && (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={topicSetAccuracyData.data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fill: '#fff' }} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#fff' }} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#fff' }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="accuracy" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          {topicSetAccuracyData && topicSetAccuracyData.data && topicSetAccuracyData.data.length === 0 && !isTopicSetAccuracyLoading && (
-            <Typography color="text.secondary">No accuracy data available for this topic set.</Typography>
-          )}
+          
+          {(() => {
+            const currentData = isSessionView ? topicSetSessionAccuracyData : topicSetDailyAccuracyData;
+            const isLoading = isSessionView ? isTopicSetSessionAccuracyLoading : isTopicSetDailyAccuracyLoading;
+            
+            if (currentData && currentData.data && currentData.data.length > 0) {
+              return (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={currentData.data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey={isSessionView ? "sessionNumber" : "date"} 
+                      tick={{ fill: '#fff' }}
+                      label={{ value: isSessionView ? 'Session #' : 'Date', position: 'insideBottom', offset: -5, fill: '#fff' }}
+                    />
+                    <YAxis domain={[0, 100]} tick={{ fill: '#fff' }} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#fff' }} />
+                    <Tooltip 
+                      formatter={(value, name) => [`${value}%`, 'Accuracy']}
+                      labelFormatter={(label) => {
+                        if (isSessionView) {
+                          // For session view, show session number and timestamp if available
+                          const dataPoint = currentData.data.find((d: any) => d.sessionNumber === label);
+                          if (dataPoint && dataPoint.timestamp) {
+                            const date = new Date(dataPoint.timestamp).toLocaleDateString();
+                            const time = new Date(dataPoint.timestamp).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            });
+                            return `Session ${label} - ${date} ${time}`;
+                          }
+                          return `Session ${label}`;
+                        }
+                        return `Date: ${label}`;
+                      }}
+                      contentStyle={{
+                        backgroundColor: '#2a2a2a',
+                        border: '1px solid #555',
+                        borderRadius: '8px',
+                        color: 'white',
+                        fontSize: '12px',
+                        padding: '8px 12px',
+                        maxWidth: '250px',
+                        wordWrap: 'break-word',
+                        whiteSpace: 'normal'
+                      }}
+                      labelStyle={{
+                        color: '#ffffff',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        marginBottom: '4px'
+                      }}
+                    />
+                    <Line type="monotone" dataKey="accuracy" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              );
+            }
+            
+            if (currentData && currentData.data && currentData.data.length === 0 && !isLoading) {
+              return (
+                <Typography color="text.secondary">
+                  No {isSessionView ? 'session' : 'daily'} accuracy data available for this topic set.
+                </Typography>
+              );
+            }
+            
+            return null;
+          })()}
         </Box>
       )}
     </Card>

@@ -29,6 +29,13 @@ export const performanceApi = createApi({
       }),
       providesTags: ['Performance'],
     }),
+    getTopicSetSessionAccuracy: builder.query({
+      query: ({ chapterId, topicIds }) => ({
+        url: `/api/performance/chapter-topicset-session-accuracy/${chapterId}?topicIds=${topicIds.join(',')}`,
+        method: 'GET',
+      }),
+      providesTags: ['Performance'],
+    }),
   }),
 });
 
@@ -36,4 +43,5 @@ export const {
   useGetChapterTopicsPerformanceQuery,
   useGetTopicDailyAccuracyQuery,
   useGetTopicSetDailyAccuracyQuery,
+  useGetTopicSetSessionAccuracyQuery,
 } = performanceApi; 

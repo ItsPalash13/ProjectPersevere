@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { UserChapterLevelTopicsPerformanceLogs } from '../models/Performance/UserChapterLevelTopicsPerformanceLogs';
+import { UserChapterTopicsPerformanceLogs } from '../models/Performance/UserChapterTopicsPerformanceLogs';
 import { UserChapterLevel } from '../models/UserChapterLevel';
 import { Chapter } from '../models/Chapter';
 import { Level } from '../models/Level';
@@ -59,7 +59,7 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
         const userChapterLevelIds = userChapterLevels.map(level => level._id);
 
         // Get performance logs for all levels in this chapter
-        const performanceLogs = await UserChapterLevelTopicsPerformanceLogs.find({
+        const performanceLogs = await UserChapterTopicsPerformanceLogs.find({
             userChapterLevelId: { $in: userChapterLevelIds },
             ...dateFilter
         });
@@ -158,151 +158,7 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
     }
 });
 
-// API 2: Get questions answered data for specific chapter and level
-router.get('/questions-answered/:chapterId/:levelId', async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user.id;
-        const { chapterId, levelId } = req.params;
 
-        // Validate parameters
-        if (!chapterId || !levelId) {
-            return res.status(400).json({ error: 'Chapter ID and Level ID are required' });
-        }
-
-        // Check if chapter and level exist
-        const [chapter, level] = await Promise.all([
-            Chapter.findById(chapterId),
-            Level.findById(levelId)
-        ]);
-
-        if (!chapter) {
-            return res.status(404).json({ error: 'Chapter not found' });
-        }
-
-        if (!level) {
-            return res.status(404).json({ error: 'Level not found' });
-        }
-
-        // Get user's specific chapter level
-        const userChapterLevel = await UserChapterLevel.findOne({
-            userId,
-            chapterId,
-            levelId
-        });
-
-        if (!userChapterLevel) {
-            return res.json({
-                data: [],
-                meta: {
-                    chapterId,
-                    chapterName: chapter.name,
-                    levelId,
-                    levelName: level.name,
-                    levelNumber: level.levelNumber,
-                    totalQuestions: 0,
-                    correctAnswers: 0,
-                    accuracy: 0,
-                    averageTimeSpent: 0
-                }
-            });
-        }
-
-        // Get performance logs for this specific level
-        const performanceLogs = await UserChapterLevelTopicsPerformanceLogs.find({
-            userChapterLevelId: userChapterLevel._id
-        }).populate('questionId', 'ques options correctAnswer');
-
-        // Get topics for this chapter
-        const chapterTopics = await Topic.find({ chapterId });
-        const topicMap = new Map(chapterTopics.map((topic: any) => [topic._id.toString(), topic.topic]));
-
-        // Aggregate questions data
-        const questionsData = performanceLogs.reduce((acc, log) => {
-            log.questionsAnswered.forEach(question => {
-                acc.push({
-                    questionId: question.questionId,
-                    timeSpent: question.timeSpent,
-                    userAnswer: question.userAnswer,
-                    isCorrect: question.isCorrect,
-                    sessionDate: log.date,
-                    topics: log.topics.map((topicId: any) => {
-                        const topicName = topicMap.get(topicId.toString());
-                        return {
-                            topicId: topicId.toString(),
-                            topicName: topicName || 'Unknown Topic'
-                        };
-                    })
-                });
-            });
-            return acc;
-        }, [] as any[]);
-
-        // Calculate statistics
-        const totalQuestions = questionsData.length;
-        const correctAnswers = questionsData.filter(q => q.isCorrect).length;
-        const accuracy = totalQuestions > 0 ? (correctAnswers / totalQuestions * 100).toFixed(2) : 0;
-        const averageTimeSpent = totalQuestions > 0 
-            ? (questionsData.reduce((sum, q) => sum + q.timeSpent, 0) / totalQuestions).toFixed(2)
-            : 0;
-
-        // Group by date for time series analysis
-        const questionsByDate = questionsData.reduce((acc, question) => {
-            const dateKey = question.sessionDate.toISOString().split('T')[0];
-            if (!acc[dateKey]) {
-                acc[dateKey] = {
-                    date: dateKey,
-                    questionsAnswered: 0,
-                    correctAnswers: 0,
-                    totalTimeSpent: 0
-                };
-            }
-            acc[dateKey].questionsAnswered++;
-            if (question.isCorrect) acc[dateKey].correctAnswers++;
-            acc[dateKey].totalTimeSpent += question.timeSpent;
-            return acc;
-        }, {} as any);
-
-        const dailyStats = Object.values(questionsByDate).map((dayData: any) => ({
-            date: dayData.date,
-            questionsAnswered: dayData.questionsAnswered,
-            correctAnswers: dayData.correctAnswers,
-            accuracy: dayData.questionsAnswered > 0 
-                ? (dayData.correctAnswers / dayData.questionsAnswered * 100).toFixed(2)
-                : 0,
-            averageTimeSpent: dayData.questionsAnswered > 0 
-                ? (dayData.totalTimeSpent / dayData.questionsAnswered).toFixed(2)
-                : 0
-        }));
-
-        return res.json({
-            data: {
-                questions: questionsData,
-                dailyStats: dailyStats
-            },
-            meta: {
-                chapterId,
-                chapterName: chapter.name,
-                levelId,
-                levelName: level.name,
-                levelNumber: level.levelNumber,
-                levelType: level.type,
-                totalQuestions,
-                correctAnswers,
-                accuracy,
-                averageTimeSpent,
-                totalSessions: performanceLogs.length,
-                dateRange: dailyStats.length > 0 ? {
-                    startDate: dailyStats[0].date,
-                    endDate: dailyStats[dailyStats.length - 1].date
-                } : null
-            }
-        });
-
-    } catch (error) {
-        console.error('Error fetching questions answered data:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
 // API: Get day-wise accuracy for a given set of topics in a chapter for the current user
 router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
@@ -329,7 +185,7 @@ router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
     }
     const userChapterLevelIds = userChapterLevels.map(l => l._id);
     // Get all logs for this user/chapter where all topicIds are present in log.topics
-    const logs = await UserChapterLevelTopicsPerformanceLogs.find({
+    const logs = await UserChapterTopicsPerformanceLogs.find({
       userChapterLevelId: { $in: userChapterLevelIds },
       topics: { $all: topicIds }
     });
@@ -342,10 +198,10 @@ router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
              logTopicIds.every((id, index) => id === requestedTopicIds[index]);
     });
 
-    // Group by date using filtered logs
+    // Group by date using filtered logs (since logs now have exact timestamps)
     const statsByDate: { [date: string]: { questionsAnswered: number; correctAnswers: number } } = {};
     exactMatchLogs.forEach(log => {
-      const dateKey = log.date.toISOString().split('T')[0];
+      const dateKey = log.date.toISOString().split('T')[0]; // Extract date part from timestamp
       if (!statsByDate[dateKey]) {
         statsByDate[dateKey] = { questionsAnswered: 0, correctAnswers: 0 };
       }
@@ -354,15 +210,19 @@ router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
         if (q.isCorrect) statsByDate[dateKey].correctAnswers++;
       });
     });
-    const data = Object.entries(statsByDate).map(([date, stats]) => {
-      const s = stats as { questionsAnswered: number; correctAnswers: number };
-      return {
-        date,
-        questionsAnswered: s.questionsAnswered,
-        correctAnswers: s.correctAnswers,
-        accuracy: s.questionsAnswered > 0 ? ((s.correctAnswers / s.questionsAnswered) * 100).toFixed(2) : '0.00'
-      };
-    });
+    
+    // Sort by date and return
+    const data = Object.entries(statsByDate)
+      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+      .map(([date, stats]) => {
+        const s = stats as { questionsAnswered: number; correctAnswers: number };
+        return {
+          date,
+          questionsAnswered: s.questionsAnswered,
+          correctAnswers: s.correctAnswers,
+          accuracy: s.questionsAnswered > 0 ? ((s.correctAnswers / s.questionsAnswered) * 100).toFixed(2) : '0.00'
+        };
+      });
     return res.json({
       data,
       meta: { chapterId, topicIds, topicNames: topics.map(t => t.topic) }
@@ -373,73 +233,113 @@ router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
   }
 });
 
-// Debug endpoint to create sample performance data
-router.post('/create-sample-data/:chapterId', async (req: Request, res: Response) => {
-    try {
-        const userId = (req as any).user.id;
-        const { chapterId } = req.params;
-
-        // Get all UserChapterLevel records for this user and chapter
-        const userChapterLevels = await UserChapterLevel.find({
-            userId,
-            chapterId
-        });
-
-        if (userChapterLevels.length === 0) {
-            return res.status(404).json({ error: 'No UserChapterLevel records found for this user and chapter' });
-        }
-
-        // Get topics for this chapter
-        const chapterTopics = await Topic.find({ chapterId });
-        const topicIds = chapterTopics.map(topic => topic._id);
-
-        const createdLogs = [];
-
-        // Create sample performance logs for each UserChapterLevel
-        for (const userChapterLevel of userChapterLevels) {
-            // Create multiple days of sample data
-            for (let i = 0; i < 7; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() - i); // Go back i days
-
-                // Create realistic sample data
-                const questionsAnswered = [];
-                const numQuestions = Math.floor(Math.random() * 10) + 5; // 5-15 questions
-                
-                for (let j = 0; j < numQuestions; j++) {
-                    questionsAnswered.push({
-                        questionId: new mongoose.Types.ObjectId(),
-                        timeSpent: Math.floor(Math.random() * 60) + 15, // 15-75 seconds
-                        userAnswer: Math.floor(Math.random() * 4), // 0-3
-                        isCorrect: Math.random() > 0.3 // 70% accuracy
-                    });
-                }
-
-                const sampleLog = new UserChapterLevelTopicsPerformanceLogs({
-                    userChapterLevelId: userChapterLevel._id,
-                    date: date,
-                    topics: topicIds.slice(0, Math.floor(Math.random() * 3) + 1), // 1-3 topics
-                    totalSessions: Math.floor(Math.random() * 3) + 1, // 1-3 sessions
-                    questionsAnswered: questionsAnswered
-                });
-
-                await sampleLog.save();
-                createdLogs.push(sampleLog._id);
-            }
-        }
-
-        return res.json({
-            message: 'Sample performance data created successfully',
-            createdLogs: createdLogs.length,
-            userChapterLevels: userChapterLevels.length,
-            topicsUsed: topicIds.length
-        });
-
-    } catch (error) {
-        console.error('Error creating sample data:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+// API: Get session-wise accuracy for a given set of topics in a chapter for the current user
+router.get('/chapter-topicset-session-accuracy/:chapterId', async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { chapterId } = req.params;
+    const topicIdsParam = req.query.topicIds;
+    
+    if (!chapterId || !topicIdsParam) {
+      return res.status(400).json({ error: 'Chapter ID and topicIds are required' });
     }
+    
+    const topicIds = (typeof topicIdsParam === 'string' ? topicIdsParam.split(',') : []).map(id => id.trim());
+    if (!topicIds.length) {
+      return res.status(400).json({ error: 'At least one topicId required' });
+    }
+    
+    // Get topic names
+    const topics = await Topic.find({ _id: { $in: topicIds } });
+    if (!topics.length) {
+      return res.status(404).json({ error: 'Topics not found' });
+    }
+    
+    // Get user's chapter levels
+    const userChapterLevels = await UserChapterLevel.find({ userId, chapterId });
+    if (userChapterLevels.length === 0) {
+      return res.json({ data: [], meta: { chapterId, topicIds, topicNames: topics.map(t => t.topic) } });
+    }
+    
+    const userChapterLevelIds = userChapterLevels.map(l => l._id);
+    
+    // Get all logs for this user/chapter where all topicIds are present in log.topics
+    const logs = await UserChapterTopicsPerformanceLogs.find({
+      userChapterLevelId: { $in: userChapterLevelIds },
+      topics: { $all: topicIds },
+      userLevelSessionId: { $exists: true, $ne: null }
+    });
+
+    // Filter for exact topic set match (same topics, same count)
+    const exactMatchLogs = logs.filter(log => {
+      const logTopicIds = log.topics.map(id => id.toString()).sort();
+      const requestedTopicIds = topicIds.sort();
+      return logTopicIds.length === requestedTopicIds.length && 
+             logTopicIds.every((id, index) => id === requestedTopicIds[index]);
+    });
+
+    // Group by session + timestamp (since same session can have multiple records at different times)
+    const statsBySessionTime: { [sessionTimeKey: string]: { 
+      questionsAnswered: number; 
+      correctAnswers: number; 
+      sessionId: string;
+      date: string;
+      timestamp: string;
+      sessionNumber: number;
+    } } = {};
+    
+    exactMatchLogs.forEach(log => {
+      // Skip logs without valid userLevelSessionId
+      if (!log.userLevelSessionId) {
+        return;
+      }
+      
+      const sessionId = log.userLevelSessionId.toString();
+      const timestamp = log.date.toISOString();
+      const dateKey = log.date.toISOString().split('T')[0];
+      const sessionTimeKey = `${sessionId}_${timestamp}`; // Unique key for session + timestamp
+      
+      if (!statsBySessionTime[sessionTimeKey]) {
+        statsBySessionTime[sessionTimeKey] = { 
+          questionsAnswered: 0, 
+          correctAnswers: 0, 
+          sessionId,
+          date: dateKey,
+          timestamp,
+          sessionNumber: 0
+        };
+      }
+      
+      log.questionsAnswered.forEach(q => {
+        statsBySessionTime[sessionTimeKey].questionsAnswered++;
+        if (q.isCorrect) statsBySessionTime[sessionTimeKey].correctAnswers++;
+      });
+    });
+
+    // Convert to array and sort by timestamp, then assign session numbers
+    const data = Object.values(statsBySessionTime)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .map((stats, index) => ({
+        sessionId: stats.sessionId,
+        sessionNumber: index + 1,
+        date: stats.date,
+        timestamp: stats.timestamp,
+        questionsAnswered: stats.questionsAnswered,
+        correctAnswers: stats.correctAnswers,
+        accuracy: stats.questionsAnswered > 0 ? 
+          ((stats.correctAnswers / stats.questionsAnswered) * 100).toFixed(2) : '0.00'
+      }));
+    
+    return res.json({
+      data,
+      meta: { chapterId, topicIds, topicNames: topics.map(t => t.topic), totalSessions: data.length }
+    });
+  } catch (error) {
+    console.error('Error fetching topic set session accuracy:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
 
 
 export default router; 

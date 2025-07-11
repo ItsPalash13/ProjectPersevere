@@ -7,10 +7,10 @@ Chapter-Level:-
 Progress Bar
 Topic Mastery TierMap
 Improvement Rating
-
+.......................................
 Level-Level:-
-Accuracy histogram
-Time taken histogram
+MaxXP histogram - Time Rush 
+MinTime histogram - Precision Path
 
 Topic-Level:-
 Topic Accuracy

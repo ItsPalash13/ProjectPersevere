@@ -1,12 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Active session tracking - temporary data
-export interface IUserLevelSessionTopicsLogs extends Document {
-  userLevelSessionId: mongoose.Types.ObjectId;
+// Session-specific aggregated metrics - permanent data
+export interface IUserChapterTopicsPerformanceLogs extends Document {
   userChapterLevelId: mongoose.Types.ObjectId;
+  userLevelSessionId: mongoose.Types.ObjectId;
+  date: Date;
   topics: mongoose.Types.ObjectId[];
-  status: number;
-  failureReason: string;
+  totalSessions: number;
   questionsAnswered: {
     questionId: mongoose.Types.ObjectId;
     timeSpent: number;
@@ -17,16 +17,26 @@ export interface IUserLevelSessionTopicsLogs extends Document {
   updatedAt: Date;
 }
 
-export const UserLevelSessionTopicsLogsSchema = new Schema<IUserLevelSessionTopicsLogs>({
+export const UserChapterTopicsPerformanceLogsSchema = new Schema<IUserChapterTopicsPerformanceLogs>({
+  userChapterLevelId: {
+    type: Schema.Types.ObjectId,
+    ref: 'UserChapterLevel',
+    required: true
+  },
   userLevelSessionId: {
     type: Schema.Types.ObjectId,
     ref: 'UserLevelSession',
     required: true
   },
-  userChapterLevelId: {
-    type: Schema.Types.ObjectId,
-    ref: 'UserChapterLevel',
+  date: {
+    type: Date,
     required: true
+  },
+  totalSessions: {
+    type: Number,
+    min: 0,
+    required: true,
+    default: 1
   },
   topics: {
     type: [mongoose.Types.ObjectId],
@@ -34,19 +44,12 @@ export const UserLevelSessionTopicsLogsSchema = new Schema<IUserLevelSessionTopi
     required: true,
     default: []
   },
-  status: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  failureReason: {
-    type: String,
-  },
   questionsAnswered: {
-    type: [{  // Array of objects
+    type: [{
       questionId: {
         type: Schema.Types.ObjectId,
-        ref: 'Question'
+        ref: 'Question',
+        required: true
       },
       timeSpent: {
         type: Number,
@@ -72,7 +75,7 @@ export const UserLevelSessionTopicsLogsSchema = new Schema<IUserLevelSessionTopi
   timestamps: true
 });
 
-// Index for fast session lookups
-UserLevelSessionTopicsLogsSchema.index({ userChapterLevelId: 1, userLevelSessionId: 1, topics: 1, createdAt: 1});
+// Compound index for session-specific user performance
+UserChapterTopicsPerformanceLogsSchema.index({ userChapterLevelId: 1, userLevelSessionId: 1, topics: 1, date: 1 }, { unique: true });
 
-export const UserLevelSessionTopicsLogs = mongoose.model<IUserLevelSessionTopicsLogs>('UserLevelSessionTopicsLogs', UserLevelSessionTopicsLogsSchema); 
+export const UserChapterTopicsPerformanceLogs = mongoose.model<IUserChapterTopicsPerformanceLogs>('UserChapterTopicsPerformanceLogs', UserChapterTopicsPerformanceLogsSchema); 

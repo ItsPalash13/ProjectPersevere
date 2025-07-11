@@ -7,7 +7,7 @@ import { UserLevelSessionTopicsLogs } from '../models/Performance/UserLevelSessi
 import { QuestionTs } from '../models/QuestionTs';
 import { Question } from '../models/Questions';
 import authMiddleware from '../middleware/authMiddleware';
-import mongoose, { Document } from 'mongoose';
+import mongoose from 'mongoose';
 import { getSkewNormalRandom } from '../utils/math';
 
 // Helper function to calculate percentile for Time Rush (maxXp)
@@ -84,21 +84,6 @@ interface AuthRequest extends Request {
   };
 }
 
-interface ILevel extends Document {
-  _id: string;
-  name: string;
-  description: string;
-  topics: string[];
-  status: boolean;
-  type: 'time_rush' | 'precision_path';
-  timeRush?: {
-    requiredXp: number;
-    totalTime: number;
-  };
-  precisionPath?: {
-    requiredXp: number;
-  };
-}
 
 const router = express.Router();
 

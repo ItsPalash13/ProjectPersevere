@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Daily Aggregation Service - Phase 3
+Session Processing Service - Phase 3
 Continuous running script that processes UserLevelSessionTopicsLogs with status 1
-and merges them into UserChapterLevelTopicsPerformanceLogs
+and creates UserChapterTopicsPerformanceLogs with exact timestamps
 """
 
 import os
@@ -28,7 +28,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class DailyAggregationService:
+class SessionProcessingService:
     def __init__(self):
         """Initialize the aggregation service with database connection"""
         self.mongo_uri = os.getenv('MONGO_URI')
@@ -40,13 +40,13 @@ class DailyAggregationService:
         
         # Collections
         self.session_logs = self.db.userlevelsessiontopicslogs
-        self.performance_logs = self.db.userchapterlevelstopicsperformancelogs
+        self.performance_logs = self.db.userchaptertopicsperformancelogs
         
         # Log total documents at startup
         total_session_logs = self.session_logs.count_documents({})
         total_performance_logs = self.performance_logs.count_documents({})
         
-        logger.info(f"Daily Aggregation Service initialized")
+        logger.info(f"Session Processing Service initialized")
         logger.info(f"Total session logs: {total_session_logs}")
         logger.info(f"Total performance logs: {total_performance_logs}")
     
@@ -72,6 +72,10 @@ class DailyAggregationService:
                 status_neg1_count = self.session_logs.count_documents({"status": -1})
                 
                 logger.info(f"No sessions with status 1 found. Current counts - Total: {total_sessions}, Status 0: {status_0_count}, Status 1: {status_1_count}, Status 2: {status_2_count}, Status -1: {status_neg1_count}")
+                
+                # Log recent failure reasons if there are failed sessions
+                if status_neg1_count > 0:
+                    self._log_recent_failures()
                 return 0
             
             logger.info(f"Processing session: {completed_session['_id']}")
@@ -84,11 +88,15 @@ class DailyAggregationService:
                 return 1
                 
             except Exception as e:
-                logger.error(f"Error processing session {completed_session['_id']}: {e}")
-                # Set status to -1 if processing failed
+                error_message = str(e)
+                logger.error(f"Error processing session {completed_session['_id']}: {error_message}")
+                # Set status to -1 with failure reason if processing failed
                 self.session_logs.update_one(
                     {"_id": completed_session['_id']},
-                    {"$set": {"status": -1}}
+                    {"$set": {
+                        "status": -1,
+                        "failureReason": f"Processing error: {error_message}"
+                    }}
                 )
                 return 0
             
@@ -98,45 +106,42 @@ class DailyAggregationService:
     
     def _process_single_session(self, session: Dict):
         """
-        Process a single session and upsert into daily performance log
+        Process a single session and create performance log with actual timestamp
         """
-        # Extract date from session
+        # Use actual session timestamp instead of day start
         created_at = session.get('createdAt')
         if isinstance(created_at, datetime):
-            date_obj = created_at.date()
+            session_timestamp = created_at
         else:
-            date_obj = datetime.now().date()
+            session_timestamp = datetime.now()
         
         user_chapter_level_id = session['userChapterLevelId']
         
         # Aggregate data from single session
         aggregated_data = self._aggregate_session_data([session])
         
-        # Use upsert to atomically update or create daily performance log
-        date_start = datetime.combine(date_obj, datetime.min.time())
-        date_end = datetime.combine(date_obj + timedelta(days=1), datetime.min.time())
-        
+        # Create new record with exact timestamp - allows multiple records per session at different times
         result = self.performance_logs.find_one_and_update(
             {
                 "userChapterLevelId": user_chapter_level_id,
-                "topics": aggregated_data['topics'],  # Exact topic match for unique document
-                "date": {"$gte": date_start, "$lt": date_end}
+                "userLevelSessionId": session['userLevelSessionId'],
+                "topics": aggregated_data['topics'],
+                "date": session_timestamp  # Use exact timestamp
             },
             {
-                "$setOnInsert": {
+                "$set": {
                     "userChapterLevelId": user_chapter_level_id,
-                    "date": date_start,
-                    "topics": aggregated_data['topics'],  # Set exact topics on insert
-                    "createdAt": datetime.now()
-                },
-                "$push": {
-                    "questionsAnswered": {"$each": aggregated_data['questionsAnswered']}
-                },
-                "$inc": {
-                    "totalSessions": aggregated_data['totalSessions']
+                    "userLevelSessionId": session['userLevelSessionId'],
+                    "date": session_timestamp,  # Store exact timestamp
+                    "topics": aggregated_data['topics'],
+                    "totalSessions": aggregated_data['totalSessions'],
+                    "questionsAnswered": aggregated_data['questionsAnswered']
                 },
                 "$currentDate": {
                     "updatedAt": True
+                },
+                "$setOnInsert": {
+                    "createdAt": datetime.now()
                 }
             },
             upsert=True,
@@ -144,9 +149,9 @@ class DailyAggregationService:
         )
         
         if result:
-            logger.info(f"Upserted daily log for date {date_obj}: {result['_id']}")
+            logger.info(f"Upserted performance log for session timestamp {session_timestamp}: {result['_id']}")
         else:
-            logger.error(f"Failed to upsert daily log for date {date_obj}")
+            logger.error(f"Failed to upsert performance log for session timestamp {session_timestamp}")
     
 
     
@@ -180,13 +185,35 @@ class DailyAggregationService:
             "totalSessions": 1
         }
     
+    def _log_recent_failures(self, limit: int = 5):
+        """
+        Log recent failed sessions with their failure reasons for debugging
+        """
+        try:
+            failed_sessions = self.session_logs.find(
+                {"status": -1},
+                {"_id": 1, "failureReason": 1, "updatedAt": 1}
+            ).sort("updatedAt", -1).limit(limit)
+            
+            failure_count = 0
+            for session in failed_sessions:
+                failure_reason = session.get('failureReason', 'No reason provided')
+                updated_at = session.get('updatedAt', 'Unknown time')
+                logger.warning(f"Failed session {session['_id']} at {updated_at}: {failure_reason}")
+                failure_count += 1
+            
+            if failure_count > 0:
+                logger.info(f"Logged {failure_count} recent failed sessions")
+                
+        except Exception as e:
+            logger.error(f"Error logging recent failures: {e}")
 
     
     def run_continuous(self, interval_seconds: int = 10):
         """
         Run the aggregation service continuously
         """
-        logger.info(f"Starting continuous aggregation service (interval: {interval_seconds}s)")
+        logger.info(f"Starting continuous session processing service (interval: {interval_seconds}s)")
         
         while True:
             try:
@@ -215,16 +242,16 @@ class DailyAggregationService:
             logger.info("Database connection closed")
 
 def main():
-    """Main function to run the aggregation service"""
+    """Main function to run the session processing service"""
     service = None
     try:
-        service = DailyAggregationService()
+        service = SessionProcessingService()
         
         # Run continuously with 10-second intervals
         service.run_continuous(interval_seconds=10)
         
     except Exception as e:
-        logger.error(f"Failed to start aggregation service: {e}")
+        logger.error(f"Failed to start session processing service: {e}")
     finally:
         if service:
             service.close()
