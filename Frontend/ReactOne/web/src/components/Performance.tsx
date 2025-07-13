@@ -10,7 +10,6 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Button,
   Card,
   CardContent,
   Chip,
@@ -19,8 +18,6 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import { Switch, FormControlLabel } from '@mui/material';
 import {
@@ -31,8 +28,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar
 } from 'recharts';
 // @ts-ignore
 import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery, useGetTopicSetSessionAccuracyQuery } from '../features/api/performanceAPI';
@@ -52,21 +47,7 @@ interface PerformanceData {
   totalDatesPracticed?: number;
 }
 
-interface PerformanceMeta {
-  startDate: string | null;
-  endDate: string | null;
-  totalRecords: number;
-  chapterId: string;
-  chapterName: string;
-  totalDays: number;
-  totalSessions: number;
-  totalQuestions: number;
-}
 
-interface PerformanceResponse {
-  data: PerformanceData[];
-  meta: PerformanceMeta;
-}
 
 interface PerformanceProps {
   chapterId: string;
@@ -158,9 +139,6 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
     );
   }
 
-  // Remove showGraph and related logic
-
-  // Remove View Graphs button and showGraph UI
 
   return (
     <Card sx={{ backgroundColor: '#23272b', color: 'white' }}>
@@ -310,7 +288,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
                     />
                     <YAxis domain={[0, 100]} tick={{ fill: '#fff' }} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#fff' }} />
                     <Tooltip 
-                      formatter={(value, name) => [`${value}%`, 'Accuracy']}
+                      formatter={(value) => [`${value}%`, 'Accuracy']}
                       labelFormatter={(label) => {
                         if (isSessionView) {
                           // For session view, show session number and timestamp if available

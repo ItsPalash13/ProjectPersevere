@@ -9,6 +9,85 @@ import { UserLevelSessionTopicsLogs } from '../../models/Performance/UserLevelSe
 import { getSkewNormalRandom } from '../../utils/math';
 import axios from 'axios';
 
+// Helper function to replenish question bank
+const replenishQuestionBank = async (session: any, level: any) => {
+  const replenishmentSize = Math.ceil(session.questionBank.length * 0.5); // 50% of current bank size
+  const newQuestions: any[] = [];
+  
+  // Generate difficulty using same parameters as initial load
+  const difficulty = getSkewNormalRandom(
+    level.difficultyParams.mean,
+    level.difficultyParams.sd,
+    level.difficultyParams.alpha
+  );
+
+  // Strategy 1: Get questions based on difficulty
+  let difficultyQuestions = await QuestionTs.find({
+    'difficulty.mu': { $gte: difficulty },
+    'quesId': { $nin: session.questionBank } // Exclude questions already in bank
+  })
+  .sort({ 'difficulty.mu': 1 })
+  .limit(replenishmentSize)
+  .populate('quesId');
+
+  newQuestions.push(...difficultyQuestions);
+  console.log('Strategy 1', newQuestions.length);
+
+  // Strategy 2: If not enough, add wrong questions from user history
+  if (newQuestions.length < replenishmentSize && session.questionsAnswered.incorrect.length > 0) {
+    const wrongQuestionsNeeded = replenishmentSize - newQuestions.length;
+    const wrongQuestionIds = session.questionsAnswered.incorrect.filter(
+      (id: any) => !session.questionBank.includes(id)
+    );
+    
+    if (wrongQuestionIds.length > 0) {
+      const wrongQuestions = await QuestionTs.find({
+        'quesId': { $in: wrongQuestionIds.slice(0, wrongQuestionsNeeded) }
+      }).populate('quesId');
+      newQuestions.push(...wrongQuestions);
+    }
+    console.log('Strategy 2', newQuestions.length);
+  }
+
+  // Strategy 3: If still not enough, add correct questions from user history
+  if (newQuestions.length < replenishmentSize && session.questionsAnswered.correct.length > 0) {
+    const correctQuestionsNeeded = replenishmentSize - newQuestions.length;
+    const correctQuestionIds = session.questionsAnswered.correct.filter(
+      (id: any) => !session.questionBank.includes(id)
+    );
+    
+    if (correctQuestionIds.length > 0) {
+      const correctQuestions = await QuestionTs.find({
+        'quesId': { $in: correctQuestionIds.slice(0, correctQuestionsNeeded) }
+      }).populate('quesId');
+      newQuestions.push(...correctQuestions);
+    }
+    console.log('Strategy 3', newQuestions.length);
+  }
+
+  // Strategy 4: If still not enough, add random questions
+  if (newQuestions.length < replenishmentSize) {
+    const randomQuestionsNeeded = replenishmentSize - newQuestions.length;
+    const existingQuestionIds = [...session.questionBank, ...newQuestions.map(q => q.quesId)];
+    
+    const randomQuestions = await QuestionTs.aggregate([
+      { $match: { 'quesId': { $nin: existingQuestionIds } } },
+      { $sample: { size: randomQuestionsNeeded } },
+      { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesId' } },
+      { $unwind: '$quesId' }
+    ]);
+    
+    newQuestions.push(...randomQuestions);
+    console.log('Strategy 4', newQuestions.length);
+  }
+
+  // Shuffle the new questions and add to bank
+  const shuffledQuestions = newQuestions.sort(() => Math.random() - 0.5);
+  const newQuestionIds = shuffledQuestions.map(q => q.quesId);
+  
+  return newQuestionIds;
+};
+
 // Socket event handlers for quiz questions and answers
 export const quizQuestionHandlers = (socket: Socket) => {
   logger.info(`Quiz question socket connected: ${socket.id}`);
@@ -22,40 +101,18 @@ export const quizQuestionHandlers = (socket: Socket) => {
       if (!session) {
         throw new Error('Session not found');
       }
-      console.log('userLevelId',userLevelId);
+
       const level = await Level.findById(userLevelId);
       if (!level) {
         throw new Error(`Level not found: ${userLevelId}`);
       }
 
-      // Generate difficulty using skew normal distribution
-      // This ensures questions are appropriately challenging
-      const difficulty = getSkewNormalRandom(
-        level.difficultyParams.mean,
-        level.difficultyParams.sd,
-        level.difficultyParams.alpha
-      );
 
-      // Find a question with difficulty greater than or equal to the generated difficulty
-      let questionTs = await QuestionTs.findOne({
-        'difficulty.mu': { $gte: difficulty }
-      }).sort({ 'difficulty.mu': 1 }).populate('quesId');
+      const currentQuestionId = session.questionBank[session.currentQuestionIndex];
+      const question = await Question.findById(currentQuestionId);
 
-      if (!questionTs) {
-        // If no question found with difficulty greater than or equal to the generated difficulty, find one with maximum difficulty less than or equal to the generated difficulty
-        questionTs = await QuestionTs.findOne({
-          'difficulty.mu': { $lte: difficulty }
-        }).sort({ 'difficulty.mu': -1 }).populate('quesId');
-        if (!questionTs) {
-          throw new Error('Question not found');
-        } 
-      }
-
-      const question = await Question.findById(questionTs.quesId);
-      logger.info(`User asked question for userLevelSessionId ${userLevelSessionId}`);
-
-      // Update session with new question
-      session.currentQuestion = questionTs.quesId;
+      // Update session with current question
+      session.currentQuestion = currentQuestionId;
       await session.save();
 
       // Send question to client
@@ -64,6 +121,23 @@ export const quizQuestionHandlers = (socket: Socket) => {
         options: question?.options,
         correctAnswer: question?.correct
       });
+
+      // Check if we need to replenish the question bank (at 40% threshold)
+      if (session.currentQuestionIndex >= session.questionBank.length * 0.4) {
+          const newQuestions = await replenishQuestionBank(session, level);
+          session.questionBank.push(...newQuestions);
+          await session.save();
+      }
+      
+      // Get current question from bank
+      if (session.currentQuestionIndex >= session.questionBank.length) {
+          throw new Error('No more questions available in bank');
+      }
+      
+      if (!question) {
+        throw new Error('Question not found');
+      }
+      
       const endTime = Date.now();
       const timeTaken = endTime - startTime;
       console.log('timeTaken seconds to get question',timeTaken/1000);
@@ -106,8 +180,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
       const isCorrect = answer === question.correct;
       
       // Log time spent on this question
-      console.log(`Time spent on question ${question._id}: ${timeSpent}ms (${(timeSpent/1000).toFixed(2)}s)`);
-      
+
       // Phase 1: Create/Update UserLevelSessionTopicsLogs
       try {
         const topicIds = question.topics.map(topic => topic.id);
@@ -142,8 +215,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
           },
           { upsert: true }
         );
-        
-        console.log(`Session topics log updated for topics: ${topicIds}`);
+
       } catch (sessionLogError) {
         logger.error('Error updating session topics log:', sessionLogError);
         // Don't break the quiz flow if session logging fails
@@ -175,8 +247,9 @@ export const quizQuestionHandlers = (socket: Socket) => {
         session.questionsAnswered.incorrect.push(session.currentQuestion);
       }
       
-      // Clear current question
+      // Clear current question and increment index
       session.currentQuestion = null;
+      session.currentQuestionIndex = (session.currentQuestionIndex || 0) + 1;
       await session.save();
 
       // Send result to client

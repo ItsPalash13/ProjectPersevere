@@ -14,6 +14,10 @@ export interface IUserLevelSession extends Document {
     incorrect: mongoose.Types.ObjectId[];
   };
 
+  // Question Bank fields
+  questionBank: mongoose.Types.ObjectId[];
+  currentQuestionIndex: number;
+
   // Time Rush specific fields
   timeRush: {
     requiredXp: number;
@@ -80,6 +84,17 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
       type: Schema.Types.ObjectId,
       ref: 'Question'
     }]
+  },
+
+  // Question Bank fields
+  questionBank: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Question'
+  }],
+  currentQuestionIndex: {
+    type: Number,
+    default: 0,
+    min: 0
   },
 
   // Time Rush specific fields

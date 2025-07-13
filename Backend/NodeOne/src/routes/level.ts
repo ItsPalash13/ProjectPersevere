@@ -190,13 +190,36 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       level.difficultyParams.alpha
     );
 
-    // Get 10 questions based on difficulty
+    // Get initial question bank of 10 questions based on difficulty
     const questionTsList = await QuestionTs.find({
       'difficulty.mu': { $gte: difficulty }
     })
     .sort({ 'difficulty.mu': 1 })
     .limit(10)
     .populate('quesId');
+
+    // If not enough questions found with difficulty >= generated, get questions with difficulty <= generated
+    if (questionTsList.length < 10) {
+      const additionalQuestions = await QuestionTs.find({
+        'difficulty.mu': { $lte: difficulty }
+      })
+      .sort({ 'difficulty.mu': -1 })
+      .limit(10 - questionTsList.length)
+      .populate('quesId');
+      
+      questionTsList.push(...additionalQuestions);
+    }
+
+    // If still not enough questions, get random questions
+    if (questionTsList.length < 10) {
+      const randomQuestions = await QuestionTs.aggregate([
+        { $sample: { size: 10 - questionTsList.length } },
+        { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesId' } },
+        { $unwind: '$quesId' }
+      ]);
+      
+      questionTsList.push(...randomQuestions);
+    }
 
     if (!questionTsList.length) {
       throw new Error('No suitable questions found');
@@ -213,7 +236,13 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       levelId: level._id,
       attemptType,
       status: 0,
-      currentQuestion: null,
+      currentQuestion: questionBank[0], // Set first question as current
+      currentQuestionIndex: 0,
+      questionBank,
+      questionsAnswered: {
+        correct: [],
+        incorrect: []
+      },
       ...(attemptType === 'time_rush' ? {
         timeRush: {
           requiredXp: level.timeRush?.requiredXp || 0,
@@ -229,8 +258,7 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
           currentTime: 0,
           minTime: userChapterLevel?.precisionPath?.minTime || Infinity
         }
-      }),
-      questionBank
+      })
     });
 
     // Get the first question details
@@ -398,7 +426,6 @@ router.post('/end', (async (req: Request, res: Response) => {
         }
       );
       
-      console.log(`Updated ${updateResult.modifiedCount} session topic logs to status 1`);
     } catch (sessionLogError) {
       console.error('Error updating session topic logs status:', sessionLogError);
       // Don't break the level end flow if session logging fails

@@ -1,0 +1,19 @@
+🧠 Where You Should Use the AI Bot
+🔍 Area	Why Use AI	What AI Can Do
+1. Personalized Recommendations	High value	Analyze user stats → Suggest topics, quizzes, levels, and goals. (like a mentor)
+2. Question Generation	Once during content creation or periodically	Generate unique, non-repeating, difficulty-tagged MCQs for new topics
+3. Question Mutation / Reskinning	Medium value	Generate rephrased/variant versions of questions to avoid repetition
+4. Performance Feedback (Post-quiz) Medium-high	Give motivating, specific feedback: “You nailed the easy ones, but need to speed up on dice questions.”
+5. Hint or Explanation Generator	Optional but cool	Generate or simplify explanations for questions the user gets wrong
+6. Chat-based Learning Assistant (optional UX)	Nice to have	“Why is the answer A?” → AI answers in plain English (like Socratic tutor)
+
+🧠 Extended Suggestion Framework
+List	Purpose	Example Use
+✅ ListA: Improved Topics	Track progress on past suggestions	“Nice work on Complementary Events — you’ve improved a lot!”
+🏅 ListC: Mastered Topics	Highlight major wins	“You’ve officially mastered Two Dice — congrats!”
+🔄 ListB: Not Yet Improved	Nudge for retry	“Mutually Exclusive is still below 60%. Let's push for 70%!”
+🌱 ListD: Emerging Struggles	Topics that are starting to decline	“Accuracy in Sample Space dropped from 80% to 64% recently — stay sharp!”
+🕰️ ListE: Neglected Topics	Not attempted in 7+ days	“Haven’t seen you tackle Cards in a while. How about a quick refresher?”
+🚀 ListF: Trending Topics	Accuracy improving steadily, but not yet mastered	“You’re improving fast in Conditional Probability — keep the momentum going!”
+🎯 ListG: Personalized Goals	Custom goals based on stats	“Let’s aim for 75% in Level 6 within 2 attempts!”
+❓ ListH: Confusing Topics	Topics where user answers quickly but inaccurately (guessing behavior)	“Your speed on Venn Diagrams is high, but accuracy is low. Let’s slow down and focus.”

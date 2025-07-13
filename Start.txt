@@ -1,0 +1,9 @@
+cd Services; .\nenv\bin\activate; python daily_aggregation.py
+
+cd Backend
+.\nenv\Scripts\activate
+npm run dev
+
+cd Frontend
+.\nenv\Scripts\activate
+npm run dev
