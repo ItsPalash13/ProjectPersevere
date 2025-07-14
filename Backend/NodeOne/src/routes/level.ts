@@ -1,7 +1,9 @@
 import express, { Request, Response, RequestHandler } from 'express';
 import { Level } from '../models/Level';
 import { Chapter } from '../models/Chapter';
+import { Unit } from '../models/Units';
 import { UserChapterLevel } from '../models/UserChapterLevel';
+import { UserChapterUnit } from '../models/UserChapterUnit';
 import { UserLevelSession } from '../models/UserLevelSession';
 import { UserLevelSessionTopicsLogs } from '../models/Performance/UserLevelSessionTopicsLogs';
 import { QuestionTs } from '../models/QuestionTs';
@@ -9,6 +11,7 @@ import { Question } from '../models/Questions';
 import authMiddleware from '../middleware/authMiddleware';
 import mongoose from 'mongoose';
 import { getSkewNormalRandom } from '../utils/math';
+import { Topic } from '../models/Topic';
 
 // Helper function to calculate percentile for Time Rush (maxXp)
 const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxXp: number, userId: string): Promise<number> => {
@@ -294,26 +297,58 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     const { chapterId } = req.params;
     const userId = req.user.id;
     
-    const levels = await Level.find({ chapterId })
-      .select('name levelNumber description type timeRush precisionPath topics status')
+    // First check chapter for units
+    const chapter = await Chapter.findById(chapterId)
+      .select('name description gameName topics status thumbnailUrl units');
+
+    if (!chapter) {
+      return res.status(404).json({
+        success: false,
+        error: 'Chapter not found'
+      });
+    }
+
+    // Get all units for this chapter
+    const chapterUnits = await Unit.find({
+      chapterId: new mongoose.Types.ObjectId(chapterId)
+    }).select('_id name description status topics');
+
+    // Fetch all topic names for these units in one go
+    const allTopicIds = Array.from(new Set(chapterUnits.flatMap(unit => unit.topics.map(tid => tid.toString()))));
+    const topics = await Topic.find({ _id: { $in: allTopicIds } }).select('_id topic');
+    const topicIdToName = new Map(topics.map((t: any) => [t._id.toString(), t.topic]));
+
+    // Map units to include topic names
+    const unitsWithTopicNames = chapterUnits.map(unit => ({
+      _id: unit._id,
+      name: unit.name,
+      description: unit.description,
+      status: unit.status,
+      topics: unit.topics.map(tid => topicIdToName.get(tid.toString()) || tid.toString())
+    }));
+
+    // Check UserChapterUnit for each unit in the chapter
+    const userChapterUnits = await UserChapterUnit.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      chapterId: new mongoose.Types.ObjectId(chapterId)
+    });
+
+    // Create a map of unit IDs that the user has access to
+    const userUnitIds = new Set(userChapterUnits.map(ucu => ucu.unitId.toString()));
+
+    // Get all levels for units that the user has access to
+    const levels = await Level.find({ 
+      chapterId,
+      unitId: { $in: Array.from(userUnitIds).map(id => new mongoose.Types.ObjectId(id)) }
+    })
+      .select('name levelNumber description type timeRush precisionPath topics status unitId')
       .sort({ levelNumber: 1 })
       .lean() as any[];
 
     if (!levels.length) {
       return res.status(404).json({
         success: false,
-        error: 'No levels found for this chapter'
-      });
-    }
-
-    // Get chapter information
-    const chapter = await Chapter.findById(chapterId)
-      .select('name description gameName topics status thumbnailUrl');
-
-    if (!chapter) {
-      return res.status(404).json({
-        success: false,
-        error: 'Chapter not found'
+        error: 'No levels found for accessible units in this chapter'
       });
     }
 
@@ -363,7 +398,8 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         precisionPath: mixedLevels.filter(level => level.type === 'precision_path').length
       },
       meta: {
-        chapter: chapter
+        chapter: chapter,
+        units: unitsWithTopicNames
       },
       data: mixedLevels
     });

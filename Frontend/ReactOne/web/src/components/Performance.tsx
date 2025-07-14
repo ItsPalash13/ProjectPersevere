@@ -30,7 +30,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 // @ts-ignore
-import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery, useGetTopicSetSessionAccuracyQuery } from '../features/api/performanceAPI';
+import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery, useGetTopicSetSessionAccuracyQuery, useGetUnitTopicsPerformanceQuery } from '../features/api/performanceAPI';
 import { skipToken } from '@reduxjs/toolkit/query';
 
 interface PerformanceData {
@@ -50,22 +50,33 @@ interface PerformanceData {
 
 
 interface PerformanceProps {
-  chapterId: string;
+  chapterId?: string;
+  unitId?: string;
+  mode?: 'chapter' | 'unit';
   onClose?: () => void;
 }
 
-const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
+const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'chapter', onClose }) => {
   const [selectedTopicSet, setSelectedTopicSet] = useState<string[] | null>(null);
   const [selectedTopicSetNames, setSelectedTopicSetNames] = useState<string[] | null>(null);
   const [isSessionView, setIsSessionView] = useState(false);
 
-  const { data: performanceResponse, isLoading, error, refetch } = useGetChapterTopicsPerformanceQuery(chapterId, {
-    skip: !chapterId,
-    refetchOnMountOrArgChange: true
-  });
+  // Choose the correct query based on mode
+  const {
+    data: performanceResponse,
+    isLoading,
+    error,
+    refetch
+  } = mode === 'unit'
+    ? useGetUnitTopicsPerformanceQuery(unitId, { skip: !unitId })
+    : useGetChapterTopicsPerformanceQuery(chapterId, { skip: !chapterId });
 
   const performanceData = performanceResponse?.data || [];
   // meta is only used for display, not destructured if not needed
+  // For unit mode, get chapterId from meta
+  const effectiveChapterId = mode === 'unit'
+    ? performanceResponse?.meta?.chapterId
+    : chapterId;
 
   // Fetch day-wise accuracy for selected topic set
   const {
@@ -73,8 +84,8 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
     isLoading: isTopicSetDailyAccuracyLoading,
     error: topicSetDailyAccuracyError
   } = useGetTopicSetDailyAccuracyQuery(
-    selectedTopicSet && chapterId && !isSessionView ? { chapterId, topicIds: selectedTopicSet } : skipToken,
-    { skip: !selectedTopicSet || !chapterId || isSessionView }
+    selectedTopicSet && effectiveChapterId && !isSessionView ? { chapterId: effectiveChapterId, topicIds: selectedTopicSet } : skipToken,
+    { skip: !selectedTopicSet || !effectiveChapterId || isSessionView }
   );
 
   // Fetch session-wise accuracy for selected topic set
@@ -83,16 +94,16 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
     isLoading: isTopicSetSessionAccuracyLoading,
     error: topicSetSessionAccuracyError
   } = useGetTopicSetSessionAccuracyQuery(
-    selectedTopicSet && chapterId && isSessionView ? { chapterId, topicIds: selectedTopicSet } : skipToken,
-    { skip: !selectedTopicSet || !chapterId || !isSessionView }
+    selectedTopicSet && effectiveChapterId && isSessionView ? { chapterId: effectiveChapterId, topicIds: selectedTopicSet } : skipToken,
+    { skip: !selectedTopicSet || !effectiveChapterId || !isSessionView }
   );
 
   // Refetch data when component mounts
   useEffect(() => {
-    if (chapterId) {
+    if ((mode === 'unit' && unitId) || (mode === 'chapter' && chapterId)) {
       refetch();
     }
-  }, [chapterId, refetch]);
+  }, [chapterId, unitId, mode, refetch]);
 
   // Handler for row click
   const handleRowClick = (topicSet: { topicId: string; topicName: string }[]) => {
@@ -123,6 +134,46 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
     }
   };
 
+  // Flatten all topics with their accuracy
+  const allTopics: { topicId: string; topicName: string; accuracy: number }[] = [];
+  performanceData.forEach((row: PerformanceData) => {
+    row.topics.forEach(topic => {
+      // Find the accuracy for this topic set (row)
+      const acc = parseFloat(row.accuracy);
+      // Avoid duplicates: only add if not already present or if this accuracy is higher
+      const existing = allTopics.find(t => t.topicId === topic.topicId);
+      if (!existing || acc > existing.accuracy) {
+        if (existing) {
+          existing.accuracy = acc;
+        } else {
+          allTopics.push({ topicId: topic.topicId, topicName: topic.topicName, accuracy: acc });
+        }
+      }
+    });
+  });
+
+  // Bucket topic sets (not individual topics) by accuracy
+  type TopicSetBucket = {
+    topicNames: string[];
+    accuracy: number;
+  };
+
+  const strongSets: TopicSetBucket[] = [];
+  const improvingSets: TopicSetBucket[] = [];
+  const weakSets: TopicSetBucket[] = [];
+
+  performanceData.forEach((row: PerformanceData) => {
+    const accuracy = parseFloat(row.accuracy);
+    const topicNames = row.topics.map(t => t.topicName);
+    if (accuracy >= 80) {
+      strongSets.push({ topicNames, accuracy });
+    } else if (accuracy >= 60) {
+      improvingSets.push({ topicNames, accuracy });
+    } else {
+      weakSets.push({ topicNames, accuracy });
+    }
+  });
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
@@ -145,7 +196,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" component="h2">
-            Performance Analytics
+            {mode === 'unit' ? 'Unit Analytics' : 'Performance Analytics'}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {onClose && (
@@ -156,21 +207,53 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, onClose }) => {
           </Box>
         </Box>
 
-        {performanceResponse?.meta && (
-          <Box sx={{ mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              {performanceResponse.meta.chapterName}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Chip label={`${performanceResponse.meta.totalDays} days`} size="small" />
-              <Chip label={`${performanceResponse.meta.totalSessions} sessions`} size="small" />
-              <Chip label={`${performanceResponse.meta.totalQuestions} questions`} size="small" />
-              {performanceResponse.meta.startDate && performanceResponse.meta.endDate && (
-                <Chip label={`${formatDate(performanceResponse.meta.startDate)} - ${formatDate(performanceResponse.meta.endDate)}`} size="small" />
-              )}
+        {/* Topic Set Buckets */}
+        <Box sx={{ display: 'flex', gap: 4, mb: 3, flexWrap: 'wrap' }}>
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'success.main' }}>Strong Sets (≥ 80%)</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {strongSets.length > 0 ? strongSets.map((set, idx) => (
+                <Chip
+                  key={idx}
+                  label={`${set.topicNames.join(', ')} (${set.accuracy}%)`}
+                  color="success"
+                  size="small"
+                  sx={{ mb: 0.5 }}
+                />
+              )) : <Typography variant="body2" color="text.secondary">None</Typography>}
             </Box>
           </Box>
-        )}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'warning.main' }}>Improving Sets (60–79%)</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {improvingSets.length > 0 ? improvingSets.map((set, idx) => (
+                <Chip
+                  key={idx}
+                  label={`${set.topicNames.join(', ')} (${set.accuracy}%)`}
+                  color="warning"
+                  size="small"
+                  sx={{ mb: 0.5 }}
+                />
+              )) : <Typography variant="body2" color="text.secondary">None</Typography>}
+            </Box>
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'error.main' }}>Weak Sets (&lt; 60%)</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {weakSets.length > 0 ? weakSets.map((set, idx) => (
+                <Chip
+                  key={idx}
+                  label={`${set.topicNames.join(', ')} (${set.accuracy}%)`}
+                  color="error"
+                  size="small"
+                  sx={{ mb: 0.5 }}
+                />
+              )) : <Typography variant="body2" color="text.secondary">None</Typography>}
+            </Box>
+          </Box>
+        </Box>
+
+
 
         <TableContainer component={Paper} sx={{ backgroundColor: '#23272b' }}>
           <Table>

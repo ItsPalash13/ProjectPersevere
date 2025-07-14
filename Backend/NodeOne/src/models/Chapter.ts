@@ -8,6 +8,7 @@ interface IChapter extends Document {
   topics: string[];
   status: boolean;
   subjectId: mongoose.Types.ObjectId;
+  units: mongoose.Types.ObjectId[];
   thumbnailUrl?: string;
 }
 
@@ -46,6 +47,11 @@ const ChapterSchema = new Schema<IChapter>({
     required: false,
     trim: true
   },
+  units: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Unit',
+    required: true
+  }]
 }, { timestamps: true });
 
 // Index for faster queries

@@ -1,10 +1,12 @@
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { UserChapterTopicsPerformanceLogs } from '../models/Performance/UserChapterTopicsPerformanceLogs';
-import { UserChapterLevel } from '../models/UserChapterLevel';
+import { UserChapterLevel, IUserChapterLevel } from '../models/UserChapterLevel';
 import { Chapter } from '../models/Chapter';
 import { Level } from '../models/Level';
 import { Topic } from '../models/Topic';
+import { Unit } from '../models/Units';
+import { UserChapterUnit } from '../models/UserChapterUnit';
 import authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -41,7 +43,7 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
         const userChapterLevels = await UserChapterLevel.find({
             userId,
             chapterId
-        });
+        }).lean() as IUserChapterLevel[];
         
         if (userChapterLevels.length === 0) {
             return res.json({
@@ -109,28 +111,31 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
         }, {} as any);
 
         // Convert to array and calculate averages
-        const result = Object.values(aggregatedData).map((topicSetData: any) => {
-            const avgAccuracy = topicSetData.totalQuestionsAnswered > 0 
-                ? (topicSetData.correctAnswers / topicSetData.totalQuestionsAnswered * 100).toFixed(2)
-                : 0;
-            const avgTimePerQuestion = topicSetData.totalQuestionsAnswered > 0 
-                ? (topicSetData.totalTimeSpent / topicSetData.totalQuestionsAnswered).toFixed(2)
-                : 0;
-            
-            return {
-                topicSetId: topicSetData.topicIds.join(','),
-                totalSessions: topicSetData.totalSessions,
-                totalQuestionsAnswered: topicSetData.totalQuestionsAnswered,
-                correctAnswers: topicSetData.correctAnswers,
-                accuracy: avgAccuracy,
-                averageTimePerQuestion: avgTimePerQuestion,
-                topics: Array.from(topicSetData.topics.entries()).map((entry: any) => ({
-                    topicId: entry[0],
-                    topicName: entry[1]
-                })),
-                totalDatesPracticed: topicSetData.datesPracticed.size
-            };
-        });
+        const result = Object.values(aggregatedData)
+            .map((topicSetData: any) => {
+                const avgAccuracy = topicSetData.totalQuestionsAnswered > 0 
+                    ? (topicSetData.correctAnswers / topicSetData.totalQuestionsAnswered * 100).toFixed(2)
+                    : 0;
+                const avgTimePerQuestion = topicSetData.totalQuestionsAnswered > 0 
+                    ? (topicSetData.totalTimeSpent / topicSetData.totalQuestionsAnswered).toFixed(2)
+                    : 0;
+                const topicSetId = topicSetData.topicIds.join(',');
+                if (!topicSetId) return null;
+                return {
+                    topicSetId,
+                    totalSessions: topicSetData.totalSessions,
+                    totalQuestionsAnswered: topicSetData.totalQuestionsAnswered,
+                    correctAnswers: topicSetData.correctAnswers,
+                    accuracy: avgAccuracy,
+                    averageTimePerQuestion: avgTimePerQuestion,
+                    topics: Array.from(topicSetData.topics.entries()).map((entry: any) => ({
+                        topicId: entry[0],
+                        topicName: entry[1]
+                    })),
+                    totalDatesPracticed: topicSetData.datesPracticed.size
+                };
+            })
+            .filter((x): x is NonNullable<typeof x> => x != null && x.topics && x.topics.length > 0);
         
         return res.json({
             data: result,
@@ -340,6 +345,176 @@ router.get('/chapter-topicset-session-accuracy/:chapterId', async (req, res) => 
   }
 });
 
+router.get('/unit-topics/:unitId', async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user.id;
+        const { unitId } = req.params;
+        const { startDate, endDate } = req.query;
+
+        // Validate unitId
+        if (!unitId) {
+            return res.status(400).json({ error: 'Unit ID is required' });
+        }
+
+        // Check if unit exists
+        const unit = await Unit.findById(unitId);
+        if (!unit) {
+            return res.status(404).json({ error: 'Unit not found' });
+        }
+
+        // Find UserChapterUnit for this user/unit
+        const userChapterUnit = await UserChapterUnit.findOne({ userId, unitId });
+        if (!userChapterUnit) {
+            return res.json({
+                data: [],
+                meta: {
+                    startDate: startDate || null,
+                    endDate: endDate || null,
+                    totalRecords: 0,
+                    unitId,
+                    unitName: unit.name
+                }
+            });
+        }
+        const chapterId = userChapterUnit.chapterId;
+
+        // Get all levels for this unit
+        const levelsInUnit = await Level.find({ unitId }).select('_id');
+        const levelIdsInUnit = levelsInUnit.map((l: any) => l._id.toString());
+
+        // Get user's chapter levels for this chapter
+        const userChapterLevels = await UserChapterLevel.find({
+            userId,
+            chapterId
+        });
+        // Only keep those whose levelId is in this unit
+        const filteredUserChapterLevels = userChapterLevels.filter(({ levelId }) => levelIdsInUnit.includes(levelId.toString()));
+        if (filteredUserChapterLevels.length === 0) {
+            return res.json({
+                data: [],
+                meta: {
+                    startDate: startDate || null,
+                    endDate: endDate || null,
+                    totalRecords: 0,
+                    unitId,
+                    unitName: unit.name
+                }
+            });
+        }
+        const userChapterLevelIds = filteredUserChapterLevels.map(({ _id }) => _id as mongoose.Types.ObjectId);
+
+        // Build date filter
+        const dateFilter: any = {};
+        if (startDate && endDate) {
+            dateFilter.date = {
+                $gte: new Date(startDate as string),
+                $lte: new Date(endDate as string)
+            };
+        }
+
+        // Get performance logs for all levels in this unit
+        const performanceLogs = await UserChapterTopicsPerformanceLogs.find({
+            userChapterLevelId: { $in: userChapterLevelIds },
+            ...dateFilter
+        });
+
+        // Get all topics for this unit
+        const unitTopics = await Topic.find({ _id: { $in: unit.topics } });
+        const topicMap = new Map(unitTopics.map((topic: any) => [topic._id.toString(), topic.topic]));
+
+        // Group by topic sets and aggregate data
+        const aggregatedData = performanceLogs.reduce((acc, log) => {
+            // Create a unique key for the topic set (sorted topic IDs)
+            const topicIds = log.topics.map((topicId: any) => topicId.toString()).sort();
+            const topicSetKey = topicIds.join(',');
+            
+            if (!acc[topicSetKey]) {
+                acc[topicSetKey] = {
+                    topicIds: topicIds,
+                    totalSessions: 0,
+                    totalQuestionsAnswered: 0,
+                    correctAnswers: 0,
+                    totalTimeSpent: 0,
+                    topics: new Map(), // Store topic ID and name
+                    questionsAnswered: [],
+                    datesPracticed: new Set()
+                };
+            }
+
+            acc[topicSetKey].totalSessions += log.totalSessions;
+            acc[topicSetKey].totalQuestionsAnswered += log.questionsAnswered.length;
+            acc[topicSetKey].correctAnswers += log.questionsAnswered.filter(q => q.isCorrect).length;
+            const totalTimeSpent = log.questionsAnswered.reduce((sum, q) => sum + q.timeSpent, 0);
+            acc[topicSetKey].totalTimeSpent += totalTimeSpent;
+            
+            // Add topics with their IDs and names
+            log.topics.forEach((topicId: any) => {
+                const topicName = topicMap.get(topicId.toString());
+                if (topicName) {
+                    acc[topicSetKey].topics.set(topicId.toString(), topicName);
+                }
+            });
+            
+            acc[topicSetKey].questionsAnswered.push(...log.questionsAnswered);
+            // Add date practiced
+            acc[topicSetKey].datesPracticed.add(log.date.toISOString().split('T')[0]);
+
+            return acc;
+        }, {} as any);
+
+        // Convert to array and calculate averages
+        const result = Object.values(aggregatedData)
+            .map((topicSetData: any) => {
+                const avgAccuracy = topicSetData.totalQuestionsAnswered > 0 
+                    ? (topicSetData.correctAnswers / topicSetData.totalQuestionsAnswered * 100).toFixed(2)
+                    : 0;
+                const avgTimePerQuestion = topicSetData.totalQuestionsAnswered > 0 
+                    ? (topicSetData.totalTimeSpent / topicSetData.totalQuestionsAnswered).toFixed(2)
+                    : 0;
+                const topicSetId = topicSetData.topicIds.join(',');
+                if (!topicSetId) return null;
+                return {
+                    topicSetId,
+                    totalSessions: topicSetData.totalSessions,
+                    totalQuestionsAnswered: topicSetData.totalQuestionsAnswered,
+                    correctAnswers: topicSetData.correctAnswers,
+                    accuracy: avgAccuracy,
+                    averageTimePerQuestion: avgTimePerQuestion,
+                    topics: Array.from(topicSetData.topics.entries()).map((entry: any) => ({
+                        topicId: entry[0],
+                        topicName: entry[1]
+                    })),
+                    totalDatesPracticed: topicSetData.datesPracticed.size
+                };
+            })
+            .filter((x): x is NonNullable<typeof x> => x != null && x.topics && x.topics.length > 0);
+        
+        return res.json({
+            data: result,
+            meta: {
+                startDate: startDate || null,
+                endDate: endDate || null,
+                totalRecords: result.length,
+                unitId,
+                unitName: unit.name,
+                chapterId,
+                totalTopicSets: result.length,
+                totalSessions: result.reduce((sum, topicSet) => sum + topicSet.totalSessions, 0),
+                totalQuestions: result.reduce((sum, topicSet) => sum + topicSet.totalQuestionsAnswered, 0),
+                averageAccuracy: result.length > 0 
+                    ? (result.reduce((sum, topicSet) => sum + Number(topicSet.accuracy), 0) / result.length).toFixed(2)
+                    : '0',
+                averageTimePerQuestion: result.length > 0 
+                    ? (result.reduce((sum, topicSet) => sum + Number(topicSet.averageTimePerQuestion), 0) / result.length).toFixed(2)
+                    : '0'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching unit topics performance:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 export default router; 

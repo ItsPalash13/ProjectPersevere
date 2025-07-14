@@ -33,6 +33,7 @@ export interface Level {
   topics: string[];
   status: boolean;
   type: 'time_rush' | 'precision_path';
+  unitId: string; // <-- Add this line
   
   // Mode-specific nested fields from Level model (conditional based on type)
   timeRush?: {
@@ -92,6 +93,7 @@ const Levels: React.FC = () => {
   const [countdown, setCountdown] = useState(3);
   const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
   const [showPerformance, setShowPerformance] = useState(false);
+  const [showUnitPerformance, setShowUnitPerformance] = useState<string | null>(null);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -99,6 +101,7 @@ const Levels: React.FC = () => {
     skip: !chapterId
   });
   const [startLevel] = useStartLevelMutation();
+  const [units, setUnits] = useState<any[]>([]);
 
   useEffect(() => {
     if (chapterId) {
@@ -114,6 +117,9 @@ const Levels: React.FC = () => {
     }
     if (chapterData?.meta?.chapter) {
       setChapter(chapterData.meta.chapter);
+    }
+    if (chapterData?.meta?.units) {
+      setUnits(chapterData.meta.units);
     }
   }, [chapterData]);
 
@@ -170,6 +176,13 @@ const Levels: React.FC = () => {
     setCountdown(3);
     setSelectedLevelId(null);
   };
+
+  // Group levels by unitId
+  const levelsByUnit: { [unitId: string]: Level[] } = {};
+  levels.forEach(level => {
+    if (!levelsByUnit[level.unitId]) levelsByUnit[level.unitId] = [];
+    levelsByUnit[level.unitId].push(level);
+  });
 
   if (isLoading) {
     return (
@@ -301,15 +314,60 @@ const Levels: React.FC = () => {
             </Box>
           </Box>
         )}
-        
+        {/* Render units and their levels */}
         <Box sx={levelsStyles.gridContainer}>
-          {levels.map(level => (
-            <LevelCard 
-              key={`${level._id}_${level.type}`}
-              level={level} 
-              chapter={chapter}
-              onLevelClick={handleLevelClick} 
-            />
+          {units.map(unit => (
+            <Box key={unit._id} sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                {unit.name}
+              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<AnalyticsIcon />}
+                onClick={() => setShowUnitPerformance(unit._id)}
+                sx={{ ml: 2, mb: 1 }}
+              >
+                Unit Analytics
+              </Button>
+              </Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                {unit.description}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+                {unit.topics.map((topic: string, idx: number) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      px: 1,
+                      py: 0.25,
+                      backgroundColor: 'secondary.main',
+                      color: 'secondary.contrastText',
+                      borderRadius: 0.75,
+                      fontSize: '0.75rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    {topic}
+                  </Box>
+                ))}
+              </Box>
+              <Box sx={levelsStyles.gridContainer}>
+                {(levelsByUnit[unit._id] || []).map(level => (
+                  <LevelCard
+                    key={`${level._id}_${level.type}`}
+                    level={level}
+                    chapter={chapter}
+                    onLevelClick={handleLevelClick}
+                  />
+                ))}
+                {(levelsByUnit[unit._id] || []).length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    No levels available for this unit.
+                  </Typography>
+                )}
+              </Box>
+            </Box>
           ))}
         </Box>
       </Container>
@@ -342,6 +400,40 @@ const Levels: React.FC = () => {
             <Performance
               chapterId={chapterId}
               onClose={() => setShowPerformance(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Unit Performance Analytics Dialog */}
+      <Dialog
+        open={!!showUnitPerformance}
+        onClose={() => setShowUnitPerformance(null)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '90vh',
+            maxHeight: '90vh'
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h6">
+              Unit Analytics - {units.find(u => u._id === showUnitPerformance)?.name}
+            </Typography>
+            <IconButton onClick={() => setShowUnitPerformance(null)}>
+              <ArrowBackIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {showUnitPerformance && (
+            <Performance
+              unitId={showUnitPerformance}
+              onClose={() => setShowUnitPerformance(null)}
+              mode="unit"
             />
           )}
         </DialogContent>

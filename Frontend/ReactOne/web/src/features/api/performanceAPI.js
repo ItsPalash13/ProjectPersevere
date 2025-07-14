@@ -36,6 +36,13 @@ export const performanceApi = createApi({
       }),
       providesTags: ['Performance'],
     }),
+    getUnitTopicsPerformance: builder.query({
+      query: (unitId) => ({
+        url: `/api/performance/unit-topics/${unitId}`,
+        method: 'GET',
+      }),
+      providesTags: ['Performance'],
+    }),
   }),
 });
 
@@ -44,4 +51,5 @@ export const {
   useGetTopicDailyAccuracyQuery,
   useGetTopicSetDailyAccuracyQuery,
   useGetTopicSetSessionAccuracyQuery,
+  useGetUnitTopicsPerformanceQuery,
 } = performanceApi; 
