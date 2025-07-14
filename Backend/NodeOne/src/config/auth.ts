@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { UserProfile } from "../models/UserProfile";
 import { createAuthMiddleware } from "better-auth/api";
 import { Userts } from "../models/UserTs";
+import { customSession } from "better-auth/plugins";
 let auth: ReturnType<typeof betterAuth> | null = null;
 
 export const getAuth = async () => {
@@ -16,6 +17,24 @@ export const getAuth = async () => {
             emailAndPassword: {    
                 enabled: true
             },
+            plugins: [
+                customSession(async ({ user, session }) => {
+                    if (user?.id) {
+                      const userProfile = await UserProfile.findOne({ userId: user.id });
+                      if (userProfile) {
+                        return {
+                          user: {
+                            ...user,
+                            health: userProfile.health,
+                            totalXp: userProfile.totalXp
+                          },
+                          session
+                        };
+                      }
+                    }
+                    return { user, session };
+                }),
+            ],
             trustedOrigins: [process.env.FRONTEND_URL || 'http://localhost:5173'],
             hooks: {
                 after: createAuthMiddleware(async (ctx) => {

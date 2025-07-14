@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
   Card,
@@ -26,7 +26,8 @@ import {
   Timer as TimerIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  Help as HelpIcon
+  Help as HelpIcon,
+  Favorite as HealthIcon
 } from '@mui/icons-material';
 import { 
   QuizContainer,
@@ -41,6 +42,8 @@ import {
   FloatingButton,
   quizStyles
 } from '../../theme/quizTheme';
+import { authClient } from '../../lib/auth-client';
+import { setSession } from '../../features/auth/authSlice';
 
 
 
@@ -75,6 +78,7 @@ const DialogMigrate = ({
 const Quiz = ({ socket }) => {
   const { levelId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [currentTime, setCurrentTime] = useState(0);
   const [quizMessage, setQuizMessage] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -98,9 +102,53 @@ const Quiz = ({ socket }) => {
   const [questionStartTime, setQuestionStartTime] = useState(null);
   const [showBackConfirmDialog, setShowBackConfirmDialog] = useState(false);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
+  
+  // Get user health and totalXp from Redux store
+  const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
+  const userTotalXp = useSelector((state) => state?.auth?.user?.totalXp || 0);
+  
+  // Get session data from auth client
+  const { data: session, refetch: refetchSession } = authClient.useSession();
 
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
+
+  // Helper function to serialize dates in an object
+  const serializeDates = (obj) => {
+    if (!obj) return obj;
+    
+    const result = { ...obj };
+    for (const key in result) {
+      if (result[key] instanceof Date) {
+        result[key] = result[key].toISOString();
+      } else if (typeof result[key] === 'object' && result[key] !== null) {
+        result[key] = serializeDates(result[key]);
+      }
+    }
+    return result;
+  };
+
+  // Update session data on load
+  useEffect(() => {
+    console.log('Session data from auth client in Quiz:', session); // Debug log
+    if (session?.session && session?.user) {
+      // Serialize dates before dispatching to Redux
+      const serializedSession = serializeDates(session.session);
+      const serializedUser = serializeDates(session.user);
+
+      console.log('Dispatching to Redux from Quiz:', { serializedSession, serializedUser }); // Debug log
+      dispatch(setSession({
+        session: serializedSession,
+        user: serializedUser
+      }));
+    }
+  }, [session, dispatch]);
+
+  // Force session refetch on component mount
+  useEffect(() => {
+    console.log('Quiz component mounted, refetching session...');
+    refetchSession();
+  }, [refetchSession]);
 
   const formatTime = (seconds, ongame = false) => {
     const minutes = Math.floor(seconds / 60);
@@ -611,6 +659,9 @@ const Quiz = ({ socket }) => {
           <DialogContent>
             <Typography variant="body1" sx={{ mb: 2 }}>
               You've completed the level with {currentXp} XP!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Your total XP is now {userTotalXp + currentXp}!
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Keep up the great work! 🚀

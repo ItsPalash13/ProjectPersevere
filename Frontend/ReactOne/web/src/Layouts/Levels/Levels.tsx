@@ -9,15 +9,21 @@ import {
   Button,
   Dialog,
   DialogTitle,
-  DialogContent
+  DialogContent,
+  Alert,
+  Chip
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon } from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
+import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Favorite as HealthIcon } from '@mui/icons-material';
 // @ts-ignore
 import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
 // @ts-ignore
 import { setLevelSession } from '../../features/auth/levelSessionSlice';
+// @ts-ignore
+import { selectUserHealth, setSession } from '../../features/auth/authSlice';
+// @ts-ignore
+import { authClient } from '../../lib/auth-client';
 // @ts-ignore
 import { levelsStyles } from '../../theme/levelsTheme';
 // @ts-ignore
@@ -94,6 +100,7 @@ const Levels: React.FC = () => {
   const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
   const [showPerformance, setShowPerformance] = useState(false);
   const [showUnitPerformance, setShowUnitPerformance] = useState<string | null>(null);
+  const [healthError, setHealthError] = useState<string | null>(null);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -102,6 +109,48 @@ const Levels: React.FC = () => {
   });
   const [startLevel] = useStartLevelMutation();
   const [units, setUnits] = useState<any[]>([]);
+  
+  // Get user health from Redux store
+  const userHealth = useSelector(selectUserHealth) as number;
+  
+  // Get session data from auth client
+  const { data: session, refetch: refetchSession } = authClient.useSession();
+
+  // Helper function to serialize dates in an object
+  const serializeDates = (obj: any) => {
+    if (!obj) return obj;
+    
+    const result = { ...obj };
+    for (const key in result) {
+      if (result[key] instanceof Date) {
+        result[key] = result[key].toISOString();
+      } else if (typeof result[key] === 'object' && result[key] !== null) {
+        result[key] = serializeDates(result[key]);
+      }
+    }
+    return result;
+  };
+
+  useEffect(() => {
+    console.log('Session data from auth client in Levels:', session); // Debug log
+    if (session?.session && session?.user) {
+      // Serialize dates before dispatching to Redux
+      const serializedSession = serializeDates(session.session);
+      const serializedUser = serializeDates(session.user);
+
+      console.log('Dispatching to Redux from Levels:', { serializedSession, serializedUser }); // Debug log
+      dispatch(setSession({
+        session: serializedSession,
+        user: serializedUser
+      }));
+    }
+  }, [session, dispatch]);
+
+  // Force session refetch on component mount
+  useEffect(() => {
+    console.log('Levels component mounted, refetching session...');
+    refetchSession();
+  }, [refetchSession]);
 
   useEffect(() => {
     if (chapterId) {
@@ -125,6 +174,15 @@ const Levels: React.FC = () => {
 
   const handleLevelClick = async (levelId: string, mode: 'time_rush' | 'precision_path') => {
     try {
+      // Clear any previous health errors
+      setHealthError(null);
+      
+      // Check if user has sufficient health
+      if (userHealth <= 0) {
+        setHealthError('Insufficient health to start level. You need health greater than 0 to play.');
+        return;
+      }
+      
       // Find the level to validate mode compatibility
       const level = levels.find(l => l._id === levelId);
       
@@ -149,7 +207,11 @@ const Levels: React.FC = () => {
       console.error('Failed to start level:', error);
       if (error?.data?.error) {
         console.error('Server error:', error.data.error);
-        // Could show user-friendly error message based on error.data.error
+        
+        // Handle health-related errors
+        if (error.data.error.includes('Insufficient health')) {
+          setHealthError(error.data.error);
+        }
       }
       setIsStarting(false);
     }
@@ -201,6 +263,18 @@ const Levels: React.FC = () => {
 
   return (
     <Box sx={levelsStyles.container}>
+      {/* Health Error Alert */}
+      {healthError && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2, mx: 2 }}
+          onClose={() => setHealthError(null)}
+        >
+          {healthError}
+        </Alert>
+      )}
+      
+      
       {/* Countdown Fullscreen Overlay */}
       {showCountdown && (
         <Box

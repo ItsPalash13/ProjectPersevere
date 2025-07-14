@@ -6,6 +6,8 @@ interface UserProfileDocument extends Document {
   username: string;
   email: string;
   fullName?: string;
+  health: number;
+  totalXp: number;
   bio?: string;
   dob?: Date; // Added date of birth field (optional)
   createdAt: Date;
@@ -21,6 +23,8 @@ const UserProfileSchema: Schema = new Schema(
     fullName: { type: String },
     bio: { type: String },
     dob: { type: Date }, // Added date of birth field
+    health: { type: Number, default: 6 },
+    totalXp: { type: Number, default: 0 },
   },
   {
     timestamps: true,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { 
   Box, 
   IconButton, 
@@ -11,6 +12,8 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Chip,
+  Typography,
 } from '@mui/material';
 import { 
   Menu as MenuIcon, 
@@ -23,10 +26,12 @@ import {
   Close as CloseIcon,
   Notifications as NotificationsIcon,
   Palette as PaletteIcon,
+  Favorite as HealthIcon,
+  Star as XpIcon,
 } from '@mui/icons-material';
 import { authClient } from '../lib/auth-client';
 import { useDispatch } from 'react-redux';  
-import { logout } from '../features/auth/authSlice';
+import { logout, selectUserHealth, selectUserTotalXp } from '../features/auth/authSlice';
 import { StyledAppBar, BrandText, navbarStyles } from '../theme/navbarTheme';
 
 const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle = false }) => {
@@ -36,6 +41,10 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
   const { data: session } = authClient.useSession();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Get health and totalXp from Redux store
+  const userHealth = useSelector(selectUserHealth);
+  const userTotalXp = useSelector(selectUserTotalXp);
   
   // Only show search bar on dashboard
   const showSearchBar = location.pathname === '/dashboard';
@@ -157,6 +166,36 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
           {/* Authenticated User Menu */}
           {session ? (
             <>
+              {/* Health and XP Display */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
+                <Chip
+                  icon={<HealthIcon />}
+                  label={`${userHealth}`}
+                  size="small"
+                  sx={{
+                    backgroundColor: userHealth > 0 ? '#FF0808' : '#f44336',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    '& .MuiChip-icon': {
+                      color: 'white',
+                    }
+                  }}
+                />
+                <Chip
+                  icon={<XpIcon />}
+                  label={`${userTotalXp} XP`}
+                  size="small"
+                  sx={{
+                    backgroundColor: '#ff9800',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    '& .MuiChip-icon': {
+                      color: 'white',
+                    }
+                  }}
+                />
+              </Box>
+              
               {/* Notifications Bell */}
               <Box sx={{ position: 'relative', mr: 1 }}>
                 <IconButton

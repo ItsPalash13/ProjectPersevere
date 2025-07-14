@@ -8,6 +8,7 @@ import { UserLevelSession } from '../models/UserLevelSession';
 import { UserLevelSessionTopicsLogs } from '../models/Performance/UserLevelSessionTopicsLogs';
 import { QuestionTs } from '../models/QuestionTs';
 import { Question } from '../models/Questions';
+import { UserProfile } from '../models/UserProfile';
 import authMiddleware from '../middleware/authMiddleware';
 import mongoose from 'mongoose';
 import { getSkewNormalRandom } from '../utils/math';
@@ -119,6 +120,35 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
         error: `This level does not support ${attemptType} mode. It only supports ${level.type} mode.`
       });
     }
+
+    // Check user's health before allowing to start level
+    const userProfile = await UserProfile.findOne({ userId });
+    if (!userProfile) {
+      return res.status(404).json({
+        success: false,
+        error: 'User profile not found'
+      });
+    }
+
+    if (userProfile.health <= 0) {
+      return res.status(403).json({
+        success: false,
+        error: 'Insufficient health to start level. You need health greater than 0 to play.'
+      });
+    }
+
+    // Deduct 1 health when starting a level (never go below 0)
+    await UserProfile.findOneAndUpdate(
+      { userId },
+      { $inc: { health: -1 } },
+      { upsert: true }
+    );
+    
+    // Ensure health doesn't go below 0
+    await UserProfile.findOneAndUpdate(
+      { userId, health: { $lt: 0 } },
+      { $set: { health: 0 } }
+    );
 
     // Find existing UserChapterLevel
     let userChapterLevel = await UserChapterLevel.findOne({
@@ -512,6 +542,21 @@ router.post('/end', (async (req: Request, res: Response) => {
           { upsert: true }
         );
 
+        // Update user's totalXp and health when level is completed
+        await UserProfile.findOneAndUpdate(
+          { userId },
+          { 
+            $inc: { totalXp: currentXp, health: 1 }
+          },
+          { upsert: true }
+        );
+        
+        // Ensure health doesn't exceed 6
+        await UserProfile.findOneAndUpdate(
+          { userId, health: { $gt: 6 } },
+          { $set: { health: 6 } }
+        );
+
         // If next level exists, create UserChapterLevel for it with the correct attemptType
         if (nextLevel && typeof nextLevel.levelNumber === 'number' && !isNaN(nextLevel.levelNumber)) {
           await UserChapterLevel.findOneAndUpdate(
@@ -661,6 +706,21 @@ router.post('/end', (async (req: Request, res: Response) => {
             }
           },
           { upsert: true }
+        );
+
+        // Update user's totalXp and health when level is completed
+        await UserProfile.findOneAndUpdate(
+          { userId },
+          { 
+            $inc: { totalXp: currentXp, health: 1 }
+          },
+          { upsert: true }
+        );
+        
+        // Ensure health doesn't exceed 6
+        await UserProfile.findOneAndUpdate(
+          { userId, health: { $gt: 6 } },
+          { $set: { health: 6 } }
         );
 
         // If next level exists, create UserChapterLevel for it with the correct attemptType

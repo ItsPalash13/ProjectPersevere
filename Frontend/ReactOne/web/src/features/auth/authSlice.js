@@ -58,3 +58,7 @@ export const selectCurrentUser = (state) => {
 };
 export const selectIsAuthenticated = (state) => state?.auth?.isAuthenticated || false;
 export const selectSession = (state) => state?.auth?.session || null;
+
+// New selectors for health and totalXp
+export const selectUserHealth = (state) => state?.auth?.user?.health || 0;
+export const selectUserTotalXp = (state) => state?.auth?.user?.totalXp || 0;

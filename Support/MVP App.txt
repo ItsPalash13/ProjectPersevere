@@ -1,0 +1,40 @@
+🎯 Purpose:
+A quiz app for JEE aspirants that helps students master subjects, chapters, and topics through personalized practice, smart feedback, and adaptive progression.
+
+🔍 Core Structure
+Your app is structured around:
+
+Subjects → Physics, Chemistry, Mathematics
+
+Chapters → E.g., Probability, Electrostatics
+
+Units → Logical concept clusters within a chapter (e.g., Conditional Events, Bayes' Theorem)
+
+Topics → Granular knowledge components (e.g., "Mutually Exclusive Events")
+
+Each chapter is divided into units, and each unit contains MCQs tagged with topics and difficulty levels.
+
+Levels can be of 2 types
+⏱️ Time Rush Mode
+"Beat the clock, hit the target, and go for glory."
+
+🎮 Gameplay Summary:
+User is given a target XP score (say, 300 XP)
+A time limit is set (e.g., 3 minutes)
+XP is earned per correct answer (more for fast + accurate responses)
+Bonus XP is awarded for:
+Finishing before the timer
+Answering consecutively correct (streaks)
+
+
+🎯 Precision Path Mode
+"Every second counts. Reach the XP target in the fewest moves possible."
+
+🎮 Gameplay Summary:
+Goal: Score a target XP (e.g., 300 XP)
+No time limit
+Your time per question is tracked silently
+You are judged by:
+Total time taken
+Number of questions used
+XP earned per attempt
