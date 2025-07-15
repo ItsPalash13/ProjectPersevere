@@ -119,11 +119,14 @@ export const quizQuestionHandlers = (socket: Socket) => {
       socket.emit('question', {
         question: question?.ques,
         options: question?.options,
-        correctAnswer: question?.correct
+        correctAnswer: question?.correct,
+        currentQuestionIndex: session.currentQuestionIndex,
+        totalQuestions: session.questionBank.length
       });
 
       // Check if we need to replenish the question bank (at 40% threshold)
-      if (session.currentQuestionIndex >= session.questionBank.length * 0.4) {
+      // Only replenish question bank for time_rush mode
+      if (session.attemptType === 'time_rush' && session.currentQuestionIndex >= session.questionBank.length * 0.4) {
           const newQuestions = await replenishQuestionBank(session, level);
           session.questionBank.push(...newQuestions);
           await session.save();
@@ -259,7 +262,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
         xpEarned: Number(xpEarned),
         currentXp: session.attemptType === 'time_rush' ? 
           session.timeRush.currentXp : 
-          session.precisionPath.currentXp
+          session.precisionPath.currentXp,
+        totalQuestions: session.questionBank.length
       });
 
       // Check for level completion
@@ -322,6 +326,30 @@ export const quizQuestionHandlers = (socket: Socket) => {
           });
           socket.disconnect();
         }
+      } else if (session.attemptType === 'precision_path' && session.currentQuestionIndex >= session.questionBank.length && currentXp < requiredXp) {
+        // For Precision Path: if this was the last question and level not completed, end the quiz
+        const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
+          userLevelSessionId,
+          userId: session.userId,
+          currentTime: currentTime
+        });
+
+        // Send final results to client
+        socket.emit('quizFinished', { 
+          message: response.data.message,
+          attemptType: session.attemptType,
+          precisionPath: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            timeTaken: response.data.data.timeTaken,
+            bestTime: response.data.data.bestTime,
+            percentile: response.data.data.percentile
+          },
+          hasNextLevel: response.data.data.hasNextLevel,
+          nextLevelNumber: response.data.data.nextLevelNumber,
+          xpNeeded: response.data.data.xpNeeded
+        });
+        socket.disconnect();
       }
 
     } catch (error) {

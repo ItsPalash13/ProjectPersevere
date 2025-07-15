@@ -33,7 +33,8 @@ export interface IUserLevelSession extends Document {
     currentXp: number;
     currentTime: number;
     minTime: number;
-  };
+    totalQuestions: number;
+    };
 }
 
 export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
@@ -138,6 +139,10 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     minTime: {
       type: Number,
       min: 0,
+    },
+    totalQuestions: {
+      type: Number,
+      min: 0
     }
   }
 }, {

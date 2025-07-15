@@ -27,7 +27,7 @@ Finishing before the timer
 Answering consecutively correct (streaks)
 
 
-🎯 Precision Path Mode
+🎯 Precision Path Mode // Needs Revision
 "Every second counts. Reach the XP target in the fewest moves possible."
 
 🎮 Gameplay Summary:
@@ -38,3 +38,6 @@ You are judged by:
 Total time taken
 Number of questions used
 XP earned per attempt
+
+
+We need to keep levels solid and concise sometimes with units covers broder topics

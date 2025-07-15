@@ -24,6 +24,7 @@ export interface IUserChapterLevel extends Document {
     attempts?: number;
     minTime?: number | null;
     requiredXp?: number;
+    totalQuestions?: number;
   };
 }
 
@@ -100,6 +101,10 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
       type: Number
     },
     requiredXp: {
+      type: Number,
+      min: 0
+    },
+    totalQuestions: {
       type: Number,
       min: 0
     }

@@ -63,7 +63,9 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         } : {
           precisionPath: {
             currentTime: session.precisionPath.currentTime,
-            currentXp: session.precisionPath.currentXp
+            currentXp: session.precisionPath.currentXp,
+            totalQuestions: session.precisionPath.totalQuestions,
+            currentQuestionIndex: session.currentQuestionIndex
           }
         })
       });

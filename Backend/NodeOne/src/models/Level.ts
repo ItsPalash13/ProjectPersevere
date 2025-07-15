@@ -19,6 +19,7 @@ export interface ILevel extends Document {
   // Precision Path specific fields (only present when type is 'precision_path')
   precisionPath?: {
     requiredXp: number;
+    totalQuestions: number;
   };
 
   difficultyParams: {
@@ -88,6 +89,10 @@ export const LevelSchema = new Schema<ILevel>({
   precisionPath: {
     type: {
       requiredXp: {
+        type: Number,
+        min: 0
+      },
+      totalQuestions: {
         type: Number,
         min: 0
       }

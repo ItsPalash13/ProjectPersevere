@@ -223,30 +223,36 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       level.difficultyParams.alpha
     );
 
-    // Get initial question bank of 10 questions based on difficulty
+    // Determine number of questions for the session
+    let numQuestions = 10;
+    if (attemptType === 'precision_path') {
+      numQuestions = level.precisionPath?.totalQuestions || 10;
+    }
+
+    // Get initial question bank of numQuestions questions based on difficulty
     const questionTsList = await QuestionTs.find({
       'difficulty.mu': { $gte: difficulty }
     })
     .sort({ 'difficulty.mu': 1 })
-    .limit(10)
+    .limit(numQuestions)
     .populate('quesId');
 
     // If not enough questions found with difficulty >= generated, get questions with difficulty <= generated
-    if (questionTsList.length < 10) {
+    if (questionTsList.length < numQuestions) {
       const additionalQuestions = await QuestionTs.find({
         'difficulty.mu': { $lte: difficulty }
       })
       .sort({ 'difficulty.mu': -1 })
-      .limit(10 - questionTsList.length)
+      .limit(numQuestions - questionTsList.length)
       .populate('quesId');
       
       questionTsList.push(...additionalQuestions);
     }
 
     // If still not enough questions, get random questions
-    if (questionTsList.length < 10) {
+    if (questionTsList.length < numQuestions) {
       const randomQuestions = await QuestionTs.aggregate([
-        { $sample: { size: 10 - questionTsList.length } },
+        { $sample: { size: numQuestions - questionTsList.length } },
         { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesId' } },
         { $unwind: '$quesId' }
       ]);
@@ -289,7 +295,8 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
           requiredXp: level.precisionPath?.requiredXp || 0,
           currentXp: 0,
           currentTime: 0,
-          minTime: userChapterLevel?.precisionPath?.minTime || Infinity
+          minTime: userChapterLevel?.precisionPath?.minTime || Infinity,
+          totalQuestions: level.precisionPath?.totalQuestions || 10
         }
       })
     });
@@ -407,7 +414,14 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         cleanProgress = {
           ...rawProgress.toObject(),
           // Remove irrelevant mode data based on level type
-          ...(level.type === 'time_rush' ? { precisionPath: undefined } : { timeRush: undefined })
+          ...(level.type === 'time_rush' ? { precisionPath: undefined } : { timeRush: undefined }),
+          // Add totalQuestions for precisionPath if present in level
+          ...(level.type === 'precision_path' && level.precisionPath?.totalQuestions ? {
+            precisionPath: {
+              ...rawProgress.toObject().precisionPath,
+              totalQuestions: level.precisionPath.totalQuestions
+            }
+          } : {})
         };
       }
       

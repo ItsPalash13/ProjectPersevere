@@ -192,6 +192,19 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
               </Typography>
             </Box>
           )}
+
+          {/* Precision Path: Total Questions */}
+          {!isTimeRush && level.precisionPath?.totalQuestions && (
+            <Box sx={levelsStyles.metricCard}>
+              <Typography sx={levelsStyles.metricIcon}>❓</Typography>
+              <Typography sx={levelsStyles.metricValue}>
+                {level.precisionPath.totalQuestions}
+              </Typography>
+              <Typography sx={levelsStyles.metricLabel}>
+                Questions
+              </Typography>
+            </Box>
+          )}
         </Box>
       </CardContent>
       

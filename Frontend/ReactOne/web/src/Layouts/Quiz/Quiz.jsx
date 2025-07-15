@@ -102,6 +102,8 @@ const Quiz = ({ socket }) => {
   const [questionStartTime, setQuestionStartTime] = useState(null);
   const [showBackConfirmDialog, setShowBackConfirmDialog] = useState(false);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   
   // Get user health and totalXp from Redux store
   const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
@@ -335,6 +337,8 @@ const Quiz = ({ socket }) => {
       } else if (data.attemptType === 'precision_path' && data.precisionPath) {
         setCurrentTime(data.precisionPath.currentTime);
         setCurrentXp(data.precisionPath.currentXp);
+        setCurrentQuestionIndex(data.precisionPath.currentQuestionIndex);
+        setTotalQuestions(data.precisionPath.totalQuestions);
       }
     });
 
@@ -345,6 +349,8 @@ const Quiz = ({ socket }) => {
       setIsLoading(false);
       // Note the time when question is initialized
       setQuestionStartTime(Date.now());
+      if (data.currentQuestionIndex !== undefined) setCurrentQuestionIndex(data.currentQuestionIndex);
+      if (data.totalQuestions !== undefined) setTotalQuestions(data.totalQuestions);
     });
 
     socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp }) => {
@@ -569,6 +575,12 @@ const Quiz = ({ socket }) => {
                     size="small" 
                     sx={quizStyles.questionChip}
                   />
+                  {/* Show question number for precision_path */}
+                  {attemptType === 'precision_path' && totalQuestions > 0 && (
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                      Question {currentQuestionIndex + 1} of {totalQuestions}
+                    </Typography>
+                  )}
                 </Box>
                 <Typography 
                   variant="h5" 
