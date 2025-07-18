@@ -7,7 +7,6 @@ interface IChapter extends Document {
   gameName: string;
   status: boolean;
   subjectId: mongoose.Types.ObjectId;
-  units?: mongoose.Types.ObjectId[];
   thumbnailUrl?: string;
 }
 
@@ -40,11 +39,7 @@ const ChapterSchema = new Schema<IChapter>({
     type: String,
     required: false,
     trim: true
-  },
-  units: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Unit',
-  }]
+  }
 }, { timestamps: true });
 
 // Index for faster queries

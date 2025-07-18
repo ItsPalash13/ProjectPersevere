@@ -336,7 +336,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     
     // First check chapter for units
     const chapter = await Chapter.findById(chapterId)
-      .select('name description gameName status thumbnailUrl units');
+      .select('name description gameName status thumbnailUrl');
 
     if (!chapter) {
       return res.status(404).json({
