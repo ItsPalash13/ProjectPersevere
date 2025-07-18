@@ -3,6 +3,7 @@ import { Box, Tabs, Tab, Typography } from '@mui/material';
 import SubjectAdmin from './Subject';
 import ChapterAdmin from './Chapter';
 import TopicsAdmin from './Topics';
+import UnitsAdmin from './Units';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -34,6 +35,7 @@ export default function Admin() {
         <Tab label="Subjects" id="admin-tab-0" aria-controls="admin-tabpanel-0" />
         <Tab label="Chapters" id="admin-tab-1" aria-controls="admin-tabpanel-1" />
         <Tab label="Topics" id="admin-tab-2" aria-controls="admin-tabpanel-2" />
+        <Tab label="Units" id="admin-tab-3" aria-controls="admin-tabpanel-3" />
       </Tabs>
       <TabPanel value={tab} index={0}>
         <SubjectAdmin />
@@ -43,6 +45,9 @@ export default function Admin() {
       </TabPanel>
       <TabPanel value={tab} index={2}>
         <TopicsAdmin />
+      </TabPanel>
+      <TabPanel value={tab} index={3}>
+        <UnitsAdmin />
       </TabPanel>
     </Box>
   );

@@ -57,6 +57,23 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/api/admin/topics/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Topic'],
     }),
+    // Unit endpoints
+    createUnit: builder.mutation({
+      query: (body) => ({ url: '/api/admin/units', method: 'POST', body }),
+      invalidatesTags: ['Chapter'],
+    }),
+    updateUnit: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/units/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Chapter'],
+    }),
+    deleteUnit: builder.mutation({
+      query: (id) => ({ url: `/api/admin/units/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Chapter'],
+    }),
+    getUnits: builder.query({
+      query: (chapterId) => ({ url: `/api/admin/units?chapterId=${chapterId}`, method: 'GET' }),
+      providesTags: ['Chapter'],
+    }),
   }),
 });
 
@@ -73,4 +90,8 @@ export const {
   useCreateTopicMutation,
   useUpdateTopicMutation,
   useDeleteTopicMutation,
+  useCreateUnitMutation,
+  useUpdateUnitMutation,
+  useDeleteUnitMutation,
+  useGetUnitsQuery,
 } = adminApi;
