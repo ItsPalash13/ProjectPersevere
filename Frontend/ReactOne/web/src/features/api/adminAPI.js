@@ -4,7 +4,7 @@ import { baseQueryWithAuth } from './baseQuery';
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Subject', 'Chapter'],
+  tagTypes: ['Subject', 'Chapter', 'Topic'],
   endpoints: (builder) => ({
     // Subject endpoints
     getSubjects: builder.query({
@@ -40,6 +40,23 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/api/admin/chapters/${id}`, method: 'GET' }),
       providesTags: ['Chapter'],
     }),
+    // Topic endpoints
+    getTopics: builder.query({
+      query: (chapterId) => chapterId ? ({ url: `/api/admin/topics?chapterId=${chapterId}`, method: 'GET' }) : ({ url: '/api/admin/topics', method: 'GET' }),
+      providesTags: ['Topic'],
+    }),
+    createTopic: builder.mutation({
+      query: (body) => ({ url: '/api/admin/topics', method: 'POST', body }),
+      invalidatesTags: ['Topic'],
+    }),
+    updateTopic: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/topics/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Topic'],
+    }),
+    deleteTopic: builder.mutation({
+      query: (id) => ({ url: `/api/admin/topics/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Topic'],
+    }),
   }),
 });
 
@@ -52,4 +69,8 @@ export const {
   useCreateChapterMutation,
   useUpdateChapterMutation,
   useGetChapterByIdQuery,
+  useGetTopicsQuery,
+  useCreateTopicMutation,
+  useUpdateTopicMutation,
+  useDeleteTopicMutation,
 } = adminApi;
