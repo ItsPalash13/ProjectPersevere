@@ -5,10 +5,9 @@ interface IChapter extends Document {
   name: string;
   description: string;
   gameName: string;
-  topics: string[];
   status: boolean;
   subjectId: mongoose.Types.ObjectId;
-  units: mongoose.Types.ObjectId[];
+  units?: mongoose.Types.ObjectId[];
   thumbnailUrl?: string;
 }
 
@@ -28,11 +27,6 @@ const ChapterSchema = new Schema<IChapter>({
     required: true,
     trim: true
   },
-  topics: [{ 
-    type: String,
-    required: true,
-    trim: true
-  }],
   status: {
     type: Boolean,
     default: false  
@@ -50,7 +44,6 @@ const ChapterSchema = new Schema<IChapter>({
   units: [{
     type: Schema.Types.ObjectId,
     ref: 'Unit',
-    required: true
   }]
 }, { timestamps: true });
 

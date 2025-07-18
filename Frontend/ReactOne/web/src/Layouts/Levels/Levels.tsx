@@ -369,22 +369,28 @@ const Levels: React.FC = () => {
               </Button>
             </Box>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
-              {chapter.topics.map((topic, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    px: 1,
-                    py: 0.25,
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
-                    borderRadius: 0.75,
-                    fontSize: '0.75rem',
-                    fontWeight: 500
-                  }}
-                >
-                  {topic}
-                </Box>
-              ))}
+              {chapter.topics && chapter.topics.length > 0 ? (
+                chapter.topics.map((topic, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      px: 1,
+                      py: 0.25,
+                      backgroundColor: 'primary.main',
+                      color: 'primary.contrastText',
+                      borderRadius: 0.75,
+                      fontSize: '0.75rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    {topic}
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  No topics available
+                </Typography>
+              )}
             </Box>
           </Box>
         )}

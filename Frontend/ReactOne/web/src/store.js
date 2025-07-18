@@ -5,7 +5,7 @@ import { chapterApi } from './features/api/chapterAPI';
 import { performanceApi } from './features/api/performanceAPI';
 import authReducer from './features/auth/authSlice';
 import levelSessionReducer from './features/auth/levelSessionSlice';
-
+import { adminApi } from './features/api/adminAPI';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -15,12 +15,14 @@ export const store = configureStore({
     [levelApi.reducerPath]: levelApi.reducer,
     [chapterApi.reducerPath]: chapterApi.reducer,
     [performanceApi.reducerPath]: performanceApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       userApi.middleware,
       levelApi.middleware,
       chapterApi.middleware,
-      performanceApi.middleware
+      performanceApi.middleware,
+      adminApi.middleware
     ),
 });

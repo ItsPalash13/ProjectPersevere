@@ -17,6 +17,7 @@ import Levels from './Layouts/Levels/Levels';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import './App.css';
+import Admin from './Layouts/Admin/Admin';
 
 // Create socket instance outside component
 export const socket = io(import.meta.env.VITE_BACKEND_URL, {
@@ -273,6 +274,7 @@ function AppContent() {
               <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz socket={socket} /></ProtectedRoute>} />
               <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
               <Route path="/chapter/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>

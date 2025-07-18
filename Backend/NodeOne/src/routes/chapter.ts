@@ -1,20 +1,32 @@
 import express from 'express';
 import { Chapter } from '../models/Chapter';
 import { Subject } from '../models/Subject';
+import { Topic } from '../models/Topic';
 
 const router = express.Router();
 
 // Get all chapters
-router.get('/', async (_, res) => {
+router.get('/', async (_req, res) => {
   try {
     const chapters = await Chapter.find()
-      .select('name description gameName topics status')
+      .select('name description gameName status')
       .sort({ createdAt: -1 });
+
+    // Fetch topics for each chapter
+    const chaptersWithTopics = await Promise.all(
+      chapters.map(async (chapter) => {
+        const topics = await Topic.find({ chapterId: chapter._id }).select('topic');
+        return {
+          ...chapter.toObject(),
+          topics: topics.map(topic => topic.topic)
+        };
+      })
+    );
 
     res.status(200).json({
       success: true,
-      count: chapters.length,
-      data: chapters
+      count: chaptersWithTopics.length,
+      data: chaptersWithTopics
     });
   } catch (error) {
     console.error('Error fetching chapters:', error);
@@ -42,8 +54,19 @@ router.get('/subject/:slug', async (req, res) => {
 
     // Get all chapters for this subject
     const chapters = await Chapter.find({ subjectId: subject._id })
-      .select('name description gameName topics status thumbnailUrl')
+      .select('name description gameName status thumbnailUrl')
       .sort({ createdAt: -1 });
+
+    // Fetch topics for each chapter
+    const chaptersWithTopics = await Promise.all(
+      chapters.map(async (chapter) => {
+        const topics = await Topic.find({ chapterId: chapter._id }).select('topic');
+        return {
+          ...chapter.toObject(),
+          topics: topics.map(topic => topic.topic)
+        };
+      })
+    );
 
     res.status(200).json({
       success: true,
@@ -52,8 +75,8 @@ router.get('/subject/:slug', async (req, res) => {
         slug: subject.slug,
         description: subject.description
       },
-      count: chapters.length,
-      data: chapters
+      count: chaptersWithTopics.length,
+      data: chaptersWithTopics
     });
   } catch (error) {
     console.error('Error fetching chapters by subject slug:', error);

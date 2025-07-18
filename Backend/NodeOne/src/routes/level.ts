@@ -336,7 +336,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     
     // First check chapter for units
     const chapter = await Chapter.findById(chapterId)
-      .select('name description gameName topics status thumbnailUrl units');
+      .select('name description gameName status thumbnailUrl units');
 
     if (!chapter) {
       return res.status(404).json({
@@ -345,6 +345,10 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
       });
     }
 
+    // Get topics for this chapter
+    const chapterTopics = await Topic.find({ chapterId: chapterId }).select('topic');
+    const chapterTopicNames = chapterTopics.map(topic => topic.topic);
+
     // Get all units for this chapter
     const chapterUnits = await Unit.find({
       chapterId: new mongoose.Types.ObjectId(chapterId)
@@ -352,8 +356,8 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
 
     // Fetch all topic names for these units in one go
     const allTopicIds = Array.from(new Set(chapterUnits.flatMap(unit => unit.topics.map(tid => tid.toString()))));
-    const topics = await Topic.find({ _id: { $in: allTopicIds } }).select('_id topic');
-    const topicIdToName = new Map(topics.map((t: any) => [t._id.toString(), t.topic]));
+    const unitTopics = await Topic.find({ _id: { $in: allTopicIds } }).select('_id topic');
+    const topicIdToName = new Map(unitTopics.map((t: any) => [t._id.toString(), t.topic]));
 
     // Map units to include topic names
     const unitsWithTopicNames = chapterUnits.map(unit => ({
@@ -442,7 +446,10 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
         precisionPath: mixedLevels.filter(level => level.type === 'precision_path').length
       },
       meta: {
-        chapter: chapter,
+        chapter: {
+          ...chapter.toObject(),
+          topics: chapterTopicNames
+        },
         units: unitsWithTopicNames
       },
       data: mixedLevels

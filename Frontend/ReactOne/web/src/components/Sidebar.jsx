@@ -33,6 +33,7 @@ import {
 
 const navigationItems = [
   { text: 'Dashboard', icon: <HomeIcon fontSize="small" />, path: '/dashboard' },
+  { text: 'Admin', icon: <SettingsIcon fontSize="small" />, path: '/admin' },
 ];
 
 const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
