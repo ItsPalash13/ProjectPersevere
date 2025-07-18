@@ -9,16 +9,18 @@ const router = express.Router();
 router.get('/', async (_req, res) => {
   try {
     const chapters = await Chapter.find()
-      .select('name description gameName status')
+      .select('name description gameName status subjectId thumbnailUrl')
       .sort({ createdAt: -1 });
 
-    // Fetch topics for each chapter
+    // Fetch topics and subject for each chapter
     const chaptersWithTopics = await Promise.all(
       chapters.map(async (chapter) => {
         const topics = await Topic.find({ chapterId: chapter._id }).select('topic');
+        const subject = await Subject.findById(chapter.subjectId).select('name _id slug');
         return {
           ...chapter.toObject(),
-          topics: topics.map(topic => topic.topic)
+          topics: topics.map(topic => topic.topic),
+          subject
         };
       })
     );
@@ -54,16 +56,17 @@ router.get('/subject/:slug', async (req, res) => {
 
     // Get all chapters for this subject
     const chapters = await Chapter.find({ subjectId: subject._id })
-      .select('name description gameName status thumbnailUrl')
+      .select('name description gameName status thumbnailUrl subjectId')
       .sort({ createdAt: -1 });
 
-    // Fetch topics for each chapter
+    // Fetch topics and subject for each chapter
     const chaptersWithTopics = await Promise.all(
       chapters.map(async (chapter) => {
         const topics = await Topic.find({ chapterId: chapter._id }).select('topic');
         return {
           ...chapter.toObject(),
-          topics: topics.map(topic => topic.topic)
+          topics: topics.map(topic => topic.topic),
+          subject
         };
       })
     );

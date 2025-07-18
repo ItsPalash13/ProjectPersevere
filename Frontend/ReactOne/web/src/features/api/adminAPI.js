@@ -4,8 +4,9 @@ import { baseQueryWithAuth } from './baseQuery';
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Subject'],
+  tagTypes: ['Subject', 'Chapter'],
   endpoints: (builder) => ({
+    // Subject endpoints
     getSubjects: builder.query({
       query: () => ({ url: '/api/admin/subjects', method: 'GET' }),
       providesTags: ['Subject'],
@@ -22,6 +23,23 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/api/admin/subjects/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Subject'],
     }),
+    // Chapter endpoints
+    getChapters: builder.query({
+      query: () => ({ url: '/api/chapters', method: 'GET' }),
+      providesTags: ['Chapter'],
+    }),
+    createChapter: builder.mutation({
+      query: (body) => ({ url: '/api/admin/chapters', method: 'POST', body }),
+      invalidatesTags: ['Chapter'],
+    }),
+    updateChapter: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/chapters/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Chapter'],
+    }),
+    getChapterById: builder.query({
+      query: (id) => ({ url: `/api/admin/chapters/${id}`, method: 'GET' }),
+      providesTags: ['Chapter'],
+    }),
   }),
 });
 
@@ -30,4 +48,8 @@ export const {
   useCreateSubjectMutation,
   useUpdateSubjectMutation,
   useDeleteSubjectMutation,
+  useGetChaptersQuery,
+  useCreateChapterMutation,
+  useUpdateChapterMutation,
+  useGetChapterByIdQuery,
 } = adminApi;

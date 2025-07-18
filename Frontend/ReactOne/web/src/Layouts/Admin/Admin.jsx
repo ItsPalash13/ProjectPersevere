@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import SubjectAdmin from './Subject';
+import ChapterAdmin from './Chapter';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -30,12 +31,14 @@ export default function Admin() {
       <Typography variant="h4" sx={{ mb: 2 }}>Admin Panel</Typography>
       <Tabs value={tab} onChange={handleChange} aria-label="admin tabs">
         <Tab label="Subjects" id="admin-tab-0" aria-controls="admin-tabpanel-0" />
-        {/* Add more tabs here as needed */}
+        <Tab label="Chapters" id="admin-tab-1" aria-controls="admin-tabpanel-1" />
       </Tabs>
       <TabPanel value={tab} index={0}>
         <SubjectAdmin />
       </TabPanel>
-      {/* Add more TabPanels here as needed */}
+      <TabPanel value={tab} index={1}>
+        <ChapterAdmin />
+      </TabPanel>
     </Box>
   );
 }
