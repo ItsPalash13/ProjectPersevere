@@ -4,6 +4,7 @@ import SubjectAdmin from './Subject';
 import ChapterAdmin from './Chapter';
 import TopicsAdmin from './Topics';
 import UnitsAdmin from './Units';
+import QuestionsAdmin from './Questions';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -36,6 +37,7 @@ export default function Admin() {
         <Tab label="Chapters" id="admin-tab-1" aria-controls="admin-tabpanel-1" />
         <Tab label="Topics" id="admin-tab-2" aria-controls="admin-tabpanel-2" />
         <Tab label="Units" id="admin-tab-3" aria-controls="admin-tabpanel-3" />
+        <Tab label="Questions" id="admin-tab-4" aria-controls="admin-tabpanel-4" />
       </Tabs>
       <TabPanel value={tab} index={0}>
         <SubjectAdmin />
@@ -48,6 +50,9 @@ export default function Admin() {
       </TabPanel>
       <TabPanel value={tab} index={3}>
         <UnitsAdmin />
+      </TabPanel>
+      <TabPanel value={tab} index={4}>
+        <QuestionsAdmin />
       </TabPanel>
     </Box>
   );

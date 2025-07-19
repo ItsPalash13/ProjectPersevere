@@ -4,7 +4,7 @@ import { baseQueryWithAuth } from './baseQuery';
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Subject', 'Chapter', 'Topic'],
+  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question'],
   endpoints: (builder) => ({
     // Subject endpoints
     getSubjects: builder.query({
@@ -74,6 +74,35 @@ export const adminApi = createApi({
       query: (chapterId) => ({ url: `/api/admin/units?chapterId=${chapterId}`, method: 'GET' }),
       providesTags: ['Chapter'],
     }),
+    // Question endpoints
+    getQuestions: builder.query({
+      query: (chapterId) => ({ 
+        url: '/api/admin/questions', 
+        method: 'GET',
+        params: chapterId ? { chapterId } : {}
+      }),
+      providesTags: ['Question'],
+    }),
+    getQuestionById: builder.query({
+      query: (id) => ({ url: `/api/admin/questions/${id}`, method: 'GET' }),
+      providesTags: ['Question'],
+    }),
+    createQuestion: builder.mutation({
+      query: (body) => ({ url: '/api/admin/questions', method: 'POST', body }),
+      invalidatesTags: ['Question'],
+    }),
+    multiAddQuestions: builder.mutation({
+      query: (body) => ({ url: '/api/admin/questions/multi-add', method: 'POST', body }),
+      invalidatesTags: ['Question'],
+    }),
+    updateQuestion: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/questions/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Question'],
+    }),
+    deleteQuestion: builder.mutation({
+      query: (id) => ({ url: `/api/admin/questions/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Question'],
+    }),
   }),
 });
 
@@ -94,4 +123,10 @@ export const {
   useUpdateUnitMutation,
   useDeleteUnitMutation,
   useGetUnitsQuery,
+  useGetQuestionsQuery,
+  useGetQuestionByIdQuery,
+  useCreateQuestionMutation,
+  useMultiAddQuestionsMutation,
+  useUpdateQuestionMutation,
+  useDeleteQuestionMutation,
 } = adminApi;
