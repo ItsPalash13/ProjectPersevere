@@ -627,17 +627,14 @@ router.post('/chapter-levels', async (req, res) => {
       chapterId,
       levelId,
       levelNumber,
-      status = 'not_started',
-      attemptType,
-      timeRush,
-      precisionPath
+      status = 'not_started'
     } = req.body;
 
     // Validate required fields
-    if (!userId || !chapterId || !levelId || !levelNumber || !attemptType) {
+    if (!userId || !chapterId || !levelId || !levelNumber) {
       return res.status(400).json({
         success: false,
-        message: 'userId, chapterId, levelId, levelNumber, and attemptType are required'
+        message: 'userId, chapterId, levelId, and levelNumber are required'
       });
     }
 
@@ -646,14 +643,6 @@ router.post('/chapter-levels', async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Status must be not_started, in_progress, or completed'
-      });
-    }
-
-    // Validate attemptType
-    if (!['time_rush', 'precision_path'].includes(attemptType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'AttemptType must be time_rush or precision_path'
       });
     }
 
@@ -666,7 +655,7 @@ router.post('/chapter-levels', async (req, res) => {
       });
     }
 
-    // Check if level exists
+    // Check if level exists and get its data
     const level = await Level.findById(levelId);
     if (!level) {
       return res.status(400).json({
@@ -674,6 +663,9 @@ router.post('/chapter-levels', async (req, res) => {
         message: 'Level not found'
       });
     }
+
+    // Auto-determine attemptType from level type
+    const attemptType = level.type;
 
     // Check if user chapter level already exists
     const existingUserChapterLevel = await UserChapterLevel.findOne({
@@ -700,11 +692,21 @@ router.post('/chapter-levels', async (req, res) => {
       lastAttemptedAt: new Date()
     };
 
-    // Add type-specific fields
-    if (attemptType === 'time_rush' && timeRush) {
-      userChapterLevelData.timeRush = timeRush;
-    } else if (attemptType === 'precision_path' && precisionPath) {
-      userChapterLevelData.precisionPath = precisionPath;
+    // Inherit type-specific fields from the level
+    if (attemptType === 'time_rush' && level.timeRush) {
+      userChapterLevelData.timeRush = {
+        attempts: 0,
+        maxXp: level.timeRush.requiredXp, // Use requiredXp as maxXp
+        requiredXp: level.timeRush.requiredXp,
+        timeLimit: level.timeRush.totalTime
+      };
+    } else if (attemptType === 'precision_path' && level.precisionPath) {
+      userChapterLevelData.precisionPath = {
+        attempts: 0,
+        minTime: null,
+        requiredXp: level.precisionPath.requiredXp,
+        totalQuestions: level.precisionPath.totalQuestions
+      };
     }
 
     const userChapterLevel = new UserChapterLevel(userChapterLevelData);

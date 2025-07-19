@@ -109,7 +109,15 @@ export const adminApi = createApi({
     }),
     // Level endpoints
     getLevels: builder.query({
-      query: () => ({ url: '/api/admin/levels', method: 'GET' }),
+      query: (chapterId) => ({ 
+        url: '/api/admin/levels', 
+        method: 'GET',
+        params: chapterId ? { chapterId } : {}
+      }),
+      providesTags: ['Level'],
+    }),
+    getLevelsByChapter: builder.query({
+      query: (chapterId) => ({ url: `/api/admin/levels/by-chapter/${chapterId}`, method: 'GET' }),
       providesTags: ['Level'],
     }),
     getLevelById: builder.query({
@@ -244,6 +252,7 @@ export const {
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
   useGetLevelsQuery,
+  useGetLevelsByChapterQuery,
   useGetLevelByIdQuery,
   useCreateLevelMutation,
   useUpdateLevelMutation,

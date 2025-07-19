@@ -9,7 +9,14 @@ const router = express.Router();
 // GET all levels with populated chapter and unit data
 router.get('/', async (req, res) => {
   try {
-    const levels = await Level.find()
+    const { chapterId } = req.query;
+    
+    let filter = {};
+    if (chapterId) {
+      filter = { chapterId };
+    }
+
+    const levels = await Level.find(filter)
       .populate('chapterId', 'name')
       .populate('unitId', 'name')
       .sort({ levelNumber: 1 });
@@ -23,6 +30,39 @@ router.get('/', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch levels',
+      error: error.message
+    });
+  }
+});
+
+// GET levels by chapter ID
+router.get('/by-chapter/:chapterId', async (req, res) => {
+  try {
+    const { chapterId } = req.params;
+
+    // Validate chapter exists
+    const chapter = await Chapter.findById(chapterId);
+    if (!chapter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chapter not found'
+      });
+    }
+
+    const levels = await Level.find({ chapterId })
+      .populate('chapterId', 'name')
+      .populate('unitId', 'name')
+      .sort({ levelNumber: 1 });
+
+    res.json({
+      success: true,
+      data: levels
+    });
+  } catch (error) {
+    console.error('Error fetching levels by chapter:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch levels by chapter',
       error: error.message
     });
   }

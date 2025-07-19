@@ -2,14 +2,15 @@
 
 
 🎯 TODO Actual:-
-Redesign to one color pallete
+Probablity Units and Chapter step up
 
 
 
 🎯 TODO Stage:-
-Probablity Units and Chapter step up
+Study Marks App
+Rethink Design - Sound - Feel - Gamify
+Thinking about Question based on category or levels(e.g. Formula used)
 Normal Distributions curves of - levels in admin unit management and, levels and units in chapter management  
-Thinking about Question based on category or levels(e.g. Formula used) 
 
 
 

@@ -223,11 +223,6 @@ export const levelsStyles = {
     border: 'none',
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.2s ease',
-    '&:hover': {
-      background: getThemeColor(colors.ui.light.topicPrimary, colors.ui.dark.topicPrimary),
-      transform: 'translateY(-1px)',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
-    },
   },
   metricsGrid: {
     display: 'grid',

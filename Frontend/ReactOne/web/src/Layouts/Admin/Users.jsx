@@ -49,6 +49,7 @@ import {
   useGetChaptersQuery,
   useGetAllUnitsQuery,
   useGetLevelsQuery,
+  useGetLevelsByChapterQuery,
 } from '../../features/api/adminAPI';
 
 function TabPanel(props) {
@@ -618,20 +619,17 @@ function UserChapterLevelsTab() {
     levelId: '',
     levelNumber: '',
     status: 'not_started',
-    attemptType: 'time_rush',
-    timeRush: {
-      attempts: 0,
-      maxXp: 0,
-      requiredXp: 0,
-      timeLimit: 0,
-    },
-    precisionPath: {
-      attempts: 0,
-      minTime: null,
-      requiredXp: 0,
-      totalQuestions: 0,
-    },
   });
+
+  // Get chapter-specific levels data
+  const { data: chapterLevelsData } = useGetLevelsByChapterQuery(formData.chapterId, {
+    skip: !formData.chapterId
+  });
+
+  // Use chapter-specific levels data if available, otherwise filter from all levels
+  const filteredLevels = chapterLevelsData?.data || allLevelsData?.data?.filter(level => 
+    level.chapterId === formData.chapterId
+  ) || [];
 
   const handleOpenDialog = (level = null) => {
     if (level) {
@@ -643,9 +641,6 @@ function UserChapterLevelsTab() {
         levelId: level.levelId?._id || level.levelId || '',
         levelNumber: level.levelNumber || '',
         status: level.status || 'not_started',
-        attemptType: level.attemptType || 'time_rush',
-        timeRush: level.timeRush || { attempts: 0, maxXp: 0, requiredXp: 0, timeLimit: 0 },
-        precisionPath: level.precisionPath || { attempts: 0, minTime: null, requiredXp: 0, totalQuestions: 0 },
       });
     } else {
       setEditingLevel(null);
@@ -656,9 +651,6 @@ function UserChapterLevelsTab() {
         levelId: '',
         levelNumber: '',
         status: 'not_started',
-        attemptType: 'time_rush',
-        timeRush: { attempts: 0, maxXp: 0, requiredXp: 0, timeLimit: 0 },
-        precisionPath: { attempts: 0, minTime: null, requiredXp: 0, totalQuestions: 0 },
       });
     }
     setOpenDialog(true);
@@ -675,8 +667,6 @@ function UserChapterLevelsTab() {
         ...formData,
         userId: formData.selectedUser || formData.userId,
         levelNumber: parseInt(formData.levelNumber),
-        timeRush: formData.attemptType === 'time_rush' ? formData.timeRush : undefined,
-        precisionPath: formData.attemptType === 'precision_path' ? formData.precisionPath : undefined,
       };
       delete submitData.selectedUser;
 
@@ -832,7 +822,14 @@ function UserChapterLevelsTab() {
                 <InputLabel>Chapter</InputLabel>
                 <Select
                   value={formData.chapterId}
-                  onChange={(e) => setFormData({ ...formData, chapterId: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ 
+                      ...formData, 
+                      chapterId: e.target.value,
+                      levelId: '', // Reset level when chapter changes
+                      levelNumber: '' // Reset level number when chapter changes
+                    });
+                  }}
                   label="Chapter"
                 >
                   {chaptersData?.data?.map((chapter) => (
@@ -848,14 +845,26 @@ function UserChapterLevelsTab() {
                 <InputLabel>Level</InputLabel>
                 <Select
                   value={formData.levelId}
-                  onChange={(e) => setFormData({ ...formData, levelId: e.target.value })}
+                  onChange={(e) => {
+                    const selectedLevel = filteredLevels.find(level => level._id === e.target.value);
+                    setFormData({ 
+                      ...formData, 
+                      levelId: e.target.value,
+                      levelNumber: selectedLevel ? selectedLevel.levelNumber.toString() : ''
+                    });
+                  }}
                   label="Level"
+                  disabled={!formData.chapterId}
                 >
-                  {allLevelsData?.data?.map((level) => (
-                    <MenuItem key={level._id} value={level._id}>
-                      {level.name} (Level {level.levelNumber})
-                    </MenuItem>
-                  ))}
+                  {filteredLevels.length === 0 && formData.chapterId ? (
+                    <MenuItem disabled>No levels available for this chapter</MenuItem>
+                  ) : (
+                    filteredLevels.map((level) => (
+                      <MenuItem key={level._id} value={level._id}>
+                        {level.name} (Level {level.levelNumber})
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
               </FormControl>
             </Grid>
@@ -866,20 +875,17 @@ function UserChapterLevelsTab() {
                 type="number"
                 value={formData.levelNumber}
                 onChange={(e) => setFormData({ ...formData, levelNumber: e.target.value })}
+                disabled={!formData.levelId}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Attempt Type</InputLabel>
-                <Select
-                  value={formData.attemptType}
-                  onChange={(e) => setFormData({ ...formData, attemptType: e.target.value })}
-                  label="Attempt Type"
-                >
-                  <MenuItem value="time_rush">Time Rush</MenuItem>
-                  <MenuItem value="precision_path">Precision Path</MenuItem>
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                label="Attempt Type"
+                value={formData.levelId ? (filteredLevels.find(level => level._id === formData.levelId)?.type === 'time_rush' ? 'Time Rush' : 'Precision Path') : ''}
+                disabled
+                helperText="Automatically set from selected level"
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -896,123 +902,13 @@ function UserChapterLevelsTab() {
               </FormControl>
             </Grid>
 
-            {formData.attemptType === 'time_rush' && (
+            {formData.levelId && (
               <Grid item xs={12}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>Time Rush Settings</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Attempts"
-                          type="number"
-                          value={formData.timeRush.attempts}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            timeRush: { ...formData.timeRush, attempts: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Max XP"
-                          type="number"
-                          value={formData.timeRush.maxXp}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            timeRush: { ...formData.timeRush, maxXp: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Required XP"
-                          type="number"
-                          value={formData.timeRush.requiredXp}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            timeRush: { ...formData.timeRush, requiredXp: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Time Limit"
-                          type="number"
-                          value={formData.timeRush.timeLimit}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            timeRush: { ...formData.timeRush, timeLimit: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-
-            {formData.attemptType === 'precision_path' && (
-              <Grid item xs={12}>
-                <Card variant="outlined">
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>Precision Path Settings</Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Attempts"
-                          type="number"
-                          value={formData.precisionPath.attempts}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            precisionPath: { ...formData.precisionPath, attempts: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Min Time"
-                          type="number"
-                          value={formData.precisionPath.minTime || ''}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            precisionPath: { ...formData.precisionPath, minTime: e.target.value ? parseFloat(e.target.value) : null }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Required XP"
-                          type="number"
-                          value={formData.precisionPath.requiredXp}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            precisionPath: { ...formData.precisionPath, requiredXp: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Total Questions"
-                          type="number"
-                          value={formData.precisionPath.totalQuestions}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            precisionPath: { ...formData.precisionPath, totalQuestions: parseInt(e.target.value) }
-                          })}
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
+                <Alert severity="info">
+                  <Typography variant="body2">
+                    <strong>Level Settings:</strong> The MaxXP, MinTime, RequiredXP, and other settings will be automatically inherited from the selected level.
+                  </Typography>
+                </Alert>
               </Grid>
             )}
           </Grid>
