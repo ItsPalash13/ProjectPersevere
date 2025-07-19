@@ -165,6 +165,70 @@ export const colors = {
     backdrop: 'rgba(0, 0, 0, 0.8)',
   },
 
+  // New UI Colors for better light mode
+  ui: {
+    light: {
+      // Topic chips and badges
+      topicPrimary: '#3B82F6', // Blue for primary topics
+      topicSecondary: '#10B981', // Green for secondary topics
+      topicAccent: '#F59E0B', // Amber for accent topics
+      
+      // Buttons and interactive elements
+      buttonPrimary: '#3B82F6', // Blue primary button
+      buttonSecondary: '#6B7280', // Gray secondary button
+      buttonSuccess: '#10B981', // Green success button
+      buttonWarning: '#F59E0B', // Amber warning button
+      buttonError: '#EF4444', // Red error button
+      
+      // Cards and surfaces
+      cardBackground: '#FFFFFF',
+      cardBorder: '#E5E7EB',
+      cardShadow: 'rgba(0, 0, 0, 0.1)',
+      cardHover: '#F9FAFB',
+      
+      // Text with better contrast
+      textPrimary: '#111827',
+      textSecondary: '#6B7280',
+      textTertiary: '#9CA3AF',
+      textInverse: '#FFFFFF',
+      
+      // Interactive states
+      hover: 'rgba(59, 130, 246, 0.1)',
+      selected: 'rgba(59, 130, 246, 0.2)',
+      focus: 'rgba(59, 130, 246, 0.3)',
+    },
+    dark: {
+      // Topic chips and badges
+      topicPrimary: '#60A5FA', // Lighter blue for dark mode
+      topicSecondary: '#34D399', // Lighter green for dark mode
+      topicAccent: '#FBBF24', // Lighter amber for dark mode
+      
+      // Buttons and interactive elements
+      buttonPrimary: '#60A5FA', // Lighter blue for dark mode
+      buttonSecondary: '#9CA3AF', // Lighter gray for dark mode
+      buttonSuccess: '#34D399', // Lighter green for dark mode
+      buttonWarning: '#FBBF24', // Lighter amber for dark mode
+      buttonError: '#F87171', // Lighter red for dark mode
+      
+      // Cards and surfaces
+      cardBackground: '#1F2937',
+      cardBorder: '#374151',
+      cardShadow: 'rgba(0, 0, 0, 0.5)',
+      cardHover: '#374151',
+      
+      // Text with better contrast
+      textPrimary: '#F9FAFB',
+      textSecondary: '#D1D5DB',
+      textTertiary: '#9CA3AF',
+      textInverse: '#111827',
+      
+      // Interactive states
+      hover: 'rgba(96, 165, 250, 0.1)',
+      selected: 'rgba(96, 165, 250, 0.2)',
+      focus: 'rgba(96, 165, 250, 0.3)',
+    },
+  },
+
   // Gradient Definitions (Updated to neutral scheme)
   gradients: {
     // Keep purple gradients for navbar logo and avatar
@@ -223,14 +287,14 @@ export const themeColors = {
   },
   
   card: {
-    background: getThemeColor(colors.background.light.paper, colors.background.dark.paper),
-    border: getThemeColor(colors.border.light.primary, colors.border.dark.primary),
-    shadow: getThemeColor(colors.shadow.light.low, colors.shadow.dark.low),
+    background: getThemeColor(colors.ui.light.cardBackground, colors.ui.dark.cardBackground),
+    border: getThemeColor(colors.ui.light.cardBorder, colors.ui.dark.cardBorder),
+    shadow: getThemeColor(colors.ui.light.cardShadow, colors.ui.dark.cardShadow),
   },
   
   text: {
-    primary: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
-    secondary: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
+    primary: getThemeColor(colors.ui.light.textPrimary, colors.ui.dark.textPrimary),
+    secondary: getThemeColor(colors.ui.light.textSecondary, colors.ui.dark.textSecondary),
     disabled: getThemeColor(colors.text.light.disabled, colors.text.dark.disabled),
   },
   
@@ -239,5 +303,20 @@ export const themeColors = {
     medium: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
     high: getThemeColor(colors.overlay.light.high, colors.overlay.dark.high),
     card: getThemeColor(colors.overlay.light.card, colors.overlay.dark.card),
+  },
+  
+  // New UI theme colors
+  ui: {
+    topicPrimary: getThemeColor(colors.ui.light.topicPrimary, colors.ui.dark.topicPrimary),
+    topicSecondary: getThemeColor(colors.ui.light.topicSecondary, colors.ui.dark.topicSecondary),
+    topicAccent: getThemeColor(colors.ui.light.topicAccent, colors.ui.dark.topicAccent),
+    buttonPrimary: getThemeColor(colors.ui.light.buttonPrimary, colors.ui.dark.buttonPrimary),
+    buttonSecondary: getThemeColor(colors.ui.light.buttonSecondary, colors.ui.dark.buttonSecondary),
+    buttonSuccess: getThemeColor(colors.ui.light.buttonSuccess, colors.ui.dark.buttonSuccess),
+    buttonWarning: getThemeColor(colors.ui.light.buttonWarning, colors.ui.dark.buttonWarning),
+    buttonError: getThemeColor(colors.ui.light.buttonError, colors.ui.dark.buttonError),
+    hover: getThemeColor(colors.ui.light.hover, colors.ui.dark.hover),
+    selected: getThemeColor(colors.ui.light.selected, colors.ui.dark.selected),
+    focus: getThemeColor(colors.ui.light.focus, colors.ui.dark.focus),
   },
 }; 

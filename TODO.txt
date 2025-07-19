@@ -1,15 +1,16 @@
 ❓ Question:-
-Should one level have two modes or two modes have different levels :- 6/10
-
-🎯 TODO:-
-Make Levels and Question/Answer different modules in Quiz :- 5/10-
-Centralized auth state management component :- 4/10
 
 
-Images on Dashboard:-7/10
-Design Thinking:-6.5/10
-Plan Next Week:-10/10
+🎯 TODO Actual:-
+Redesign to one color pallete
+
+
+
+🎯 TODO Stage:-
+Probablity Units and Chapter step up
+Normal Distributions curves of - levels in admin unit management and, levels and units in chapter management  
+Thinking about Question based on category or levels(e.g. Formula used) 
+
+
 
 ✅ Done:-
-Color schema:-8/10
-Font Family:-8/10

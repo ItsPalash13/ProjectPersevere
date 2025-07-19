@@ -32,6 +32,8 @@ import {
 // @ts-ignore
 import { useGetChapterTopicsPerformanceQuery, useGetTopicSetDailyAccuracyQuery, useGetTopicSetSessionAccuracyQuery, useGetUnitTopicsPerformanceQuery } from '../features/api/performanceAPI';
 import { skipToken } from '@reduxjs/toolkit/query';
+// @ts-ignore
+import { colors, themeColors } from '../theme/colors';
 
 interface PerformanceData {
   topicSetId: string;
@@ -47,7 +49,10 @@ interface PerformanceData {
   totalDatesPracticed?: number;
 }
 
-
+interface TopicSetBucket {
+  topicNames: string[];
+  accuracy: number;
+}
 
 interface PerformanceProps {
   chapterId?: string;
@@ -105,59 +110,22 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
     }
   }, [chapterId, unitId, mode, refetch]);
 
-  // Handler for row click
-  const handleRowClick = (topicSet: { topicId: string; topicName: string }[]) => {
-    setSelectedTopicSet(topicSet.map(t => t.topicId));
-    setSelectedTopicSetNames(topicSet.map(t => t.topicName));
+  const handleRowClick = (topics: Array<{ topicId: string; topicName: string }>) => {
+    const topicIds = topics.map(t => t.topicId);
+    const topicNames = topics.map(t => t.topicName);
+    setSelectedTopicSet(topicIds);
+    setSelectedTopicSetNames(topicNames);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const formatTime = (timeString: string) => {
+    const timeInMs = parseInt(timeString);
+    const seconds = Math.floor(timeInMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const formatTime = (milliseconds: string | number) => {
-    const totalMs = parseFloat(milliseconds.toString());
-    if (isNaN(totalMs) || totalMs === 0) return '0ms';
-    
-    const totalSeconds = totalMs / 1000;
-    const minutes = Math.floor(totalSeconds / 60);
-    const remainingSeconds = totalSeconds % 60;
-    const wholeSeconds = Math.floor(remainingSeconds);
-    const remainingMs = Math.round((remainingSeconds - wholeSeconds) * 1000);
-    
-    if (minutes > 0) {
-      return `${minutes}m ${wholeSeconds}.${remainingMs.toString().padStart(3, '0')}s`;
-    } else if (wholeSeconds > 0) {
-      return `${wholeSeconds}.${remainingMs.toString().padStart(3, '0')}s`;
-    } else {
-      return `${totalMs.toFixed(0)}ms`;
-    }
-  };
-
-  // Flatten all topics with their accuracy
-  const allTopics: { topicId: string; topicName: string; accuracy: number }[] = [];
-  performanceData.forEach((row: PerformanceData) => {
-    row.topics.forEach(topic => {
-      // Find the accuracy for this topic set (row)
-      const acc = parseFloat(row.accuracy);
-      // Avoid duplicates: only add if not already present or if this accuracy is higher
-      const existing = allTopics.find(t => t.topicId === topic.topicId);
-      if (!existing || acc > existing.accuracy) {
-        if (existing) {
-          existing.accuracy = acc;
-        } else {
-          allTopics.push({ topicId: topic.topicId, topicName: topic.topicName, accuracy: acc });
-        }
-      }
-    });
-  });
-
-  // Bucket topic sets (not individual topics) by accuracy
-  type TopicSetBucket = {
-    topicNames: string[];
-    accuracy: number;
-  };
-
+  // Group performance data into buckets
   const strongSets: TopicSetBucket[] = [];
   const improvingSets: TopicSetBucket[] = [];
   const weakSets: TopicSetBucket[] = [];
@@ -190,17 +158,21 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
     );
   }
 
-
   return (
-    <Card sx={{ backgroundColor: '#23272b', color: 'white' }}>
+    <Card sx={{ 
+      backgroundColor: themeColors.card.background,
+      color: themeColors.text.primary,
+      border: themeColors.card.border,
+      boxShadow: themeColors.card.shadow,
+    }}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6" component="h2">
+          <Typography variant="h6" component="h2" sx={{ color: themeColors.text.primary }}>
             {mode === 'unit' ? 'Unit Analytics' : 'Performance Analytics'}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {onClose && (
-              <IconButton onClick={onClose}>
+              <IconButton onClick={onClose} sx={{ color: themeColors.text.secondary }}>
                 <ArrowBackIcon />
               </IconButton>
             )}
@@ -210,7 +182,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
         {/* Topic Set Buckets */}
         <Box sx={{ display: 'flex', gap: 4, mb: 3, flexWrap: 'wrap' }}>
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: 'success.main' }}>Strong Sets (≥ 80%)</Typography>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: colors.success.main }}>Strong Sets (≥ 80%)</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               {strongSets.length > 0 ? strongSets.map((set, idx) => (
                 <Chip
@@ -224,7 +196,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
             </Box>
           </Box>
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: 'warning.main' }}>Improving Sets (60–79%)</Typography>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: colors.warning.main }}>Improving Sets (60–79%)</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               {improvingSets.length > 0 ? improvingSets.map((set, idx) => (
                 <Chip
@@ -238,7 +210,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
             </Box>
           </Box>
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: 'error.main' }}>Weak Sets (&lt; 60%)</Typography>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: colors.error.main }}>Weak Sets (&lt; 60%)</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               {weakSets.length > 0 ? weakSets.map((set, idx) => (
                 <Chip
@@ -253,19 +225,20 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
           </Box>
         </Box>
 
-
-
-        <TableContainer component={Paper} sx={{ backgroundColor: '#23272b' }}>
+        <TableContainer component={Paper} sx={{ 
+          backgroundColor: themeColors.card.background,
+          border: themeColors.card.border,
+        }}>
           <Table>
             <TableHead>
-              <TableRow>
-                <TableCell>Topics</TableCell>
-                <TableCell align="center">Sessions</TableCell>
-                <TableCell align="center">Days Practiced</TableCell>
-                <TableCell align="center">Questions</TableCell>
-                <TableCell align="center">Correct</TableCell>
-                <TableCell align="center">Accuracy</TableCell>
-                <TableCell align="center">Avg Time/Question (s)</TableCell>
+              <TableRow sx={{ backgroundColor: themeColors.ui.hover }}>
+                <TableCell sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Topics</TableCell>
+                <TableCell align="center" sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Sessions</TableCell>
+                <TableCell align="center" sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Days Practiced</TableCell>
+                <TableCell align="center" sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Questions</TableCell>
+                <TableCell align="center" sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Correct</TableCell>
+                <TableCell align="center" sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Accuracy</TableCell>
+                <TableCell align="center" sx={{ color: themeColors.text.primary, fontWeight: 600 }}>Avg Time/Question (s)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -274,9 +247,12 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
                   key={index}
                   hover
                   sx={{
-                    backgroundColor: index % 2 === 0 ? 'grey.900' : 'grey.800',
-                    color: 'white',
-                    cursor: 'pointer'
+                    backgroundColor: index % 2 === 0 ? themeColors.overlay.low : 'transparent',
+                    color: themeColors.text.primary,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: themeColors.ui.hover,
+                    }
                   }}
                   onClick={() => handleRowClick(row.topics)}
                 >
@@ -289,20 +265,24 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
                           size="small"
                           variant="filled"
                           sx={{
-                            backgroundColor: '#1976d2',
+                            backgroundColor: themeColors.ui.topicPrimary,
                             color: 'white',
                             fontWeight: 500,
                             cursor: 'pointer',
-                            ':hover': { backgroundColor: '#1565c0' }
+                            '&:hover': { 
+                              backgroundColor: themeColors.ui.topicSecondary,
+                              transform: 'translateY(-1px)',
+                            },
+                            transition: 'all 0.2s ease',
                           }}
                         />
                       ))}
                     </Box>
                   </TableCell>
-                  <TableCell align="center">{row.totalSessions}</TableCell>
-                  <TableCell align="center">{row.totalDatesPracticed}</TableCell>
-                  <TableCell align="center">{row.totalQuestionsAnswered}</TableCell>
-                  <TableCell align="center">{row.correctAnswers}</TableCell>
+                  <TableCell align="center" sx={{ color: themeColors.text.primary }}>{row.totalSessions}</TableCell>
+                  <TableCell align="center" sx={{ color: themeColors.text.primary }}>{row.totalDatesPracticed}</TableCell>
+                  <TableCell align="center" sx={{ color: themeColors.text.primary }}>{row.totalQuestionsAnswered}</TableCell>
+                  <TableCell align="center" sx={{ color: themeColors.text.primary }}>{row.correctAnswers}</TableCell>
                   <TableCell align="center">
                     <Chip
                       label={`${row.accuracy}%`}
@@ -311,7 +291,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
                       sx={{ fontWeight: 600 }}
                     />
                   </TableCell>
-                  <TableCell align="center">{formatTime(row.averageTimePerQuestion)}</TableCell>
+                  <TableCell align="center" sx={{ color: themeColors.text.primary }}>{formatTime(row.averageTimePerQuestion)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -327,9 +307,15 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
         )}
       </CardContent>
       {selectedTopicSet && (
-        <Box sx={{ mt: 3, p: 2, backgroundColor: '#1a1d20', borderRadius: 2 }}>
+        <Box sx={{ 
+          mt: 3, 
+          p: 2, 
+          backgroundColor: themeColors.overlay.low, 
+          borderRadius: 2,
+          border: themeColors.card.border,
+        }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="subtitle1">
+            <Typography variant="subtitle1" sx={{ color: themeColors.text.primary }}>
               {isSessionView ? 'Session-wise' : 'Day-wise'} Accuracy Trend for <b>{selectedTopicSetNames?.join(', ')}</b>
             </Typography>
             <FormControlLabel
@@ -341,7 +327,7 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
                 />
               }
               label="Session View"
-              sx={{ color: 'white' }}
+              sx={{ color: themeColors.text.primary }}
             />
           </Box>
           
@@ -357,70 +343,80 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
           
           {(() => {
             const currentData = isSessionView ? topicSetSessionAccuracyData : topicSetDailyAccuracyData;
-            const isLoading = isSessionView ? isTopicSetSessionAccuracyLoading : isTopicSetDailyAccuracyLoading;
             
-            if (currentData && currentData.data && currentData.data.length > 0) {
+            if (!currentData || !currentData.data || currentData.data.length === 0) {
               return (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={currentData.data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey={isSessionView ? "sessionNumber" : "date"} 
-                      tick={{ fill: '#fff' }}
-                      label={{ value: isSessionView ? 'Session #' : 'Date', position: 'insideBottom', offset: -5, fill: '#fff' }}
-                    />
-                    <YAxis domain={[0, 100]} tick={{ fill: '#fff' }} label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft', fill: '#fff' }} />
-                    <Tooltip 
-                      formatter={(value) => [`${value}%`, 'Accuracy']}
-                      labelFormatter={(label) => {
-                        if (isSessionView) {
-                          // For session view, show session number and timestamp if available
-                          const dataPoint = currentData.data.find((d: any) => d.sessionNumber === label);
-                          if (dataPoint && dataPoint.timestamp) {
-                            const date = new Date(dataPoint.timestamp).toLocaleDateString();
-                            const time = new Date(dataPoint.timestamp).toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            });
-                            return `Session ${label} - ${date} ${time}`;
-                          }
-                          return `Session ${label}`;
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography color="text.secondary">
+                    No accuracy data available for the selected topic set.
+                  </Typography>
+                </Box>
+              );
+            }
+
+            return (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={currentData.data}>
+                  <CartesianGrid 
+                    strokeDasharray="3 3" 
+                    stroke={themeColors.text.disabled}
+                  />
+                  <XAxis 
+                    dataKey={isSessionView ? "sessionNumber" : "date"} 
+                    stroke={themeColors.text.secondary}
+                    tick={{ fill: themeColors.text.secondary }}
+                  />
+                  <YAxis 
+                    stroke={themeColors.text.secondary}
+                    tick={{ fill: themeColors.text.secondary }}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`${value}%`, 'Accuracy']}
+                    labelFormatter={(label) => {
+                      if (isSessionView) {
+                        // For session view, show session number and timestamp if available
+                        const dataPoint = currentData.data.find((d: any) => d.sessionNumber === label);
+                        if (dataPoint && dataPoint.timestamp) {
+                          const date = new Date(dataPoint.timestamp).toLocaleDateString();
+                          const time = new Date(dataPoint.timestamp).toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          });
+                          return `Session ${label} - ${date} ${time}`;
                         }
-                        return `Date: ${label}`;
-                      }}
-                      contentStyle={{
-                        backgroundColor: '#2a2a2a',
-                        border: '1px solid #555',
-                        borderRadius: '8px',
-                        color: 'white',
-                        fontSize: '12px',
-                        padding: '8px 12px',
-                        maxWidth: '250px',
-                        wordWrap: 'break-word',
-                        whiteSpace: 'normal'
-                      }}
-                      labelStyle={{
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        marginBottom: '4px'
-                      }}
-                    />
-                    <Line type="monotone" dataKey="accuracy" stroke="#1976d2" strokeWidth={3} dot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              );
-            }
-            
-            if (currentData && currentData.data && currentData.data.length === 0 && !isLoading) {
-              return (
-                <Typography color="text.secondary">
-                  No {isSessionView ? 'session' : 'daily'} accuracy data available for this topic set.
-                </Typography>
-              );
-            }
-            
-            return null;
+                        return `Session ${label}`;
+                      }
+                      return `Date: ${label}`;
+                    }}
+                    contentStyle={{
+                      backgroundColor: themeColors.card.background,
+                      border: themeColors.card.border,
+                      borderRadius: '8px',
+                      color: themeColors.text.primary,
+                      fontSize: '12px',
+                      padding: '8px 12px',
+                      maxWidth: '250px',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'normal',
+                      boxShadow: themeColors.card.shadow,
+                    }}
+                    labelStyle={{
+                      color: themeColors.text.primary,
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      marginBottom: '4px'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="accuracy" 
+                    stroke={themeColors.ui.topicPrimary} 
+                    strokeWidth={3} 
+                    dot={{ r: 5, fill: themeColors.ui.topicPrimary }} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            );
           })()}
         </Box>
       )}

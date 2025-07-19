@@ -29,7 +29,7 @@ export const levelsStyles = {
     mb: 3,
     fontWeight: 700,
     fontSize: '2rem',
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    color: themeColors.text.primary,
     textAlign: 'center',
   },
   tabsContainer: {
@@ -74,12 +74,12 @@ export const levelsStyles = {
         outline: 'none',
       },
       '&:hover': {
-        backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+        backgroundColor: themeColors.ui.hover,
         color: themeColors.text.primary,
       },
       '&.Mui-selected': {
-        background: getThemeColor(colors.app.light.border, colors.app.dark.border),
-        color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+        background: getThemeColor(colors.ui.light.buttonPrimary, colors.ui.dark.buttonPrimary),
+        color: 'white',
         fontWeight: 700,
         boxShadow: getThemeColor(
           `0 0 0 1px ${colors.border.light.focus}, 0 2px 6px ${colors.shadow.light.primary}`,
@@ -92,7 +92,7 @@ export const levelsStyles = {
           left: 0,
           right: 0,
           bottom: 0,
-          background: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
+          background: themeColors.ui.selected,
           borderRadius: 3,
           pointerEvents: 'none',
         },
@@ -136,7 +136,7 @@ export const levelsStyles = {
     display: 'flex',
     flexDirection: 'column',
     borderRadius: 3,
-    transition: 'background-color 0.3s ease',
+    transition: 'all 0.3s ease',
     background: themeColors.card.background,
     backdropFilter: 'blur(20px)',
     border: themeColors.card.border,
@@ -150,7 +150,7 @@ export const levelsStyles = {
       left: 0,
       right: 0,
       height: '3px',
-      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+      background: getThemeColor(colors.ui.light.buttonPrimary, colors.ui.dark.buttonPrimary),
       opacity: 0,
       transition: 'opacity 0.3s ease',
     },
@@ -159,18 +159,19 @@ export const levelsStyles = {
     opacity: 0.75,
     filter: 'grayscale(0.2)',
     '&:hover': {
-      background: theme => theme.palette.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.02)'
-        : 'rgba(0, 0, 0, 0.02)',
+      background: themeColors.ui.hover,
       cursor: 'not-allowed',
     },
   },
   activeCard: {
     '&:hover': {
-      background: theme => theme.palette.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.03)'
-        : 'rgba(0, 0, 0, 0.03)',
+      background: themeColors.ui.hover,
       cursor: 'pointer',
+      transform: 'translateY(-2px)',
+      boxShadow: getThemeColor(
+        '0 4px 12px rgba(0, 0, 0, 0.15)',
+        '0 4px 12px rgba(0, 0, 0, 0.6)'
+      ),
       '&::before': {
         opacity: 1,
       },
@@ -191,12 +192,12 @@ export const levelsStyles = {
   cardTitle: {
     fontWeight: 700,
     fontSize: '1.1rem',
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    color: themeColors.text.primary,
     letterSpacing: '-0.02em',
     lineHeight: 1.2,
   },
   cardDescription: {
-    color: 'text.secondary',
+    color: themeColors.text.secondary,
     mb: 2,
     flexGrow: 1,
     fontSize: '0.85rem',
@@ -217,13 +218,16 @@ export const levelsStyles = {
     fontSize: '0.7rem',
     fontWeight: 500,
     height: 22,
-    background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
-    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
-    border: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
+    background: getThemeColor(colors.ui.light.topicAccent, colors.ui.dark.topicAccent),
+    color: 'white',
+    border: 'none',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.2s ease',
     '&:hover': {
-      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+      background: getThemeColor(colors.ui.light.topicPrimary, colors.ui.dark.topicPrimary),
+      transform: 'translateY(-1px)',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
     },
-    transition: 'background-color 0.2s ease',
   },
   metricsGrid: {
     display: 'grid',
@@ -234,31 +238,30 @@ export const levelsStyles = {
   metricCard: {
     p: 1.5,
     borderRadius: 2,
-    background: getThemeColor(colors.background.light.surface, colors.background.dark.surface),
+    background: getThemeColor(colors.ui.light.cardHover, colors.ui.dark.cardHover),
     border: getThemeColor(colors.border.light.secondary, colors.border.dark.secondary),
     textAlign: 'center',
     transition: 'background-color 0.3s ease',
     '&:hover': {
-      background: theme => theme.palette.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.03)'
-        : 'rgba(0, 0, 0, 0.03)',
+      background: themeColors.ui.hover,
     },
   },
   metricIcon: {
     fontSize: '1rem',
     mb: 0.3,
     display: 'block',
+    color: getThemeColor(colors.ui.light.topicPrimary, colors.ui.dark.topicPrimary),
   },
   metricValue: {
     fontSize: '0.9rem',
     fontWeight: 700,
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    color: themeColors.text.primary,
     lineHeight: 1.1,
     mb: 0.3,
   },
   metricLabel: {
     fontSize: '0.65rem',
-    color: 'text.secondary',
+    color: themeColors.text.secondary,
     fontWeight: 500,
     textTransform: 'uppercase',
     letterSpacing: '0.3px',
@@ -269,9 +272,9 @@ export const levelsStyles = {
   progressBar: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.border.light.secondary,
+    backgroundColor: getThemeColor(colors.border.light.secondary, colors.border.dark.secondary),
     '& .MuiLinearProgress-bar': {
-      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
+      background: getThemeColor(colors.ui.light.buttonPrimary, colors.ui.dark.buttonPrimary),
       borderRadius: 3,
     },
   },
@@ -284,12 +287,12 @@ export const levelsStyles = {
   progressText: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    color: themeColors.text.primary,
   },
   progressPercentage: {
     fontSize: '0.85rem',
     fontWeight: 700,
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    color: themeColors.text.primary,
   },
   buttonsContainer: {
     display: 'flex',
@@ -298,26 +301,27 @@ export const levelsStyles = {
     pt: 0,
   },
   startButton: {
-    color: 'primary',
     sx: {
-      background: getThemeColor(colors.app.light.border, colors.app.dark.border),
-      color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+      background: getThemeColor(colors.ui.light.buttonPrimary, colors.ui.dark.buttonPrimary),
+      color: 'white',
       fontWeight: 600,
       textTransform: 'none',
       borderRadius: 1.5,
       px: 3,
       py: 1,
       fontSize: '0.85rem',
-      boxShadow: colors.shadow.light.primary,
-              '&:hover': {
-          background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
-        },
-        transition: 'background-color 0.3s ease',
+      boxShadow: getThemeColor(colors.shadow.light.primary, colors.shadow.dark.primary),
+      '&:hover': {
+        background: getThemeColor(colors.ui.light.buttonSuccess, colors.ui.dark.buttonSuccess),
+        transform: 'translateY(-1px)',
+        boxShadow: getThemeColor(colors.shadow.light.medium, colors.shadow.dark.medium),
+      },
+      transition: 'all 0.3s ease',
     },
   },
   lockedButton: {
     sx: {
-      color: 'text.disabled',
+      color: themeColors.text.disabled,
       backgroundColor: themeColors.overlay.low,
       fontWeight: 500,
       textTransform: 'none',
@@ -330,7 +334,7 @@ export const levelsStyles = {
     },
   },
   lockIcon: {
-    color: 'text.disabled',
+    color: themeColors.text.disabled,
     backgroundColor: themeColors.overlay.low,
     borderRadius: '50%',
     p: 0.3,

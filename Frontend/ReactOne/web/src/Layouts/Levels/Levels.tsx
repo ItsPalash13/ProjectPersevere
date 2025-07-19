@@ -30,6 +30,8 @@ import { levelsStyles } from '../../theme/levelsTheme';
 import LevelCard from '../../components/LevelCard';
 // @ts-ignore
 import Performance from '../../components/Performance';
+// @ts-ignore
+import { colors, themeColors } from '../../theme/colors';
 
 export interface Level {
   _id: string;
@@ -363,7 +365,23 @@ const Levels: React.FC = () => {
                 variant="outlined"
                 startIcon={<AnalyticsIcon />}
                 onClick={() => setShowPerformance(true)}
-                sx={{ ml: 2 }}
+                sx={{ 
+                  ml: 2,
+                  borderColor: theme => theme.palette.mode === 'dark' 
+                    ? colors.ui.dark.buttonSecondary 
+                    : colors.ui.light.buttonSecondary,
+                  color: theme => theme.palette.mode === 'dark' 
+                    ? colors.ui.dark.buttonSecondary 
+                    : colors.ui.light.buttonSecondary,
+                  '&:hover': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? colors.ui.dark.buttonPrimary 
+                      : colors.ui.light.buttonPrimary,
+                    backgroundColor: theme => theme.palette.mode === 'dark' 
+                      ? colors.ui.dark.hover 
+                      : colors.ui.light.hover,
+                  }
+                }}
               >
                 Performance Analytics
               </Button>
@@ -376,11 +394,19 @@ const Levels: React.FC = () => {
                   sx={{
                     px: 1,
                     py: 0.25,
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
+                    backgroundColor: theme => theme.palette.mode === 'dark' 
+                      ? colors.ui.dark.topicPrimary 
+                      : colors.ui.light.topicPrimary,
+                    color: 'white',
                     borderRadius: 0.75,
                     fontSize: '0.75rem',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
+                    }
                   }}
                 >
                   {topic}
@@ -406,7 +432,24 @@ const Levels: React.FC = () => {
                 variant="outlined"
                 startIcon={<AnalyticsIcon />}
                 onClick={() => setShowUnitPerformance(unit._id)}
-                sx={{ ml: 2, mb: 1 }}
+                sx={{ 
+                  ml: 2, 
+                  mb: 1,
+                  borderColor: theme => theme.palette.mode === 'dark' 
+                    ? colors.ui.dark.buttonSecondary 
+                    : colors.ui.light.buttonSecondary,
+                  color: theme => theme.palette.mode === 'dark' 
+                    ? colors.ui.dark.buttonSecondary 
+                    : colors.ui.light.buttonSecondary,
+                  '&:hover': {
+                    borderColor: theme => theme.palette.mode === 'dark' 
+                      ? colors.ui.dark.buttonPrimary 
+                      : colors.ui.light.buttonPrimary,
+                    backgroundColor: theme => theme.palette.mode === 'dark' 
+                      ? colors.ui.dark.hover 
+                      : colors.ui.light.hover,
+                  }
+                }}
               >
                 Unit Analytics
               </Button>
@@ -421,11 +464,19 @@ const Levels: React.FC = () => {
                     sx={{
                       px: 1,
                       py: 0.25,
-                      backgroundColor: 'secondary.main',
-                      color: 'secondary.contrastText',
+                      backgroundColor: theme => theme.palette.mode === 'dark' 
+                        ? colors.ui.dark.topicSecondary 
+                        : colors.ui.light.topicSecondary,
+                      color: 'white',
                       borderRadius: 0.75,
                       fontSize: '0.75rem',
-                      fontWeight: 500
+                      fontWeight: 500,
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
+                      }
                     }}
                   >
                     {topic}
@@ -461,21 +512,34 @@ const Levels: React.FC = () => {
         PaperProps={{
           sx: {
             height: '90vh',
-            maxHeight: '90vh'
+            maxHeight: '90vh',
+            backgroundColor: themeColors.card.background,
+            border: themeColors.card.border,
+            boxShadow: themeColors.card.shadow,
           }
         }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ 
+          backgroundColor: themeColors.card.background,
+          color: themeColors.text.primary,
+          borderBottom: themeColors.card.border,
+        }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6">
+            <Typography variant="h6" sx={{ color: themeColors.text.primary }}>
               Performance Analytics - {chapter?.name}
             </Typography>
-            <IconButton onClick={() => setShowPerformance(false)}>
+            <IconButton 
+              onClick={() => setShowPerformance(false)}
+              sx={{ color: themeColors.text.secondary }}
+            >
               <ArrowBackIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ 
+          backgroundColor: themeColors.card.background,
+          color: themeColors.text.primary,
+        }}>
           {chapterId && (
             <Performance
               chapterId={chapterId}
@@ -494,21 +558,34 @@ const Levels: React.FC = () => {
         PaperProps={{
           sx: {
             height: '90vh',
-            maxHeight: '90vh'
+            maxHeight: '90vh',
+            backgroundColor: themeColors.card.background,
+            border: themeColors.card.border,
+            boxShadow: themeColors.card.shadow,
           }
         }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ 
+          backgroundColor: themeColors.card.background,
+          color: themeColors.text.primary,
+          borderBottom: themeColors.card.border,
+        }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6">
+            <Typography variant="h6" sx={{ color: themeColors.text.primary }}>
               Unit Analytics - {units.find(u => u._id === showUnitPerformance)?.name}
             </Typography>
-            <IconButton onClick={() => setShowUnitPerformance(null)}>
+            <IconButton 
+              onClick={() => setShowUnitPerformance(null)}
+              sx={{ color: themeColors.text.secondary }}
+            >
               <ArrowBackIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ 
+          backgroundColor: themeColors.card.background,
+          color: themeColors.text.primary,
+        }}>
           {showUnitPerformance && (
             <Performance
               unitId={showUnitPerformance}
