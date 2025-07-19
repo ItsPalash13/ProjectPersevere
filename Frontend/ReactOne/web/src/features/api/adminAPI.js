@@ -4,7 +4,7 @@ import { baseQueryWithAuth } from './baseQuery';
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question', 'Level'],
+  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question', 'Level', 'User'],
   endpoints: (builder) => ({
     // Subject endpoints
     getSubjects: builder.query({
@@ -128,6 +128,94 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/api/admin/levels/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Level'],
     }),
+    // User Profile endpoints
+    getUserProfiles: builder.query({
+      query: (params) => ({ 
+        url: '/api/admin/users/profiles', 
+        method: 'GET',
+        params: params || {}
+      }),
+      providesTags: ['User'],
+    }),
+    getUserProfileById: builder.query({
+      query: (id) => ({ url: `/api/admin/users/profiles/${id}`, method: 'GET' }),
+      providesTags: ['User'],
+    }),
+    createUserProfile: builder.mutation({
+      query: (body) => ({ url: '/api/admin/users/profiles', method: 'POST', body }),
+      invalidatesTags: ['User'],
+    }),
+    updateUserProfile: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/users/profiles/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['User'],
+    }),
+    deleteUserProfile: builder.mutation({
+      query: (id) => ({ url: `/api/admin/users/profiles/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['User'],
+    }),
+    // User Chapter Unit endpoints
+    getUserChapterUnits: builder.query({
+      query: (params) => ({ 
+        url: '/api/admin/users/chapter-units', 
+        method: 'GET',
+        params: params || {}
+      }),
+      providesTags: ['User'],
+    }),
+    getUserChapterUnitById: builder.query({
+      query: (id) => ({ url: `/api/admin/users/chapter-units/${id}`, method: 'GET' }),
+      providesTags: ['User'],
+    }),
+    createUserChapterUnit: builder.mutation({
+      query: (body) => ({ url: '/api/admin/users/chapter-units', method: 'POST', body }),
+      invalidatesTags: ['User'],
+    }),
+    updateUserChapterUnit: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/users/chapter-units/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['User'],
+    }),
+    deleteUserChapterUnit: builder.mutation({
+      query: (id) => ({ url: `/api/admin/users/chapter-units/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['User'],
+    }),
+    // User Chapter Level endpoints
+    getUserChapterLevels: builder.query({
+      query: (params) => ({ 
+        url: '/api/admin/users/chapter-levels', 
+        method: 'GET',
+        params: params || {}
+      }),
+      providesTags: ['User'],
+    }),
+    getUserChapterLevelById: builder.query({
+      query: (id) => ({ url: `/api/admin/users/chapter-levels/${id}`, method: 'GET' }),
+      providesTags: ['User'],
+    }),
+    createUserChapterLevel: builder.mutation({
+      query: (body) => ({ url: '/api/admin/users/chapter-levels', method: 'POST', body }),
+      invalidatesTags: ['User'],
+    }),
+    updateUserChapterLevel: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/users/chapter-levels/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['User'],
+    }),
+    deleteUserChapterLevel: builder.mutation({
+      query: (id) => ({ url: `/api/admin/users/chapter-levels/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['User'],
+    }),
+    // User Level Session endpoints (read-only)
+    getUserLevelSessions: builder.query({
+      query: (params) => ({ 
+        url: '/api/admin/users/level-sessions', 
+        method: 'GET',
+        params: params || {}
+      }),
+      providesTags: ['User'],
+    }),
+    getUserLevelSessionById: builder.query({
+      query: (id) => ({ url: `/api/admin/users/level-sessions/${id}`, method: 'GET' }),
+      providesTags: ['User'],
+    }),
   }),
 });
 
@@ -160,4 +248,25 @@ export const {
   useCreateLevelMutation,
   useUpdateLevelMutation,
   useDeleteLevelMutation,
+  // User Profile hooks
+  useGetUserProfilesQuery,
+  useGetUserProfileByIdQuery,
+  useCreateUserProfileMutation,
+  useUpdateUserProfileMutation,
+  useDeleteUserProfileMutation,
+  // User Chapter Unit hooks
+  useGetUserChapterUnitsQuery,
+  useGetUserChapterUnitByIdQuery,
+  useCreateUserChapterUnitMutation,
+  useUpdateUserChapterUnitMutation,
+  useDeleteUserChapterUnitMutation,
+  // User Chapter Level hooks
+  useGetUserChapterLevelsQuery,
+  useGetUserChapterLevelByIdQuery,
+  useCreateUserChapterLevelMutation,
+  useUpdateUserChapterLevelMutation,
+  useDeleteUserChapterLevelMutation,
+  // User Level Session hooks (read-only)
+  useGetUserLevelSessionsQuery,
+  useGetUserLevelSessionByIdQuery,
 } = adminApi;
