@@ -4,6 +4,7 @@ import adminChapterRoutes from './chapter';
 import adminTopicRoutes from './topics';
 import adminUnitRoutes from './units';
 import adminQuestionRoutes from './questions';
+import adminLevelRoutes from './levels';
 
 const router = express.Router();
 
@@ -12,5 +13,6 @@ router.use('/chapters', adminChapterRoutes);
 router.use('/topics', adminTopicRoutes);
 router.use('/units', adminUnitRoutes);
 router.use('/questions', adminQuestionRoutes);
+router.use('/levels', adminLevelRoutes);
 
 export default router;

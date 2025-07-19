@@ -4,7 +4,7 @@ import { baseQueryWithAuth } from './baseQuery';
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question'],
+  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question', 'Level'],
   endpoints: (builder) => ({
     // Subject endpoints
     getSubjects: builder.query({
@@ -74,6 +74,10 @@ export const adminApi = createApi({
       query: (chapterId) => ({ url: `/api/admin/units?chapterId=${chapterId}`, method: 'GET' }),
       providesTags: ['Chapter'],
     }),
+    getAllUnits: builder.query({
+      query: () => ({ url: '/api/admin/units', method: 'GET' }),
+      providesTags: ['Chapter'],
+    }),
     // Question endpoints
     getQuestions: builder.query({
       query: (chapterId) => ({ 
@@ -103,6 +107,27 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/api/admin/questions/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Question'],
     }),
+    // Level endpoints
+    getLevels: builder.query({
+      query: () => ({ url: '/api/admin/levels', method: 'GET' }),
+      providesTags: ['Level'],
+    }),
+    getLevelById: builder.query({
+      query: (id) => ({ url: `/api/admin/levels/${id}`, method: 'GET' }),
+      providesTags: ['Level'],
+    }),
+    createLevel: builder.mutation({
+      query: (body) => ({ url: '/api/admin/levels', method: 'POST', body }),
+      invalidatesTags: ['Level'],
+    }),
+    updateLevel: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/levels/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Level'],
+    }),
+    deleteLevel: builder.mutation({
+      query: (id) => ({ url: `/api/admin/levels/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Level'],
+    }),
   }),
 });
 
@@ -123,10 +148,16 @@ export const {
   useUpdateUnitMutation,
   useDeleteUnitMutation,
   useGetUnitsQuery,
+  useGetAllUnitsQuery,
   useGetQuestionsQuery,
   useGetQuestionByIdQuery,
   useCreateQuestionMutation,
   useMultiAddQuestionsMutation,
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
+  useGetLevelsQuery,
+  useGetLevelByIdQuery,
+  useCreateLevelMutation,
+  useUpdateLevelMutation,
+  useDeleteLevelMutation,
 } = adminApi;
