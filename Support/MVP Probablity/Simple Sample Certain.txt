@@ -1,0 +1,45 @@
+🔹 Type A: Single-Topic Questions (10 Questions)
+Topic: Sample Space
+/What is the sample space for tossing a single coin?/,"{H}","{T}","{H, T}","{None}",2,40,15
+/How many outcomes are there when rolling a 6-sided die?/,"5","6","7","8",1,40,15
+/Which of these is a valid sample space for tossing two coins?/,"{H, T}","{HH, HT, TH, TT}","{H, HH, T, TT}","{H, T, HT}",1,50,20
+
+Topic: Simple Events
+/Which of these is a simple event when rolling a die?/,"Getting a 3","Getting an even number","Getting a number > 4","Getting a prime number",0,45,15
+/A simple event always consists of how many outcomes?/,"0","1","2","All",1,40,15
+/Which of these is not a simple event?/,"Getting 5 on a die","Drawing an ace from a deck","Getting heads or tails on a coin","Getting a red card",2,50,20
+
+Topic: Certain & Impossible Events
+/What type of event is ‘drawing a red card from a full deck’?/,"Impossible","Certain","Unlikely","Possible",3,50,15
+/What type of event is ‘getting a number less than 7 on a 6-sided die’?/,"Possible","Impossible","Certain","Uncertain",2,55,15
+/What type of event is ‘rolling a 9 on a standard die’?/,"Possible","Impossible","Certain","Likely",1,50,15
+/What type of event is ‘the sun rising in the east’?/,"Impossible","Possible","Unlikely","Certain",3,50,10
+
+🔹 Type B: Dual-Topic Questions (12 Questions)
+Sample Space + Simple Events
+/Which of these represents a sample space for flipping two coins?/,"{HH, HT, TH, TT}","{H, T}","{HH, TT}","{HHT, TH}",0,70,20
+/Which of the following is a simple event from the sample space {1,2,3,4,5,6}?/,"Getting 3","Getting odd number","Getting prime number","Getting number < 4",0,70,20
+/Is ‘rolling a 2’ a simple event from the sample space of a die?/,"Yes","No","Depends on die","None",0,65,20
+
+Sample Space + Certain/Impossible
+/From the sample space {1,2,3,4,5,6}, what kind of event is ‘getting a number > 10’?/,"Certain","Impossible","Possible","Unlikely",1,80,25
+/What kind of event is ‘rolling an even number on a 6-sided die’?/,"Impossible","Possible","Certain","Uncertain",2,75,20
+/From the sample space {H, T}, what is the nature of getting H or T?/,"Certain","Impossible","Possible","Likely",0,80,20
+
+Simple Events + Certain/Impossible
+/Is ‘drawing an ace of spades’ a simple and possible event?/,"Yes","No","Impossible","Always true",0,75,25
+/‘Getting a 3 on a die’ is a simple event. What is its nature?/,"Certain","Impossible","Possible","Unlikely",2,70,20
+/Which of these is both simple and impossible?/,"Getting 8 on a die","Getting 2 on a die","Getting tails on a coin","Getting red card from a deck",0,85,25
+/If event A is ‘drawing a king from a deck’, then A is.../,"Simple and Possible","Compound and Impossible","Simple and Impossible","Certain",0,75,25
+/Choosing a weekday from the set {Mon, Tue, ..., Sun} randomly and getting ‘Friday’ is.../,"Compound","Certain","Simple and Possible","Impossible",2,80,20
+/What is the type of event ‘rolling a die and getting 10’?/,"Simple","Certain","Impossible","Possible",2,85,25
+
+🔹 Type C: All Three Topics Combined (8 Questions)
+/Which of these is a simple event from the sample space {1,2,3,4,5,6} and is certain?/,"Getting a number ≤ 6","Getting a 7","Getting a 3 or 4","Getting even number",0,100,30
+/If S = {H, T} and E = ‘getting H’, what type of event is E?/,"Impossible","Certain","Simple and Possible","Compound",2,95,25
+/From the sample space {1,2,3,4,5,6}, what is the event ‘rolling a 9’?/,"Simple","Impossible","Compound","Certain",1,100,30
+/Given the sample space of flipping a coin, what kind of event is ‘getting both H and T’?/,"Impossible","Compound","Simple","Certain",1,95,30
+/Given S = {H, T}, which is a simple event that’s certain?/,"Getting H","Getting T","Getting H or T","Getting HH",2,95,25
+/If sample space = {1,2,3,4,5,6}, which of these is simple and impossible?/,"Getting 0","Getting 2","Getting even","Getting a prime",0,100,30
+/In a single coin toss, which is a simple and certain event?/,"Getting H or T","Getting H","Getting T","Getting HH",0,95,30
+/Rolling a die and getting a number < 10 is.../,"Simple","Compound","Certain and Simple","Impossible",2,100,30

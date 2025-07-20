@@ -19,7 +19,13 @@ import {
   Grid,
   Paper,
   Divider,
-  InputAdornment
+  InputAdornment,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Upload as UploadIcon, Search as SearchIcon } from '@mui/icons-material';
@@ -40,6 +46,7 @@ const Questions = () => {
   const [selectedChapter, setSelectedChapter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopicFilters, setSelectedTopicFilters] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
   const [multiAddData, setMultiAddData] = useState({
     questions: '',
     chapterId: '',
@@ -158,6 +165,99 @@ const Questions = () => {
     }
   };
 
+  const handleMultiDelete = async () => {
+    if (selectedRows.length === 0) {
+      alert('Please select questions to delete');
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${selectedRows.length} selected questions?`)) {
+      try {
+        // Delete questions one by one
+        const deletePromises = selectedRows.map(id => deleteQuestion(id).unwrap());
+        await Promise.all(deletePromises);
+        setSelectedRows([]); // Clear selection after deletion
+      } catch (error) {
+        console.error('Error deleting questions:', error);
+      }
+    }
+  };
+
+  // Helper function to parse CSV line
+  const parseCSVLine = (line) => {
+    const parts = [];
+    let current = '';
+    let inQuotes = false;
+    let inQuestion = false;
+    let question = '';
+    let options = [];
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      
+      if (char === '/' && !inQuotes && !inQuestion) {
+        // Start of question
+        inQuestion = true;
+        current = '';
+      } else if (char === '/' && !inQuotes && inQuestion) {
+        // End of question
+        question = current.trim();
+        inQuestion = false;
+        current = '';
+      } else if (char === '"' && !inQuestion) {
+        // Handle quotes for options
+        inQuotes = !inQuotes;
+        if (!inQuotes) {
+          // End of quoted option - keep the quotes
+          options.push(`"${current.trim()}"`);
+          current = '';
+        }
+      } else if (char === ',' && !inQuotes && !inQuestion) {
+        // Comma separator for non-quoted values (like numbers)
+        if (current.trim()) {
+          parts.push(current.trim());
+        }
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    // Add the last part (usually the last number)
+    if (current.trim()) {
+      parts.push(current.trim());
+    }
+    
+    // Combine question and options
+    const result = [question, ...options, ...parts];
+    return result;
+  };
+
+  // Parse CSV data for preview
+  const parseCSVPreview = (csvText) => {
+    if (!csvText.trim()) return [];
+    
+    const lines = csvText.split('\n').filter(line => line.trim());
+    return lines.map((line, index) => {
+      const parts = parseCSVLine(line);
+      
+      return {
+        id: index,
+        question: parts[0] || '',
+        option1: parts[1] || '',
+        option2: parts[2] || '',
+        option3: parts[3] || '',
+        option4: parts[4] || '',
+        correctIndex: parts[5] || '',
+        mu: parts[6] || '',
+        sigma: parts[7] || '',
+        isValid: parts.length >= 8
+      };
+    });
+  };
+
+  const csvPreviewData = parseCSVPreview(multiAddData.questions);
+
   const handleMultiAdd = async () => {
     try {
       // Parse the questions text into the required format
@@ -165,13 +265,20 @@ const Questions = () => {
       const lines = questionsText.split('\n').filter(line => line.trim());
       
       const parsedQuestions = lines.map(line => {
-        const parts = line.split(',').map(part => part.trim());
+        const parts = parseCSVLine(line);
         if (parts.length < 8) {
-          throw new Error(`Invalid format. Each line should have: question,option1,option2,option3,option4,correctIndex,mu,sigma`);
+          throw new Error(`Invalid format. Each line should have: /question/,option1,option2,option3,option4,correctIndex,mu,sigma`);
         }
         
         const [question, option1, option2, option3, option4, correctIndex, mu, sigma] = parts;
-        return [question, option1, option2, option3, option4, parseInt(correctIndex), parseFloat(mu), parseFloat(sigma)];
+        
+        // Remove quotes from options before sending to backend
+        const cleanOption1 = option1.replace(/^"|"$/g, '');
+        const cleanOption2 = option2.replace(/^"|"$/g, '');
+        const cleanOption3 = option3.replace(/^"|"$/g, '');
+        const cleanOption4 = option4.replace(/^"|"$/g, '');
+        
+        return [question, cleanOption1, cleanOption2, cleanOption3, cleanOption4, parseInt(correctIndex), parseFloat(mu), parseFloat(sigma)];
       });
 
       await multiAddQuestions({
@@ -364,6 +471,17 @@ const Questions = () => {
         >
           Multi Add
         </Button>
+        {console.log(selectedRows.length)}
+        {selectedRows.length > 0 && (
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleMultiDelete}
+            disabled={selectedRows.length === 0}
+          >
+            Delete Selected ({selectedRows.length})
+          </Button>
+        )}
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -380,6 +498,7 @@ const Questions = () => {
           columns={columns}
           getRowId={(row) => row._id}
           loading={isLoading}
+          checkboxSelection
           disableRowSelectionOnClick
           getRowHeight={() => 'auto'}
           filterMode="client"
@@ -393,6 +512,17 @@ const Questions = () => {
               quickFilterProps: { debounceMs: 500 },
             },
           }}
+          onRowSelectionModelChange={(newSelectionModel) => {
+            console.log('Selected rows changed:', newSelectionModel.ids);
+            setSelectedRows([...newSelectionModel.ids]);
+          }}
+          selectionModel={selectedRows}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 },
+            },
+          }}
+          pageSizeOptions={[10, 25, 50]}
         />
       </Box>
 
@@ -487,7 +617,7 @@ const Questions = () => {
         <DialogTitle>Multi Add Questions</DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
-            Format: question,option1,option2,option3,option4,correctIndex,mu,sigma (one per line)
+            Format: /question/,option1,option2,option3,option4,correctIndex,mu,sigma (one per line)
           </Alert>
           
           <Grid container spacing={2}>
@@ -499,9 +629,85 @@ const Questions = () => {
                 rows={10}
                 value={multiAddData.questions}
                 onChange={(e) => setMultiAddData({ ...multiAddData, questions: e.target.value })}
-                placeholder="What is 2+2?,4,3,5,6,0,936,200&#10;What is 3*3?,9,6,12,15,0,936,200"
+                placeholder="Format: /question/,option1,option2,option3,option4,correctIndex,mu,sigma"
               />
             </Grid>
+
+            {/* CSV Preview Table */}
+            {csvPreviewData.length > 0 && (
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Preview ({csvPreviewData.length} questions)
+                </Typography>
+                <TableContainer component={Paper} sx={{ maxHeight: 300, overflow: 'auto' }}>
+                  <Table size="small" stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>#</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Question</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Option 1</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Option 2</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Option 3</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Option 4</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Correct</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Mu</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Sigma</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {csvPreviewData.map((row) => (
+                        <TableRow 
+                          key={row.id}
+                          sx={{ 
+                            backgroundColor: row.isValid ? 'inherit' : '#ffebee',
+                            '&:hover': { backgroundColor: row.isValid ? '#f5f5f5' : '#ffcdd2' }
+                          }}
+                        >
+                          <TableCell>{row.id + 1}</TableCell>
+                          <TableCell sx={{ maxWidth: 200, wordBreak: 'break-word' }}>
+                            {row.question}
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 100, wordBreak: 'break-word' }}>
+                            {row.option1}
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 100, wordBreak: 'break-word' }}>
+                            {row.option2}
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 100, wordBreak: 'break-word' }}>
+                            {row.option3}
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 100, wordBreak: 'break-word' }}>
+                            {row.option4}
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={row.correctIndex} 
+                              size="small" 
+                              color={row.correctIndex >= 0 && row.correctIndex <= 3 ? "success" : "error"}
+                            />
+                          </TableCell>
+                          <TableCell>{row.mu}</TableCell>
+                          <TableCell>{row.sigma}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={row.isValid ? "Valid" : "Invalid"} 
+                              size="small" 
+                              color={row.isValid ? "success" : "error"}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                {csvPreviewData.some(row => !row.isValid) && (
+                  <Alert severity="warning" sx={{ mt: 1 }}>
+                    Some rows have invalid format. Each row should have: /question/,option1,option2,option3,option4,correctIndex,mu,sigma
+                  </Alert>
+                )}
+              </Grid>
+            )}
 
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>

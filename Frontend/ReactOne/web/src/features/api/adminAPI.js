@@ -109,10 +109,10 @@ export const adminApi = createApi({
     }),
     // Level endpoints
     getLevels: builder.query({
-      query: (chapterId) => ({ 
+      query: (params) => ({ 
         url: '/api/admin/levels', 
         method: 'GET',
-        params: chapterId ? { chapterId } : {}
+        params: params || {}
       }),
       providesTags: ['Level'],
     }),

@@ -43,7 +43,13 @@ export default function LevelsAdmin() {
   const [selectedUnitFilter, setSelectedUnitFilter] = useState('');
 
   // API hooks
-  const { data: levelsData, isLoading: levelsLoading } = useGetLevelsQuery();
+  const { data: levelsData, isLoading: levelsLoading } = useGetLevelsQuery(
+    selectedChapterFilter ? { 
+      chapterId: selectedChapterFilter, 
+      ...(selectedUnitFilter && selectedUnitFilter !== '' && { unitId: selectedUnitFilter })
+    } : undefined,
+    { skip: !selectedChapterFilter }
+  );
   const { data: chaptersData } = useGetChaptersQuery();
   const { data: unitsData } = useGetAllUnitsQuery(); // Get all units
   const { data: topicsData } = useGetTopicsQuery();
@@ -267,22 +273,8 @@ export default function LevelsAdmin() {
   }, [formData.unitId, topicsData?.data, unitsData?.data]);
 
   const filteredLevels = useMemo(() => {
-    let filtered = levelsData?.data || [];
-    
-    if (selectedChapterFilter) {
-      filtered = filtered.filter(level => 
-        level.chapterId?._id === selectedChapterFilter || level.chapterId === selectedChapterFilter
-      );
-    }
-    
-    if (selectedUnitFilter) {
-      filtered = filtered.filter(level => 
-        level.unitId?._id === selectedUnitFilter || level.unitId === selectedUnitFilter
-      );
-    }
-    
-    return filtered;
-  }, [levelsData?.data, selectedChapterFilter, selectedUnitFilter]);
+    return levelsData?.data || [];
+  }, [levelsData?.data]);
 
   return (
     <Box sx={{ height: 600, width: '100%' }}>
@@ -299,18 +291,17 @@ export default function LevelsAdmin() {
 
       {/* Filter Dropdowns */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel id="chapter-filter-label">Filter by Chapter</InputLabel>
+        <FormControl sx={{ minWidth: 200 }} required>
+          <InputLabel id="chapter-filter-label">Select Chapter *</InputLabel>
           <Select
             labelId="chapter-filter-label"
-            label="Filter by Chapter"
+            label="Select Chapter *"
             value={selectedChapterFilter}
             onChange={(e) => {
               setSelectedChapterFilter(e.target.value);
               setSelectedUnitFilter(''); // Reset unit filter when chapter changes
             }}
           >
-            <MenuItem value="">All Chapters</MenuItem>
             {chaptersData?.data?.map((chapter) => (
               <MenuItem key={chapter._id} value={chapter._id}>
                 {chapter.name}
@@ -320,15 +311,15 @@ export default function LevelsAdmin() {
         </FormControl>
 
         <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel id="unit-filter-label">Filter by Unit</InputLabel>
+          <InputLabel id="unit-filter-label">Filter by Unit (Optional)</InputLabel>
           <Select
             labelId="unit-filter-label"
-            label="Filter by Unit"
+            label="Filter by Unit (Optional)"
             value={selectedUnitFilter}
             onChange={(e) => setSelectedUnitFilter(e.target.value)}
             disabled={!selectedChapterFilter}
           >
-            <MenuItem value="">All Units</MenuItem>
+            <MenuItem value="">All Units in Chapter</MenuItem>
             {filteredUnitsForFilter.map((unit) => (
               <MenuItem key={unit._id} value={unit._id}>
                 {unit.name}
@@ -338,20 +329,42 @@ export default function LevelsAdmin() {
         </FormControl>
       </Box>
 
-      <DataGrid
-        rows={filteredLevels}
-        columns={columns}
-        loading={levelsLoading}
-        getRowId={(row) => row._id}
-        pageSizeOptions={[10, 25, 50]}
-        initialState={{
-          pagination: {
-            paginationModel: { page: 0, pageSize: 10 },
-          },
-        }}
-        getRowHeight={() => 'auto'}
-        sx={{ height: 500 }}
-      />
+      {!selectedChapterFilter && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Please select a chapter to view levels. You can optionally filter by unit as well.
+        </Alert>
+      )}
+
+      {selectedChapterFilter ? (
+        <DataGrid
+          rows={filteredLevels}
+          columns={columns}
+          loading={levelsLoading}
+          getRowId={(row) => row._id}
+          pageSizeOptions={[10, 25, 50]}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 },
+            },
+          }}
+          getRowHeight={() => 'auto'}
+          sx={{ height: 500 }}
+        />
+      ) : (
+        <Box sx={{ 
+          height: 500, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          border: '1px solid #e0e0e0',
+          borderRadius: 1,
+          bgcolor: '#fafafa'
+        }}>
+          <Typography variant="h6" color="text.secondary">
+            Select a chapter to view levels
+          </Typography>
+        </Box>
+      )}
 
       {/* Add/Edit Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>

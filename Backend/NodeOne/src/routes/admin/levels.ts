@@ -9,11 +9,18 @@ const router = express.Router();
 // GET all levels with populated chapter and unit data
 router.get('/', async (req, res) => {
   try {
-    const { chapterId } = req.query;
+    const { chapterId, unitId } = req.query;
     
     let filter = {};
-    if (chapterId) {
+    if (chapterId && unitId) {
+      filter = { chapterId, unitId };
+    } else if (chapterId) {
       filter = { chapterId };
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'chapterId is required'
+      });
     }
 
     const levels = await Level.find(filter)
