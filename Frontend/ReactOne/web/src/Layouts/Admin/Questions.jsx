@@ -51,8 +51,8 @@ const Questions = () => {
     questions: '',
     chapterId: '',
     topicIds: [],
-    xpCorrect: 10,
-    xpIncorrect: 5
+    xpCorrect: 2,
+    xpIncorrect: 0
   });
 
   const { data: chaptersData } = useGetChaptersQuery();
@@ -294,8 +294,8 @@ const Questions = () => {
         questions: '',
         chapterId: '',
         topicIds: [],
-        xpCorrect: 10,
-        xpIncorrect: 5
+        xpCorrect: 2,
+        xpIncorrect: 0
       });
     } catch (error) {
       console.error('Error multi-adding questions:', error);
@@ -471,7 +471,6 @@ const Questions = () => {
         >
           Multi Add
         </Button>
-        {console.log(selectedRows.length)}
         {selectedRows.length > 0 && (
           <Button
             variant="contained"

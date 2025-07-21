@@ -6779,3 +6779,109 @@
 2025-07-14 01:14:33,731 - INFO - No sessions with status 1 found. Current counts - Total: 33, Status 0: 13, Status 1: 0, Status 2: 20, Status -1: 0
 2025-07-14 01:14:44,149 - INFO - No sessions with status 1 found. Current counts - Total: 33, Status 0: 13, Status 1: 0, Status 2: 20, Status -1: 0
 2025-07-14 01:14:54,530 - INFO - No sessions with status 1 found. Current counts - Total: 33, Status 0: 13, Status 1: 0, Status 2: 20, Status -1: 0
+2025-07-21 01:46:31,093 - INFO - Session Processing Service initialized
+2025-07-21 01:46:31,094 - INFO - Total session logs: 71
+2025-07-21 01:46:31,094 - INFO - Total performance logs: 20
+2025-07-21 01:46:31,095 - INFO - Starting continuous session processing service (interval: 10s)
+2025-07-21 01:46:31,146 - INFO - Processing session: 6875471cf8fa39920d606a1c
+2025-07-21 01:46:31,218 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:19.448000: 687d4e9fa384a70452e15dcc
+2025-07-21 01:46:31,219 - INFO - Successfully processed session: 6875471cf8fa39920d606a1c
+2025-07-21 01:46:31,219 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:46:41,353 - INFO - Processing session: 68754720f8fa39920d606a1d
+2025-07-21 01:46:41,401 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:23.589000: 687d4ea9a384a70452e15dcd
+2025-07-21 01:46:41,401 - INFO - Successfully processed session: 68754720f8fa39920d606a1d
+2025-07-21 01:46:41,401 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:46:51,495 - INFO - Processing session: 68754725f8fa39920d606a1e
+2025-07-21 01:46:51,587 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:28.018000: 687d4eb4a384a70452e15dce
+2025-07-21 01:46:51,587 - INFO - Successfully processed session: 68754725f8fa39920d606a1e
+2025-07-21 01:46:51,587 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:47:01,707 - INFO - Processing session: 68754729f8fa39920d606a1f
+2025-07-21 01:47:01,831 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:32.626000: 687d4ebea384a70452e15dcf
+2025-07-21 01:47:01,831 - INFO - Successfully processed session: 68754729f8fa39920d606a1f
+2025-07-21 01:47:01,832 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:47:11,992 - INFO - Processing session: 68754735f8fa39920d606a20
+2025-07-21 01:47:12,135 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:43.739000: 687d4ec8a384a70452e15dd0
+2025-07-21 01:47:12,135 - INFO - Successfully processed session: 68754735f8fa39920d606a20
+2025-07-21 01:47:12,136 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:47:22,277 - INFO - Processing session: 6875473bf8fa39920d606a21
+2025-07-21 01:47:22,314 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:50.483000: 687d4ed2a384a70452e15dd1
+2025-07-21 01:47:22,314 - INFO - Successfully processed session: 6875473bf8fa39920d606a21
+2025-07-21 01:47:22,314 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:47:32,420 - INFO - Processing session: 68754743f8fa39920d606a22
+2025-07-21 01:47:32,457 - INFO - Upserted performance log for session timestamp 2025-07-14 18:06:58.097000: 687d4edca384a70452e15dd2
+2025-07-21 01:47:32,457 - INFO - Successfully processed session: 68754743f8fa39920d606a22
+2025-07-21 01:47:32,458 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:47:42,521 - INFO - Processing session: 6875505ef8fa39920d606a2b
+2025-07-21 01:47:42,576 - INFO - Upserted performance log for session timestamp 2025-07-14 18:45:49.428000: 687d4ee7a384a70452e15dd3
+2025-07-21 01:47:42,577 - INFO - Successfully processed session: 6875505ef8fa39920d606a2b
+2025-07-21 01:47:42,577 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:47:52,625 - INFO - Processing session: 6876a63df8fa39920d606b05
+2025-07-21 01:47:52,673 - INFO - Upserted performance log for session timestamp 2025-07-15 19:04:29.029000: 687d4ef1a384a70452e15dd4
+2025-07-21 01:47:52,673 - INFO - Successfully processed session: 6876a63df8fa39920d606b05
+2025-07-21 01:47:52,673 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:02,714 - INFO - Processing session: 6876a642f8fa39920d606b06
+2025-07-21 01:48:02,794 - INFO - Upserted performance log for session timestamp 2025-07-15 19:04:33.927000: 687d4efba384a70452e15dd5
+2025-07-21 01:48:02,794 - INFO - Successfully processed session: 6876a642f8fa39920d606b06
+2025-07-21 01:48:02,795 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:03,476 - INFO - Received interrupt signal. Shutting down...
+2025-07-21 01:48:03,546 - INFO - Database connection closed
+2025-07-21 01:48:08,753 - INFO - Session Processing Service initialized
+2025-07-21 01:48:08,753 - INFO - Total session logs: 71
+2025-07-21 01:48:08,753 - INFO - Total performance logs: 30
+2025-07-21 01:48:08,754 - INFO - Starting continuous session processing service (interval: 5s)
+2025-07-21 01:48:08,870 - INFO - Processing session: 6876a646f8fa39920d606b07
+2025-07-21 01:48:08,981 - INFO - Upserted performance log for session timestamp 2025-07-15 19:04:37.777000: 687d4f01a384a70452e15dd6
+2025-07-21 01:48:08,982 - INFO - Successfully processed session: 6876a646f8fa39920d606b07
+2025-07-21 01:48:08,983 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:14,022 - INFO - Processing session: 6876a7fff8fa39920d606b08
+2025-07-21 01:48:14,062 - INFO - Upserted performance log for session timestamp 2025-07-15 19:11:58.561000: 687d4f06a384a70452e15dd7
+2025-07-21 01:48:14,062 - INFO - Successfully processed session: 6876a7fff8fa39920d606b08
+2025-07-21 01:48:14,062 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:19,132 - INFO - Processing session: 6876a803f8fa39920d606b0a
+2025-07-21 01:48:19,221 - INFO - Upserted performance log for session timestamp 2025-07-15 19:12:03.106000: 687d4f0ba384a70452e15dd8
+2025-07-21 01:48:19,221 - INFO - Successfully processed session: 6876a803f8fa39920d606b0a
+2025-07-21 01:48:19,222 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:24,310 - INFO - Processing session: 6876a84bf8fa39920d606b0b
+2025-07-21 01:48:24,425 - INFO - Upserted performance log for session timestamp 2025-07-15 19:13:15.076000: 687d4f10a384a70452e15dd9
+2025-07-21 01:48:24,426 - INFO - Successfully processed session: 6876a84bf8fa39920d606b0b
+2025-07-21 01:48:24,426 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:29,462 - INFO - Processing session: 6876a851f8fa39920d606b0c
+2025-07-21 01:48:29,505 - INFO - Upserted performance log for session timestamp 2025-07-15 19:13:20.654000: 687d4f15a384a70452e15dda
+2025-07-21 01:48:29,505 - INFO - Successfully processed session: 6876a851f8fa39920d606b0c
+2025-07-21 01:48:29,505 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:34,554 - INFO - Processing session: 6876a878f8fa39920d606b0d
+2025-07-21 01:48:34,595 - INFO - Upserted performance log for session timestamp 2025-07-15 19:13:59.918000: 687d4f1ba384a70452e15ddb
+2025-07-21 01:48:34,595 - INFO - Successfully processed session: 6876a878f8fa39920d606b0d
+2025-07-21 01:48:34,595 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:39,695 - INFO - Processing session: 6876a87df8fa39920d606b0e
+2025-07-21 01:48:39,731 - INFO - Upserted performance log for session timestamp 2025-07-15 19:14:04.748000: 687d4f20a384a70452e15ddc
+2025-07-21 01:48:39,731 - INFO - Successfully processed session: 6876a87df8fa39920d606b0e
+2025-07-21 01:48:39,731 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:44,787 - INFO - Processing session: 6876a882f8fa39920d606b0f
+2025-07-21 01:48:44,873 - INFO - Upserted performance log for session timestamp 2025-07-15 19:14:09.461000: 687d4f25a384a70452e15ddd
+2025-07-21 01:48:44,874 - INFO - Successfully processed session: 6876a882f8fa39920d606b0f
+2025-07-21 01:48:44,874 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:49,912 - INFO - Processing session: 687bf91421567f1580ef2ece
+2025-07-21 01:48:49,950 - INFO - Upserted performance log for session timestamp 2025-07-19 19:59:13.521000: 687d4f2aa384a70452e15dde
+2025-07-21 01:48:49,950 - INFO - Successfully processed session: 687bf91421567f1580ef2ece
+2025-07-21 01:48:49,950 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:48:55,027 - INFO - Processing session: 687bf95321567f1580ef2ecf
+2025-07-21 01:48:55,107 - INFO - Upserted performance log for session timestamp 2025-07-19 20:00:16.274000: 687d4f2fa384a70452e15ddf
+2025-07-21 01:48:55,107 - INFO - Successfully processed session: 687bf95321567f1580ef2ecf
+2025-07-21 01:48:55,108 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:49:00,133 - INFO - Processing session: 687d4e2ca384a70452e15dca
+2025-07-21 01:49:00,199 - INFO - Upserted performance log for session timestamp 2025-07-20 20:14:36.465000: 687d4f34a384a70452e15de0
+2025-07-21 01:49:00,199 - INFO - Successfully processed session: 687d4e2ca384a70452e15dca
+2025-07-21 01:49:00,200 - INFO - Processing cycle completed. Processed 1 session.
+2025-07-21 01:49:05,827 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:11,071 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:16,320 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:21,554 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:26,962 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:32,308 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:37,537 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:42,783 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:48,104 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:53,367 - INFO - No sessions with status 1 found. Current counts - Total: 71, Status 0: 30, Status 1: 0, Status 2: 41, Status -1: 0
+2025-07-21 01:49:57,862 - INFO - Received interrupt signal. Shutting down...
+2025-07-21 01:49:57,912 - INFO - Database connection closed

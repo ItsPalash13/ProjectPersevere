@@ -334,7 +334,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     const { chapterId } = req.params;
     const userId = req.user.id;
     
-    // First check chapter for units
+    // Fetch chapter
     const chapter = await Chapter.findById(chapterId)
       .select('name description gameName status thumbnailUrl');
 
@@ -349,7 +349,7 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     const chapterTopics = await Topic.find({ chapterId: chapterId }).select('topic');
     const chapterTopicNames = chapterTopics.map(topic => topic.topic);
 
-    // Get all units for this chapter
+    // Get all units for this chapter (not just those the user has access to)
     const chapterUnits = await Unit.find({
       chapterId: new mongoose.Types.ObjectId(chapterId)
     }).select('_id name description status topics');
@@ -359,67 +359,54 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
     const unitTopics = await Topic.find({ _id: { $in: allTopicIds } }).select('_id topic');
     const topicIdToName = new Map(unitTopics.map((t: any) => [t._id.toString(), t.topic]));
 
-    // Map units to include topic names
+    // Get all UserChapterUnit for this user/chapter
+    const userChapterUnits = await UserChapterUnit.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      chapterId: new mongoose.Types.ObjectId(chapterId)
+    });
+    const userUnitIds = new Set(userChapterUnits.map(ucu => ucu.unitId.toString()));
+
+    // Map units to include topic names and locked property
     const unitsWithTopicNames = chapterUnits.map(unit => ({
       _id: unit._id,
       name: unit.name,
       description: unit.description,
       status: unit.status,
-      topics: unit.topics.map(tid => topicIdToName.get(tid.toString()) || tid.toString())
+      topics: unit.topics.map(tid => topicIdToName.get(tid.toString()) || tid.toString()),
+      locked: !userUnitIds.has((unit._id as any).toString())
     }));
 
-    // Check UserChapterUnit for each unit in the chapter
-    const userChapterUnits = await UserChapterUnit.find({
-      userId: new mongoose.Types.ObjectId(userId),
-      chapterId: new mongoose.Types.ObjectId(chapterId)
-    });
-
-    // Create a map of unit IDs that the user has access to
-    const userUnitIds = new Set(userChapterUnits.map(ucu => ucu.unitId.toString()));
-
-    // Get all levels for units that the user has access to
+    // Get all levels for these units (not just those the user has access to)
+    const allUnitIds = chapterUnits.map(unit => unit._id);
     const levels = await Level.find({ 
       chapterId,
-      unitId: { $in: Array.from(userUnitIds).map(id => new mongoose.Types.ObjectId(id)) }
+      unitId: { $in: allUnitIds }
     })
       .select('name levelNumber description type timeRush precisionPath topics status unitId')
       .sort({ levelNumber: 1 })
       .lean() as any[];
 
-    if (!levels.length) {
-      return res.status(404).json({
-        success: false,
-        error: 'No levels found for accessible units in this chapter'
-      });
-    }
-
-    // Get user progress for these levels for both modes
+    // Get all UserChapterLevel for this user/chapter/levels
     const userProgress = await UserChapterLevel.find({
-        userId: new mongoose.Types.ObjectId(userId),
-        chapterId: new mongoose.Types.ObjectId(chapterId),
-        levelId: { $in: levels.map(level => new mongoose.Types.ObjectId(level._id)) }
-      });
-
-    // Create maps for progress
+      userId: new mongoose.Types.ObjectId(userId),
+      chapterId: new mongoose.Types.ObjectId(chapterId),
+      levelId: { $in: levels.map(level => new mongoose.Types.ObjectId(level._id)) }
+    });
     const progressMap = new Map(
       userProgress.map(progress => [`${progress.levelId.toString()}_${progress.attemptType}`, progress])
     );
 
-    // Process levels in mixed sequence - return single array sorted by levelNumber
+    // Process levels: add locked property if no UCL for this user/level/type
     const mixedLevels = levels.map(level => {
       const progressKey = `${level._id.toString()}_${level.type}`;
       const hasProgress = progressMap.has(progressKey);
-      const isAvailable = level.status && hasProgress;
       const rawProgress = progressMap.get(progressKey);
-      
       // Clean user progress to only include relevant fields for the level's type
       let cleanProgress = null;
       if (rawProgress) {
         cleanProgress = {
           ...rawProgress.toObject(),
-          // Remove irrelevant mode data based on level type
           ...(level.type === 'time_rush' ? { precisionPath: undefined } : { timeRush: undefined }),
-          // Add totalQuestions for precisionPath if present in level
           ...(level.type === 'precision_path' && level.precisionPath?.totalQuestions ? {
             precisionPath: {
               ...rawProgress.toObject().precisionPath,
@@ -428,13 +415,15 @@ router.get('/:chapterId', authMiddleware, (async (req: AuthRequest, res: Respons
           } : {})
         };
       }
-      
+      // Level is locked if user does not have UCL for this level/type
+      const locked = !hasProgress;
       return {
         ...level,
         userProgress: cleanProgress,
         isStarted: hasProgress,
-        status: isAvailable,
-        mode: level.type
+        status: level.status && hasProgress, // keep status logic for backward compat
+        mode: level.type,
+        locked
       };
     });
 

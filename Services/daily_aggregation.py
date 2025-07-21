@@ -247,8 +247,8 @@ def main():
     try:
         service = SessionProcessingService()
         
-        # Run continuously with 10-second intervals
-        service.run_continuous(interval_seconds=10)
+        # Run continuously with 5-second intervals
+        service.run_continuous(interval_seconds=5)
         
     except Exception as e:
         logger.error(f"Failed to start session processing service: {e}")

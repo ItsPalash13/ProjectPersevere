@@ -11,7 +11,8 @@ import {
   DialogTitle,
   DialogContent,
   Alert,
-  Chip
+  Chip,
+  Tooltip
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -358,33 +359,25 @@ const Levels: React.FC = () => {
         {chapter && (
           <Box sx={{ mb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
-                {chapter.name}
-              </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<AnalyticsIcon />}
-                onClick={() => setShowPerformance(true)}
-                sx={{ 
-                  ml: 2,
-                  borderColor: theme => theme.palette.mode === 'dark' 
-                    ? colors.ui.dark.buttonSecondary 
-                    : colors.ui.light.buttonSecondary,
-                  color: theme => theme.palette.mode === 'dark' 
-                    ? colors.ui.dark.buttonSecondary 
-                    : colors.ui.light.buttonSecondary,
-                  '&:hover': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? colors.ui.dark.buttonPrimary 
-                      : colors.ui.light.buttonPrimary,
-                    backgroundColor: theme => theme.palette.mode === 'dark' 
-                      ? colors.ui.dark.hover 
-                      : colors.ui.light.hover,
-                  }
-                }}
-              >
-                Performance Analytics
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
+                  {chapter.name}
+                </Typography>
+                <Tooltip title="Performance Analytics">
+                  <IconButton
+                    onClick={() => setShowPerformance(true)}
+                    size="small"
+                    sx={{
+                      color: theme => theme.palette.mode === 'dark'
+                        ? colors.ui.dark.buttonSecondary
+                        : colors.ui.light.buttonSecondary,
+                      ml: 0
+                    }}
+                  >
+                    <AnalyticsIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
               {chapter.topics && chapter.topics.length > 0 ? (
@@ -421,38 +414,27 @@ const Levels: React.FC = () => {
           </Box>
         )}
         {/* Render units and their levels */}
-        <Box sx={levelsStyles.gridContainer}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {units.map(unit => (
-            <Box key={unit._id} sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                {unit.name}
-              </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<AnalyticsIcon />}
-                onClick={() => setShowUnitPerformance(unit._id)}
-                sx={{ 
-                  ml: 2, 
-                  mb: 1,
-                  borderColor: theme => theme.palette.mode === 'dark' 
-                    ? colors.ui.dark.buttonSecondary 
-                    : colors.ui.light.buttonSecondary,
-                  color: theme => theme.palette.mode === 'dark' 
-                    ? colors.ui.dark.buttonSecondary 
-                    : colors.ui.light.buttonSecondary,
-                  '&:hover': {
-                    borderColor: theme => theme.palette.mode === 'dark' 
-                      ? colors.ui.dark.buttonPrimary 
-                      : colors.ui.light.buttonPrimary,
-                    backgroundColor: theme => theme.palette.mode === 'dark' 
-                      ? colors.ui.dark.hover 
-                      : colors.ui.light.hover,
-                  }
-                }}
-              >
-                Unit Analytics
-              </Button>
+            <Box key={unit._id} sx={{ mb: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {unit.name}
+                </Typography>
+                <Tooltip title="Unit Analytics">
+                  <IconButton
+                    onClick={() => setShowUnitPerformance(unit._id)}
+                    size="small"
+                    sx={{
+                      color: theme => theme.palette.mode === 'dark'
+                        ? colors.ui.dark.buttonSecondary
+                        : colors.ui.light.buttonSecondary,
+                      ml: 0
+                    }}
+                  >
+                    <AnalyticsIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 {unit.description}
