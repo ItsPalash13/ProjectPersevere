@@ -41,10 +41,12 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       if (session.currentQuestion) {
         const question = await Question.findById(session.currentQuestion);
         if (question) {
+          console.log("question.topics", question.topics);
           currentQuestion = {
             ques: question.ques,
             options: question.options,
-            correct: question.correct
+            correct: question.correct,
+            topics: question.topics?.map((t: any) => t.name) || []
           };
         }
       }

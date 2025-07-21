@@ -14,6 +14,7 @@ export const TopicSchema = new Schema<ITopic>({
   topic: { 
     type: String, 
     required: true,
+    // This is the topic name
   }
 }, { timestamps: true });
 

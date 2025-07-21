@@ -31,26 +31,36 @@ export const QuestionCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-export const OptionCard = styled(Card)(({ theme }) => ({
+export const OptionCard = styled(Card, {
+  shouldForwardProp: (prop) => prop !== 'selected'
+})(({ theme, selected }) => ({
   cursor: 'pointer',
-  transition: 'all 0.3s ease-in-out',
   borderRadius: 16,
   minHeight: '120px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   padding: theme.spacing(2),
-  background: theme.palette.mode === 'dark' 
-    ? '#111111'
-    : colors.background.light.accent,
-  border: theme.palette.mode === 'dark'
-    ? `2px solid ${colors.border.dark.secondary}`
-    : `2px solid ${colors.border.light.secondary}`,
-  boxShadow: theme.palette.mode === 'dark' 
-    ? colors.shadow.dark.low
-    : colors.shadow.light.low,
-  '&:hover:not(.selected):not(.correct):not(.wrong):not(.correct-answer)': {
-    transform: 'translateY(-4px)',
+  background: selected
+    ? getThemeColor('#e0e0e0', '#222')(theme)
+    : theme.palette.mode === 'dark'
+      ? '#111111'
+      : colors.background.light.accent,
+  color: selected
+    ? getThemeColor('#111', '#fafafa')(theme)
+    : undefined,
+  fontWeight: selected ? 700 : undefined,
+  border: selected
+    ? 'none'
+    : theme.palette.mode === 'dark'
+      ? `2px solid ${colors.border.dark.secondary}`
+      : `2px solid ${colors.border.light.secondary}`,
+  boxShadow: selected
+    ? getThemeColor('0 2px 8px #bbb', '0 2px 8px #111')(theme)
+    : theme.palette.mode === 'dark'
+      ? colors.shadow.dark.low
+      : colors.shadow.light.low,
+  '&:hover:not(.correct):not(.wrong):not(.correct-answer)': {
     border: theme.palette.mode === 'dark'
       ? `2px solid ${colors.border.dark.accent}`
       : `2px solid ${colors.border.light.accent}`,
@@ -58,16 +68,10 @@ export const OptionCard = styled(Card)(({ theme }) => ({
       ? colors.shadow.dark.medium
       : colors.shadow.light.medium,
   },
-  '&.selected': {
-    border: `2px solid ${colors.app.light.border}`,
-    background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
-    transform: 'translateY(-2px)',
-    '& .MuiTypography-root': {
-      color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
-      fontWeight: 600,
-    }
-  },
+  '& .MuiTypography-root': selected ? {
+    color: getThemeColor('#111', '#fafafa')(theme),
+    fontWeight: 700,
+  } : {},
   '&.correct': {
     border: '2px solid #2e7d32',
     background: colors.success.main,

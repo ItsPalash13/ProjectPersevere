@@ -229,43 +229,83 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
       numQuestions = level.precisionPath?.totalQuestions || 10;
     }
 
-    // Get initial question bank of numQuestions questions based on difficulty
+    // Fetch topic IDs for the level's topic names
+    const topicDocs = await Topic.find({ topic: { $in: level.topics } });
+    const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
     const questionTsList = await QuestionTs.find({
       'difficulty.mu': { $gte: difficulty }
     })
+    .populate('quesId')
     .sort({ 'difficulty.mu': 1 })
-    .limit(numQuestions)
-    .populate('quesId');
+    .limit(numQuestions);
+    // JS filter: only keep questions where all topics are in levelTopicIds and at least 1 topic
+    questionTsList.forEach(qt => {
+      if (!qt.quesId) {
+      } else if (typeof qt.quesId !== 'object' || !('topics' in qt.quesId)) {
+      } else if (!Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) {
+      } else {
+        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+        const allIn = topicIds.every((id: string) => levelTopicIds.includes(id));
+        if (!allIn) {
+        }
+      }
+    });
+    const filteredQuestionTsList = questionTsList.filter(qt => {
+      if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+      const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+      return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+    });
 
     // If not enough questions found with difficulty >= generated, get questions with difficulty <= generated
-    if (questionTsList.length < numQuestions) {
+    let finalQuestionTsList = [...filteredQuestionTsList];
+    if (finalQuestionTsList.length < numQuestions) {
       const additionalQuestions = await QuestionTs.find({
         'difficulty.mu': { $lte: difficulty }
       })
+      .populate('quesId')
       .sort({ 'difficulty.mu': -1 })
-      .limit(numQuestions - questionTsList.length)
-      .populate('quesId');
-      
-      questionTsList.push(...additionalQuestions);
+      .limit(numQuestions - finalQuestionTsList.length);
+      finalQuestionTsList.push(...additionalQuestions.filter(qt => {
+        if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+        return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+      }));
     }
 
-    // If still not enough questions, get random questions
-    if (questionTsList.length < numQuestions) {
+    // If still not enough, relax difficulty (only topic filter)
+    if (finalQuestionTsList.length < numQuestions) {
+      const moreByTopic = await QuestionTs.find({})
+        .populate('quesId')
+        .sort({ 'difficulty.mu': 1 })
+        .limit(numQuestions - finalQuestionTsList.length);
+      finalQuestionTsList.push(...moreByTopic.filter(qt => {
+        if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+        return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+      }));
+    }
+
+    // If still not enough, fill with any random questions
+    if (finalQuestionTsList.length < numQuestions) {
       const randomQuestions = await QuestionTs.aggregate([
-        { $sample: { size: numQuestions - questionTsList.length } },
-        { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesId' } },
-        { $unwind: '$quesId' }
+        { $sample: { size: numQuestions - finalQuestionTsList.length } },
+        { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesObj' } },
+        { $unwind: '$quesObj' }
       ]);
-      
-      questionTsList.push(...randomQuestions);
+      randomQuestions.forEach(q => { q.quesId = q.quesObj; });
+      finalQuestionTsList.push(...randomQuestions);
     }
 
-    if (!questionTsList.length) {
+    // Truncate to numQuestions if overfilled
+    finalQuestionTsList = finalQuestionTsList.slice(0, numQuestions);
+
+    if (!finalQuestionTsList.length) {
       throw new Error('No suitable questions found');
     }
+    console.log("finalQuestionTsList", finalQuestionTsList.length, numQuestions);
 
     // Extract question IDs for the question bank
-    const questionBank = questionTsList.map(qt => qt.quesId);
+    const questionBank = finalQuestionTsList.map(qt => qt.quesId);
 
     // Create new session with question bank
     const session = await UserLevelSession.create({
@@ -306,6 +346,8 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
     if (!firstQuestion) {
       throw new Error('Question not found');
     }
+    // Extract topic names for the first question
+    const firstQuestionTopics = firstQuestion.topics?.map(t => t.name) || [];
 
     return res.status(201).json({
       success: true,
@@ -314,7 +356,8 @@ router.post('/start', authMiddleware, (async (req: AuthRequest, res: Response) =
         currentQuestion: {
           question: firstQuestion.ques,
           options: firstQuestion.options,
-          correctAnswer: firstQuestion.correct
+          correctAnswer: firstQuestion.correct,
+          topics: firstQuestionTopics
         },
         totalQuestions: questionBank.length
       }

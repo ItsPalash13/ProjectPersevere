@@ -23,3 +23,188 @@ Level	Topics
 10	Combinatorics: Pascal’s Triangle, nCr
 11	Permutations & Combinations in Probability
 12	Bayes’, Total Probability, Binomial, Geometric, Expected Value, Variance
+
+
+📘 Unit 1: Probability Fundamentals (0–250)
+Level 1: mean=50, sd=20, alpha=+5 (easy skew)
+
+Level 2: mean=100, sd=30, alpha=+3
+
+Level 3: mean=180, sd=40, alpha=0 (normal)
+
+Level 4 (optional): mean=230, sd=30, alpha=-2 (hard skew)
+
+🎲 Unit 2: Real-World Experiments (150–400)
+Level 1: mean=180, sd=40, alpha=+4
+
+Level 2: mean=240, sd=50, alpha=+2
+
+Level 3: mean=320, sd=60, alpha=0
+
+Level 4: mean=380, sd=30, alpha=-2
+
+🔄 Unit 3: Event Relationships (300–600)
+Level 1: mean=350, sd=50, alpha=+2
+
+Level 2: mean=420, sd=60, alpha=+1
+
+Level 3: mean=500, sd=50, alpha=0
+
+Level 4: mean=580, sd=40, alpha=-1
+
+🌳 Unit 4: Conditional & Visual (500–800)
+Level 1: mean=540, sd=50, alpha=+1
+
+Level 2: mean=600, sd=60, alpha=0
+
+Level 3: mean=700, sd=60, alpha=-1
+
+Level 4: mean=770, sd=40, alpha=-2
+
+📊 Unit 5: Distributions & Challenges (700–1000)
+Level 1: mean=750, sd=50, alpha=+1
+
+Level 2: mean=800, sd=60, alpha=0
+
+Level 3: mean=880, sd=50, alpha=-1
+
+Level 4: mean=950, sd=30, alpha=-3
+
+
+
+📘 Unit 1: Probability Fundamentals
+Goal: Understand the basics of how probability works.
+
+Topics:
+
+Sample Space
+
+Equally Likely Outcomes
+
+Simple Events
+
+Favorable Outcomes
+
+Basic Probability Formula
+
+Certain & Impossible Events
+
+Suggested Levels:
+
+L1: Understanding Sample Space & Events
+
+L2: Applying Basic Probability Formula
+
+L3: Identifying Favorable, Equally Likely, and Impossible Events
+
+🎲 Unit 2: Real-World Experiments
+Goal: Practice probability using coins, dice, and cards.
+
+Topics:
+
+Tossing a Single Coin
+
+Tossing Two Coins
+
+Rolling a Die
+
+Rolling Two Dice
+
+Drawing a Card from a Deck
+
+Drawing Two Cards (With & Without Replacement)
+
+Suggested Levels:
+
+L1: Coins & Dice Basics
+
+L2: Probability with Cards
+
+L3: Multi-Object Scenarios (Two Coins/Dice/Cards)
+
+L4: With vs Without Replacement
+
+🔄 Unit 3: Event Relationships & Logic
+Goal: Learn how events relate — unions, intersections, and more.
+
+Topics:
+
+Not A (Complement Rule)
+
+Complementary Events
+
+Mutually Exclusive Events
+
+Compound Events
+
+Union of Two Events (P(A ∪ B))
+
+Intersection of Two Events (P(A ∩ B))
+
+Dependent & Independent Events
+
+Suggested Levels:
+
+L1: Complementary & Mutually Exclusive
+
+L2: Union & Intersection
+
+L3: Compound, Dependent & Independent Events
+
+L4: Mixed Logic Challenges
+
+🌳 Unit 4: Conditional & Visual Probability
+Goal: Dive into cause-effect reasoning and visual methods.
+
+Topics:
+
+Tree Diagrams
+
+Conditional Probability (P(A|B))
+
+Total Probability Theorem
+
+Bayes' Theorem
+
+Suggested Levels:
+
+L1: Tree Diagram Basics
+
+L2: P(A|B) and Conditional Logic
+
+L3: Total Probability
+
+L4: Bayes’ Theorem in Word Problems
+
+📊 Unit 5: Distributions, Expectation & Advanced Problems
+Goal: Master probability with data, expectations, and multi-step reasoning.
+
+Topics:
+
+At Least / At Most / Exactly Probability
+
+Expected Value
+
+Variance in Probability
+
+Binomial Probability Distribution
+
+Geometric Distribution (Intro)
+
+Pascal’s Triangle & Combinatorics
+
+Probability Using Permutations & Combinations
+
+Complex Multi-step Conditional Problems
+
+Word Problems (Application-based)
+
+Suggested Levels:
+
+L1: Expected Value & Variance
+
+L2: Binomial & Geometric Distributions
+
+L3: Combinatorics in Probability
+
+L4: Multi-step Word Problems & Final Challenges

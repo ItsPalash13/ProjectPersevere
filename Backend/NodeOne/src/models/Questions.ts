@@ -5,10 +5,7 @@ interface IQuestion extends Document {
   options: string[];
   correct: number;
   chapterId: mongoose.Types.ObjectId; 
-  topics: Array<{
-    id: mongoose.Types.ObjectId;
-    name: string;
-  }>;
+  topics: Array<{ id: mongoose.Types.ObjectId | string; name: string }>;
 }
 
 const QuestionSchema = new Schema<IQuestion>({

@@ -322,7 +322,8 @@ const Quiz = ({ socket }) => {
         setCurrentQuestion({
           question: data.currentQuestion.ques,
           options: data.currentQuestion.options,
-          correctAnswer: data.currentQuestion.correct
+          correctAnswer: data.currentQuestion.correct,
+          topics: data.currentQuestion.topics
         });
         setIsLoading(false);
         // Note the time when question is initialized
@@ -351,6 +352,7 @@ const Quiz = ({ socket }) => {
       setQuestionStartTime(Date.now());
       if (data.currentQuestionIndex !== undefined) setCurrentQuestionIndex(data.currentQuestionIndex);
       if (data.totalQuestions !== undefined) setTotalQuestions(data.totalQuestions);
+      setIsTimerPaused(false);
     });
 
     socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp }) => {
@@ -358,6 +360,7 @@ const Quiz = ({ socket }) => {
       setAnswerResult({ isCorrect, correctAnswer });
       setCurrentXp(currentXp);
       setShowAnswerDrawer(true);
+      setIsTimerPaused(true);
     });
 
     socket.on('levelCompleted', ({ message, attemptType: eventAttemptType }) => {
@@ -582,6 +585,14 @@ const Quiz = ({ socket }) => {
                     </Typography>
                   )}
                 </Box>
+                {/* Show question topics as chips */}
+                {Array.isArray(currentQuestion?.topics) && currentQuestion.topics.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                    {currentQuestion.topics.map((topic, idx) => (
+                      <Chip key={idx} label={topic} size="small" color="primary" />
+                    ))}
+                  </Box>
+                )}
                 <Typography 
                   variant="h5" 
                   component="h2" 
@@ -594,9 +605,10 @@ const Quiz = ({ socket }) => {
             </QuestionCard>
 
             <Grid container spacing={3} sx={{ mt: 2 }}>
-              {currentQuestion.options.map((option, index) => (
+              {currentQuestion?.options?.map((option, index) => (
                 <Grid size={{xs:12,sm:6,md:3}} key={index}>
                   <OptionCard
+                    selected={selectedAnswer === index.toString()}
                     className={getOptionClass(index)}
                     onClick={() => !answerResult && setSelectedAnswer(index.toString())}
                   >

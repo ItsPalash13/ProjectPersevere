@@ -21,19 +21,25 @@ const replenishQuestionBank = async (session: any, level: any) => {
     level.difficultyParams.alpha
   );
 
-  // Strategy 1: Get questions based on difficulty
+  // Get allowed topic IDs for this level (fetch Topic docs for names)
+  const topicDocs = await require('../../models/Topic').Topic.find({ topic: { $in: level.topics } });
+  const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
+
+  // Strategy 1: Get questions based on difficulty and topic subset
   let difficultyQuestions = await QuestionTs.find({
     'difficulty.mu': { $gte: difficulty },
-    'quesId': { $nin: session.questionBank } // Exclude questions already in bank
+    'quesId': { $nin: session.questionBank }
   })
+  .populate('quesId')
   .sort({ 'difficulty.mu': 1 })
-  .limit(replenishmentSize)
-  .populate('quesId');
+  .limit(replenishmentSize);
+  newQuestions.push(...difficultyQuestions.filter(qt => {
+    if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+    const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+    return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+  }));
 
-  newQuestions.push(...difficultyQuestions);
-  console.log('Strategy 1', newQuestions.length);
-
-  // Strategy 2: If not enough, add wrong questions from user history
+  // Strategy 2: If not enough, add wrong questions from user history (with topic filter)
   if (newQuestions.length < replenishmentSize && session.questionsAnswered.incorrect.length > 0) {
     const wrongQuestionsNeeded = replenishmentSize - newQuestions.length;
     const wrongQuestionIds = session.questionsAnswered.incorrect.filter(
@@ -43,13 +49,17 @@ const replenishQuestionBank = async (session: any, level: any) => {
     if (wrongQuestionIds.length > 0) {
       const wrongQuestions = await QuestionTs.find({
         'quesId': { $in: wrongQuestionIds.slice(0, wrongQuestionsNeeded) }
-      }).populate('quesId');
-      newQuestions.push(...wrongQuestions);
+      })
+      .populate('quesId');
+      newQuestions.push(...wrongQuestions.filter(qt => {
+        if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+        return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+      }));
     }
-    console.log('Strategy 2', newQuestions.length);
   }
 
-  // Strategy 3: If still not enough, add correct questions from user history
+  // Strategy 3: If still not enough, add correct questions from user history (with topic filter)
   if (newQuestions.length < replenishmentSize && session.questionsAnswered.correct.length > 0) {
     const correctQuestionsNeeded = replenishmentSize - newQuestions.length;
     const correctQuestionIds = session.questionsAnswered.correct.filter(
@@ -59,26 +69,38 @@ const replenishQuestionBank = async (session: any, level: any) => {
     if (correctQuestionIds.length > 0) {
       const correctQuestions = await QuestionTs.find({
         'quesId': { $in: correctQuestionIds.slice(0, correctQuestionsNeeded) }
-      }).populate('quesId');
-      newQuestions.push(...correctQuestions);
+      })
+      .populate('quesId');
+      newQuestions.push(...correctQuestions.filter(qt => {
+        if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+        return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+      }));
     }
-    console.log('Strategy 3', newQuestions.length);
   }
 
-  // Strategy 4: If still not enough, add random questions
+  // Strategy 4: If still not enough, add random questions (with topic filter)
   if (newQuestions.length < replenishmentSize) {
     const randomQuestionsNeeded = replenishmentSize - newQuestions.length;
-    const existingQuestionIds = [...session.questionBank, ...newQuestions.map(q => q.quesId)];
-    
+    const existingQuestionIds = [...session.questionBank, ...newQuestions.map(q => q.quesId._id ? q.quesId._id : q.quesId)];
     const randomQuestions = await QuestionTs.aggregate([
       { $match: { 'quesId': { $nin: existingQuestionIds } } },
-      { $sample: { size: randomQuestionsNeeded } },
-      { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesId' } },
-      { $unwind: '$quesId' }
+      { $lookup: {
+          from: 'questions',
+          localField: 'quesId',
+          foreignField: '_id',
+          as: 'quesObj'
+      }},
+      { $unwind: '$quesObj' },
+      { $sample: { size: randomQuestionsNeeded } }
     ]);
-    
-    newQuestions.push(...randomQuestions);
-    console.log('Strategy 4', newQuestions.length);
+    // Attach quesId for consistency
+    randomQuestions.forEach(q => { q.quesId = q.quesObj; });
+    newQuestions.push(...randomQuestions.filter(qt => {
+      if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+      const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+      return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+    }));
   }
 
   // Shuffle the new questions and add to bank
@@ -120,6 +142,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
         question: question?.ques,
         options: question?.options,
         correctAnswer: question?.correct,
+        topics: question?.topics?.map(t => t.name) || [],
         currentQuestionIndex: session.currentQuestionIndex,
         totalQuestions: session.questionBank.length
       });

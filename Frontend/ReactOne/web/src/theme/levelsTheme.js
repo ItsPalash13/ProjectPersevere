@@ -6,9 +6,9 @@ export const levelsStyles = {
     background: themeColors.background.main,
   },
   backdrop: {
-    color: colors.special.white,
+    color: (theme) => theme.palette.mode === 'dark' ? colors.special.white : colors.text.dark,
     zIndex: (theme) => theme.zIndex.drawer + 1,
-    backgroundColor: colors.special.backdrop,
+    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(20, 20, 30, 0.85)' : 'rgba(255,255,255,0.85)',
     backdropFilter: 'blur(8px)',
   },
   loadingContainer: {
@@ -18,7 +18,8 @@ export const levelsStyles = {
     gap: 1.5,
     p: 3,
     borderRadius: 2,
-    backgroundColor: themeColors.overlay.card,
+    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 30, 40, 0.95)' : 'rgba(255,255,255,0.98)',
+    color: (theme) => theme.palette.mode === 'dark' ? colors.special.white : colors.text.dark,
     backdropFilter: 'blur(10px)',
     border: themeColors.card.border,
   },
