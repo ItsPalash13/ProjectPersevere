@@ -140,7 +140,10 @@ router.post('/profiles', async (req, res) => {
 router.put('/profiles/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, email, fullName, bio, dob, health, totalXp } = req.body;
+    const {
+      username, email, fullName, bio, dob, health, totalXp,
+      dailyAttemptsStreak, lastAttemptDate, uniqueCorrectQuestions, uniqueTopics
+    } = req.body;
 
     const profile = await UserProfile.findById(id);
     if (!profile) {
@@ -171,17 +174,24 @@ router.put('/profiles/:id', async (req, res) => {
       }
     }
 
+    // Build update object
+    const updateObj: any = {
+      username,
+      email,
+      fullName,
+      bio,
+      dob: dob ? new Date(dob) : undefined,
+      health,
+      totalXp
+    };
+    if (dailyAttemptsStreak !== undefined) updateObj.dailyAttemptsStreak = dailyAttemptsStreak;
+    if (lastAttemptDate !== undefined) updateObj.lastAttemptDate = lastAttemptDate ? new Date(lastAttemptDate) : null;
+    if (uniqueCorrectQuestions !== undefined) updateObj.uniqueCorrectQuestions = uniqueCorrectQuestions;
+    if (uniqueTopics !== undefined) updateObj.uniqueTopics = uniqueTopics;
+
     const updatedProfile = await UserProfile.findByIdAndUpdate(
       id,
-      {
-        username,
-        email,
-        fullName,
-        bio,
-        dob: dob ? new Date(dob) : undefined,
-        health,
-        totalXp
-      },
+      updateObj,
       { new: true, runValidators: true }
     );
 

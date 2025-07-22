@@ -4,7 +4,7 @@ import { baseQueryWithAuth } from './baseQuery';
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question', 'Level', 'User'],
+  tagTypes: ['Subject', 'Chapter', 'Topic', 'Question', 'Level', 'User', 'Badge'],
   endpoints: (builder) => ({
     // Subject endpoints
     getSubjects: builder.query({
@@ -224,6 +224,23 @@ export const adminApi = createApi({
       query: (id) => ({ url: `/api/admin/users/level-sessions/${id}`, method: 'GET' }),
       providesTags: ['User'],
     }),
+    // Badge endpoints
+    getBadges: builder.query({
+      query: () => ({ url: '/api/admin/badges', method: 'GET' }),
+      providesTags: ['Badge'],
+    }),
+    createBadge: builder.mutation({
+      query: (body) => ({ url: '/api/admin/badges', method: 'POST', body }),
+      invalidatesTags: ['Badge'],
+    }),
+    updateBadge: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/api/admin/badges/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Badge'],
+    }),
+    deleteBadge: builder.mutation({
+      query: (id) => ({ url: `/api/admin/badges/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Badge'],
+    }),
   }),
 });
 
@@ -278,4 +295,9 @@ export const {
   // User Level Session hooks (read-only)
   useGetUserLevelSessionsQuery,
   useGetUserLevelSessionByIdQuery,
+  // Badge hooks
+  useGetBadgesQuery,
+  useCreateBadgeMutation,
+  useUpdateBadgeMutation,
+  useDeleteBadgeMutation,
 } = adminApi;

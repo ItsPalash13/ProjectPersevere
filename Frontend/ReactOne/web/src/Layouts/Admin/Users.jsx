@@ -124,6 +124,10 @@ function UserProfilesTab() {
     dob: '',
     health: 6,
     totalXp: 0,
+    dailyAttemptsStreak: 0,
+    lastAttemptDate: '',
+    uniqueCorrectQuestions: [],
+    uniqueTopics: [],
   });
 
   const handleOpenDialog = (profile = null) => {
@@ -138,6 +142,10 @@ function UserProfilesTab() {
         dob: profile.dob ? new Date(profile.dob).toISOString().split('T')[0] : '',
         health: profile.health || 6,
         totalXp: profile.totalXp || 0,
+        dailyAttemptsStreak: profile.dailyAttemptsStreak || 0,
+        lastAttemptDate: profile.lastAttemptDate ? new Date(profile.lastAttemptDate).toISOString().split('T')[0] : '',
+        uniqueCorrectQuestions: profile.uniqueCorrectQuestions || [],
+        uniqueTopics: profile.uniqueTopics || [],
       });
     } else {
       setEditingProfile(null);
@@ -150,6 +158,10 @@ function UserProfilesTab() {
         dob: '',
         health: 6,
         totalXp: 0,
+        dailyAttemptsStreak: 0,
+        lastAttemptDate: '',
+        uniqueCorrectQuestions: [],
+        uniqueTopics: [],
       });
     }
     setOpenDialog(true);
@@ -167,6 +179,17 @@ function UserProfilesTab() {
         health: parseInt(formData.health),
         totalXp: parseInt(formData.totalXp),
         dob: formData.dob ? new Date(formData.dob) : undefined,
+        lastAttemptDate: formData.lastAttemptDate ? new Date(formData.lastAttemptDate) : null,
+        uniqueCorrectQuestions: Array.isArray(formData.uniqueCorrectQuestions)
+          ? formData.uniqueCorrectQuestions
+          : (typeof formData.uniqueCorrectQuestions === 'string' && formData.uniqueCorrectQuestions.length > 0
+              ? formData.uniqueCorrectQuestions.split(',').map(s => s.trim()).filter(Boolean)
+              : []),
+        uniqueTopics: Array.isArray(formData.uniqueTopics)
+          ? formData.uniqueTopics
+          : (typeof formData.uniqueTopics === 'string' && formData.uniqueTopics.length > 0
+              ? formData.uniqueTopics.split(',').map(s => s.trim()).filter(Boolean)
+              : []),
       };
 
       if (editingProfile) {
@@ -333,6 +356,41 @@ function UserProfilesTab() {
                 type="number"
                 value={formData.totalXp}
                 onChange={(e) => setFormData({ ...formData, totalXp: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Daily Attempts Streak"
+                type="number"
+                value={formData.dailyAttemptsStreak}
+                onChange={(e) => setFormData({ ...formData, dailyAttemptsStreak: Number(e.target.value) })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Last Attempt Date"
+                type="date"
+                value={formData.lastAttemptDate}
+                onChange={(e) => setFormData({ ...formData, lastAttemptDate: e.target.value })}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Unique Correct Questions (comma separated IDs)"
+                value={formData.uniqueCorrectQuestions.join(',')}
+                onChange={(e) => setFormData({ ...formData, uniqueCorrectQuestions: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Unique Topics (comma separated IDs)"
+                value={formData.uniqueTopics.join(',')}
+                onChange={(e) => setFormData({ ...formData, uniqueTopics: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
               />
             </Grid>
           </Grid>

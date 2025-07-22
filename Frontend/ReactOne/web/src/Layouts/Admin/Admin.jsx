@@ -7,6 +7,7 @@ import UnitsAdmin from './Units';
 import QuestionsAdmin from './Questions';
 import LevelsAdmin from './Levels';
 import UsersAdmin from './Users';
+import BadgeAdmin from './Badge';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -42,6 +43,7 @@ export default function Admin() {
         <Tab label="Questions" id="admin-tab-4" aria-controls="admin-tabpanel-4" />
         <Tab label="Levels" id="admin-tab-5" aria-controls="admin-tabpanel-5" />
         <Tab label="Users" id="admin-tab-6" aria-controls="admin-tabpanel-6" />
+        <Tab label="Badges" id="admin-tab-7" aria-controls="admin-tabpanel-7" />
       </Tabs>
       <TabPanel value={tab} index={0}>
         <SubjectAdmin />
@@ -63,6 +65,9 @@ export default function Admin() {
       </TabPanel>
       <TabPanel value={tab} index={6}>
         <UsersAdmin />
+      </TabPanel>
+      <TabPanel value={tab} index={7}>
+        <BadgeAdmin />
       </TabPanel>
     </Box>
   );

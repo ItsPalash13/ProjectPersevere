@@ -1,4 +1,18 @@
+import { User } from 'better-auth/types';
 import mongoose, { Schema, Document } from 'mongoose';
+
+// UserBadge subdocument schema and interface
+interface UserBadge {
+  badgeId: Schema.Types.ObjectId;
+  level: number;
+  createdAt: Date;
+}
+
+const UserBadgeSchema = new Schema<UserBadge>({
+  badgeId: { type: Schema.Types.ObjectId, ref: 'Badge', required: true },
+  level: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
+}, { _id: false });
 
 // Define the interface for the UserProfile document
 interface UserProfileDocument extends Document {
@@ -10,6 +24,12 @@ interface UserProfileDocument extends Document {
   totalXp: number;
   bio?: string;
   dob?: Date; // Added date of birth field (optional)
+  badges: UserBadge[];
+  dailyAttemptsStreak: number;
+  lastAttemptDate: Date | null;
+  dailyScorePR: number;
+  uniqueCorrectQuestions: string[];
+  uniqueTopics: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,8 +43,20 @@ const UserProfileSchema: Schema = new Schema(
     fullName: { type: String },
     bio: { type: String },
     dob: { type: Date }, // Added date of birth field
+    uniqueCorrectQuestions: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Question'
+    }],
+    uniqueTopics: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Topic'
+    }],
+    dailyScorePR: { type: Number, default: 0 },
+    dailyAttemptsStreak: { type: Number, default: 0 },
+    lastAttemptDate: { type: Date, default: null },
     health: { type: Number, default: 6 },
     totalXp: { type: Number, default: 0 },
+    badges: { type: [UserBadgeSchema], default: [] },
   },
   {
     timestamps: true,

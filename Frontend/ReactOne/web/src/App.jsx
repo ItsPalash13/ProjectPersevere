@@ -18,6 +18,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import './App.css';
 import Admin from './Layouts/Admin/Admin';
+import Profile from './Layouts/Profile/Profile';
 
 // Create socket instance outside component
 export const socket = io(import.meta.env.VITE_BACKEND_URL, {
@@ -275,6 +276,7 @@ function AppContent() {
               <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
               <Route path="/chapter/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>

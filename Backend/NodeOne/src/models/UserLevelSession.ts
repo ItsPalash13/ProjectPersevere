@@ -7,6 +7,7 @@ export interface IUserLevelSession extends Document {
   chapterId: mongoose.Types.ObjectId;
   levelId: mongoose.Types.ObjectId;
   status: 0 | 1;
+  uniqueTopics: mongoose.Types.ObjectId[];
   attemptType: 'time_rush' | 'precision_path';
   currentQuestion: mongoose.Types.ObjectId | null;
   questionsAnswered: {
@@ -59,6 +60,10 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     ref: 'Level',
     required: true
   },
+  uniqueTopics:[{
+      type: Schema.Types.ObjectId,
+      ref: 'Topic'
+    }],
   status: {
     type: Number,
     default: 0,

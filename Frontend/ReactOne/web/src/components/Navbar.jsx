@@ -72,8 +72,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
   };
 
   const handleProfile = () => {
-    console.log('Navigate to profile');
-    // Navigate to profile page
+    navigate('/profile');
     handleMenuClose();
   };
 
