@@ -115,6 +115,9 @@ const Quiz = ({ socket }) => {
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
 
+  // Add state for earned badges
+  const [earnedBadges, setEarnedBadges] = useState([]);
+
   // Helper function to serialize dates in an object
   const serializeDates = (obj) => {
     if (!obj) return obj;
@@ -375,6 +378,7 @@ const Quiz = ({ socket }) => {
       console.log("Quiz finished:", data);
       setQuizFinished(true);
       setQuizResults(data);
+      setEarnedBadges(data.earnedBadges || []);
       setShowResults(true);
     });
 
@@ -478,6 +482,73 @@ const Quiz = ({ socket }) => {
             </Box>
           )}
         </Box>
+
+        {/* Earned Badges Display */}
+        {earnedBadges.length > 0 && (
+          <Box sx={{ 
+            mt: 2, 
+            p: 2, 
+            borderRadius: 2, 
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            border: '1px solid rgba(255, 193, 7, 0.3)',
+            textAlign: 'center'
+          }}>
+            <Typography variant="h6" sx={{ 
+              fontWeight: 'bold', 
+              color: '#f57c00',
+              mb: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1
+            }}>
+              🏆 New Badges Earned!
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
+              {earnedBadges.map((badge, index) => (
+                <Box key={index} sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                  backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                  borderRadius: 1,
+                  padding: '8px 16px',
+                  border: '1px solid rgba(255, 193, 7, 0.5)',
+                  minWidth: 120,
+                  maxWidth: 180
+                }}>
+                  {badge.badgeImage && (
+                    <img src={badge.badgeImage} alt={badge.badgeName} style={{ width: 48, height: 48, objectFit: 'contain', marginBottom: 4 }} />
+                  )}
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#f57c00' }}>
+                    {badge.badgeName}
+                  </Typography>
+                  <Typography variant="caption" sx={{ 
+                    backgroundColor: '#f57c00', 
+                    color: 'white', 
+                    borderRadius: '50%', 
+                    width: 20, 
+                    height: 20, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 'bold',
+                    mb: 0.5
+                  }}>
+                    {badge.level + 1}
+                  </Typography>
+                  {badge.badgeDescription && (
+                    <Typography variant="caption" sx={{ color: '#333', mt: 0.5, textAlign: 'center' }}>
+                      {badge.badgeDescription}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
 
         <Box sx={quizStyles.progressBarContainer}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>

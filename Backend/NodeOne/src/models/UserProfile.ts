@@ -5,12 +5,14 @@ import mongoose, { Schema, Document } from 'mongoose';
 interface UserBadge {
   badgeId: Schema.Types.ObjectId;
   level: number;
+  userLevelSessionId: string;
   createdAt: Date;
 }
 
 const UserBadgeSchema = new Schema<UserBadge>({
   badgeId: { type: Schema.Types.ObjectId, ref: 'Badge', required: true },
   level: { type: Number, required: true },
+  userLevelSessionId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 }, { _id: false });
 

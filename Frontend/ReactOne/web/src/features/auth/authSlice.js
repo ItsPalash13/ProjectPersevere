@@ -53,7 +53,6 @@ export default authSlice.reducer;
 
 // Selectors
 export const selectCurrentUser = (state) => {
-  console.log('Auth state in selector:', state?.auth); // Debug log
   return state?.auth?.user || null;
 };
 export const selectIsAuthenticated = (state) => state?.auth?.isAuthenticated || false;

@@ -3,6 +3,9 @@ import { logger } from '../../utils/logger';
 import { UserLevelSession } from '../../models/UserLevelSession';
 import { Question } from '../../models/Questions';
 import { UserChapterLevel } from '../../models/UserChapterLevel';
+import { processBadgesAfterQuiz } from '../../utils/badgeprocessor';
+import { UserProfile } from '../../models/UserProfile';
+import Badge from '../../models/Badge';
 import axios from 'axios';
 
 // Extend Socket interface to include session tracking
@@ -41,7 +44,6 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       if (session.currentQuestion) {
         const question = await Question.findById(session.currentQuestion);
         if (question) {
-          console.log("question.topics", question.topics);
           currentQuestion = {
             ques: question.ques,
             options: question.options,
@@ -96,32 +98,53 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         userId: session.userId
       });
 
-          // Send final results to client
-    socket.emit('quizFinished', { 
-      message: response.data.message,
-      attemptType: session.attemptType,
-      ...(session.attemptType === 'time_rush' ? {
-        timeRush: {
-          currentXp: response.data.data.currentXp,
-          requiredXp: response.data.data.requiredXp,
-          maxXp: response.data.data.maxXp,
-          timeTaken: response.data.data.timeTaken,
-          percentile: response.data.data.percentile
+      // Process badges and fetch earned badges
+      await processBadgesAfterQuiz(userLevelSessionId);
+      const userProfile = await UserProfile.findOne({ userId: session.userId });
+      let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
+      if (userProfile && userProfile.badges) {
+        const sessionBadges = userProfile.badges.filter(b => b.userLevelSessionId === userLevelSessionId);
+        for (const badge of sessionBadges) {
+          const badgeDoc = await Badge.findById(badge.badgeId);
+          if (badgeDoc) {
+            earnedBadges.push({ 
+              badgeId: badge.badgeId.toString(), 
+              level: badge.level, 
+              badgeName: badgeDoc.badgeName,
+              badgeImage: badgeDoc.badgelevel?.[badge.level]?.badgeImage || '',
+              badgeDescription: badgeDoc.badgeDescription || ''
+            });
+          }
         }
-      } : {
-        precisionPath: {
-          currentXp: response.data.data.currentXp,
-          requiredXp: response.data.data.requiredXp,
-          timeTaken: response.data.data.timeTaken,
-          bestTime: response.data.data.bestTime,
-          percentile: response.data.data.percentile
-        }
-      }),
-      hasNextLevel: response.data.data.hasNextLevel,
-      nextLevelNumber: response.data.data.nextLevelNumber,
-      xpNeeded: response.data.data.xpNeeded
-    });
-    socket.disconnect();
+      }
+
+      // Send final results to client
+      socket.emit('quizFinished', { 
+        message: response.data.message,
+        attemptType: session.attemptType,
+        ...(session.attemptType === 'time_rush' ? {
+          timeRush: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            maxXp: response.data.data.maxXp,
+            timeTaken: response.data.data.timeTaken,
+            percentile: response.data.data.percentile
+          }
+        } : {
+          precisionPath: {
+            currentXp: response.data.data.currentXp,
+            requiredXp: response.data.data.requiredXp,
+            timeTaken: response.data.data.timeTaken,
+            bestTime: response.data.data.bestTime,
+            percentile: response.data.data.percentile
+          }
+        }),
+        hasNextLevel: response.data.data.hasNextLevel,
+        nextLevelNumber: response.data.data.nextLevelNumber,
+        xpNeeded: response.data.data.xpNeeded,
+        earnedBadges
+      });
+      socket.disconnect();
 
     } catch (error) {
       logger.error('Error ending quiz:', error);
@@ -175,6 +198,26 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         userId: session.userId
       });
 
+      // Process badges and fetch earned badges
+      await processBadgesAfterQuiz(userLevelSessionId);
+      const userProfile = await UserProfile.findOne({ userId: session.userId });
+      let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
+      if (userProfile && userProfile.badges) {
+        const sessionBadges = userProfile.badges.filter(b => b.userLevelSessionId === userLevelSessionId);
+        for (const badge of sessionBadges) {
+          const badgeDoc = await Badge.findById(badge.badgeId);
+          if (badgeDoc) {
+            earnedBadges.push({ 
+              badgeId: badge.badgeId.toString(), 
+              level: badge.level, 
+              badgeName: badgeDoc.badgeName,
+              badgeImage: badgeDoc.badgelevel?.[badge.level]?.badgeImage || '',
+              badgeDescription: badgeDoc.badgeDescription || ''
+            });
+          }
+        }
+      }
+
       // Send final results to client
       socket.emit('quizFinished', { 
         message: response.data.message,
@@ -198,7 +241,8 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         }),
         hasNextLevel: response.data.data.hasNextLevel,
         nextLevelNumber: response.data.data.nextLevelNumber,
-        xpNeeded: response.data.data.xpNeeded
+        xpNeeded: response.data.data.xpNeeded,
+        earnedBadges
       });
 
     } catch (error) {

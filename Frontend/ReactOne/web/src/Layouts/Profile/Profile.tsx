@@ -33,7 +33,7 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', p: 4 }}>
+    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'background.default', p: 4, boxSizing: 'border-box' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
         <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main', fontSize: 36 }}>
           {userInfo?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -55,7 +55,7 @@ const Profile: React.FC = () => {
       {/* Badges Section */}
       <Box sx={{ width: '100%', mt: 4 }}>
         <Typography variant="h5" fontWeight={600} gutterBottom>Badges</Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-start', alignItems: 'center', width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
           {badges.length === 0 && (
             <Typography color="text.secondary">No badges earned yet.</Typography>
           )}

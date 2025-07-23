@@ -13,9 +13,10 @@ interface UserProfileWithStreak extends UserProfileDocument {
  * @param userProfile UserProfileDocument (already fetched and up-to-date)
  * @param badge Daily Streak badge document (with badgelevel milestones)
  * @param quizDate Date when the quiz was completed (should be today)
+ * @param userLevelSessionId Session ID to tag the badge award
  * @returns Promise<boolean> true if badge was awarded/updated, false otherwise
  */
-export async function processDailyStreakBadge(userProfile: UserProfileDocument, badge: any, quizDate: Date): Promise<boolean> {
+export async function processDailyStreakBadge(userProfile: UserProfileDocument, badge: any, quizDate: Date, userLevelSessionId: string): Promise<boolean> {
   const profile = userProfile as UserProfileWithStreak;
   let updated = false;
   const lastDate = profile.lastAttemptDate ? new Date(profile.lastAttemptDate) : null;
@@ -54,6 +55,8 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
   const streak = profile.dailyAttemptsStreak;
   const badgeLevels = badge.badgelevel || [];
   let achievedLevel = -1;
+  console.log('[BadgeProcessor] badgeLevels:', JSON.stringify(badgeLevels));
+  console.log('[BadgeProcessor] streak:', streak);
   for (let i = badgeLevels.length - 1; i >= 0; i--) {
     console.log(`[BadgeProcessor] Checking milestone: ${badgeLevels[i].milestone} (level ${i})`);
     if (streak >= badgeLevels[i].milestone) {
@@ -62,21 +65,18 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
       break;
     }
   }
+  console.log('[BadgeProcessor] achievedLevel:', achievedLevel);
   if (achievedLevel >= 0) {
-    // Check if user already has this badge at this or higher level
-    const existing = profile.badges.find(b => b.badgeId.toString() === badge._id.toString());
-    if (!existing || existing.level < achievedLevel) {
-      if (existing) {
-        existing.level = achievedLevel;
-        existing.createdAt = new Date();
-        console.log(`[BadgeProcessor] Upgraded Daily Streak badge for user ${profile.userId} to level ${achievedLevel}`);
-      } else {
-        profile.badges.push({ badgeId: badge._id, level: achievedLevel, createdAt: new Date() });
-        console.log(`[BadgeProcessor] Awarded new Daily Streak badge for user ${profile.userId} at level ${achievedLevel}`);
-      }
+    // Check if this level for this badge and session has already been awarded
+    const alreadyAwarded = profile.badges.some(
+      b => b.badgeId.toString() === badge._id.toString() && b.level === achievedLevel && b.userLevelSessionId === userLevelSessionId
+    );
+    if (!alreadyAwarded) {
+      profile.badges.push({ badgeId: badge._id, level: achievedLevel, userLevelSessionId, createdAt: new Date() });
       updated = true;
+      console.log(`[BadgeProcessor] Appended new Daily Streak badge for user ${profile.userId} at level ${achievedLevel}`);
     } else {
-      console.log(`[BadgeProcessor] User ${profile.userId} already has Daily Streak badge at level ${existing.level}`);
+      console.log(`[BadgeProcessor] User ${profile.userId} already has Daily Streak badge at level ${achievedLevel} for this session`);
     }
   } else {
     console.log(`[BadgeProcessor] User ${profile.userId} streak (${streak}) did not reach any milestone.`);
@@ -95,13 +95,14 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
  * @param userLevelSessionId string
  */
 export async function processBadgesAfterQuiz(userLevelSessionId: string) {
+  console.log('[BadgeProcessor] --- processBadgesAfterQuiz ---');
   // Fetch session
   const session = await UserLevelSession.findById(userLevelSessionId);
-  if (!session) return;
+  if (!session) { console.log('[BadgeProcessor] No session found for', userLevelSessionId); return; }
 
   // Fetch user profile
   const userProfile = await UserProfile.findOne({ userId: session.userId });
-  if (!userProfile) return;
+  if (!userProfile) { console.log('[BadgeProcessor] No user profile found for', session.userId); return; }
 
   // Fetch all badges
   const allBadges = await Badge.find({});
@@ -110,8 +111,9 @@ export async function processBadgesAfterQuiz(userLevelSessionId: string) {
   const dailyStreakBadge = allBadges.find(b => b.badgeslug === 'ds_d');
   if (dailyStreakBadge) {
     console.log(`[BadgeProcessor] Processing Daily Streak badge for user ${userProfile.userId}`);
-    await processDailyStreakBadge(userProfile, dailyStreakBadge, new Date());
+    await processDailyStreakBadge(userProfile, dailyStreakBadge, new Date(), userLevelSessionId);
   }
 
   // TODO: Add logic for other badges (Topics Collector, Questions Solved)
+  console.log('[BadgeProcessor] --- End processBadgesAfterQuiz ---');
 }

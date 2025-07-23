@@ -2,17 +2,19 @@
 
 
 🎯 TODO Actual:-
-Badges and Colelctables
-Study UX Suggestions by GEMINI
+Add a the other 2 Badges and test (Badges should store in ULS and reveal at the end)
+Fix Issues with Quiz
 
 
 
 🎯 TODO Stage:-
+Study UX Suggestions by GEMINI
 Study Marks App
 Rethink Design - Sound - Feel - Gamify
 Thinking about Question based on category or levels(e.g. Formula used)
 Normal Distributions curves of - levels in admin unit management and, levels and units in chapter management  
 Solutions after quiz end
+
 
 
 ✅ Done:-

@@ -7,6 +7,9 @@ import { UserChapterLevel } from '../../models/UserChapterLevel';
 import { Level } from '../../models/Level';
 import { UserLevelSessionTopicsLogs } from '../../models/Performance/UserLevelSessionTopicsLogs';
 import { getSkewNormalRandom } from '../../utils/math';
+import { processBadgesAfterQuiz } from '../../utils/badgeprocessor';
+import { UserProfile } from '../../models/UserProfile';
+import Badge from '../../models/Badge';
 import axios from 'axios';
 
 // Helper function to replenish question bank
@@ -166,7 +169,6 @@ export const quizQuestionHandlers = (socket: Socket) => {
       
       const endTime = Date.now();
       const timeTaken = endTime - startTime;
-      console.log('timeTaken seconds to get question',timeTaken/1000);
 
     } catch (error) {
       logger.error('Error in question:', error);
@@ -333,6 +335,26 @@ export const quizQuestionHandlers = (socket: Socket) => {
             currentTime: currentTime
           });
 
+          // Process badges and fetch earned badges
+          await processBadgesAfterQuiz(userLevelSessionId);
+          const userProfile = await UserProfile.findOne({ userId: session.userId });
+          let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
+          if (userProfile && userProfile.badges) {
+            const sessionBadges = userProfile.badges.filter(b => b.userLevelSessionId === userLevelSessionId);
+            for (const badge of sessionBadges) {
+              const badgeDoc = await Badge.findById(badge.badgeId);
+              if (badgeDoc) {
+                earnedBadges.push({ 
+                  badgeId: badge.badgeId.toString(), 
+                  level: badge.level, 
+                  badgeName: badgeDoc.badgeName,
+                  badgeImage: badgeDoc.badgelevel?.[badge.level]?.badgeImage || '',
+                  badgeDescription: badgeDoc.badgeDescription || ''
+                });
+              }
+            }
+          }
+
           // Send final results to client
           socket.emit('quizFinished', { 
             message: response.data.message,
@@ -345,7 +367,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
             },
             hasNextLevel: response.data.data.hasNextLevel,
             nextLevelNumber: response.data.data.nextLevelNumber,
-            xpNeeded: response.data.data.xpNeeded
+            xpNeeded: response.data.data.xpNeeded,
+            earnedBadges
           });
           socket.disconnect();
         }
@@ -356,6 +379,26 @@ export const quizQuestionHandlers = (socket: Socket) => {
           userId: session.userId,
           currentTime: currentTime
         });
+
+        // Process badges and fetch earned badges
+        await processBadgesAfterQuiz(userLevelSessionId);
+        const userProfile = await UserProfile.findOne({ userId: session.userId });
+        let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
+        if (userProfile && userProfile.badges) {
+          const sessionBadges = userProfile.badges.filter(b => b.userLevelSessionId === userLevelSessionId);
+          for (const badge of sessionBadges) {
+            const badgeDoc = await Badge.findById(badge.badgeId);
+            if (badgeDoc) {
+              earnedBadges.push({ 
+                badgeId: badge.badgeId.toString(), 
+                level: badge.level, 
+                badgeName: badgeDoc.badgeName,
+                badgeImage: badgeDoc.badgelevel?.[badge.level]?.badgeImage || '',
+                badgeDescription: badgeDoc.badgeDescription || ''
+              });
+            }
+          }
+        }
 
         // Send final results to client
         socket.emit('quizFinished', { 
@@ -370,7 +413,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           },
           hasNextLevel: response.data.data.hasNextLevel,
           nextLevelNumber: response.data.data.nextLevelNumber,
-          xpNeeded: response.data.data.xpNeeded
+          xpNeeded: response.data.data.xpNeeded,
+          earnedBadges
         });
         socket.disconnect();
       }
