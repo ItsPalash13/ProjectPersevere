@@ -524,6 +524,17 @@
           attemptType: session.attemptType
         });
 
+         // Before processing badges, merge uniqueTopics from session into user profile
+         if (session.uniqueTopics && Array.isArray(session.uniqueTopics)) {
+          const userProfile = await UserProfile.findOne({ userId });
+          if (userProfile) {
+            const profileTopics = (userProfile.uniqueTopics || []).map((t: any) => t.toString());
+            const sessionTopics = session.uniqueTopics.map((t: any) => t.toString());
+            const allTopicsSet = new Set([...profileTopics, ...sessionTopics]);
+            userProfile.uniqueTopics = Array.from(allTopicsSet);
+            await userProfile.save();
+          }
+        }
 
 
         // Phase 2: Set status to 1 for all session topic logs for this session TODAY
@@ -647,6 +658,7 @@
               userId
             );
 
+            // Now process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
             // Delete the session

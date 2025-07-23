@@ -7,10 +7,11 @@ import { UserChapterLevel } from '../../models/UserChapterLevel';
 import { Level } from '../../models/Level';
 import { UserLevelSessionTopicsLogs } from '../../models/Performance/UserLevelSessionTopicsLogs';
 import { getSkewNormalRandom } from '../../utils/math';
-import { processBadgesAfterQuiz } from '../../utils/badgeprocessor';
+
 import { UserProfile } from '../../models/UserProfile';
 import Badge from '../../models/Badge';
 import axios from 'axios';
+import mongoose from 'mongoose';
 
 // Helper function to replenish question bank
 const replenishQuestionBank = async (session: any, level: any) => {
@@ -207,6 +208,17 @@ export const quizQuestionHandlers = (socket: Socket) => {
 
       const isCorrect = answer === question.correct;
       
+      // Update uniqueTopics in session
+      if (question.topics && Array.isArray(question.topics)) {
+        const topicIds = question.topics.map(topic => topic.id.toString());
+        // Combine existing and new topic IDs, ensure uniqueness using Set
+        const allTopicIds = new Set([
+          ...((session.uniqueTopics || []).map(id => id.toString())),
+          ...topicIds
+        ]);
+        session.uniqueTopics = Array.from(allTopicIds).map(id => new mongoose.Types.ObjectId(id));
+      }
+
       // Log time spent on this question
 
       // Phase 1: Create/Update UserLevelSessionTopicsLogs
@@ -274,7 +286,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
       } else {
         session.questionsAnswered.incorrect.push(session.currentQuestion);
       }
-      
+      ``
       // Clear current question and increment index
       session.currentQuestion = null;
       session.currentQuestionIndex = (session.currentQuestionIndex || 0) + 1;
@@ -336,7 +348,6 @@ export const quizQuestionHandlers = (socket: Socket) => {
           });
 
           // Process badges and fetch earned badges
-          await processBadgesAfterQuiz(userLevelSessionId);
           const userProfile = await UserProfile.findOne({ userId: session.userId });
           let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
           if (userProfile && userProfile.badges) {
@@ -381,7 +392,6 @@ export const quizQuestionHandlers = (socket: Socket) => {
         });
 
         // Process badges and fetch earned badges
-        await processBadgesAfterQuiz(userLevelSessionId);
         const userProfile = await UserProfile.findOne({ userId: session.userId });
         let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
         if (userProfile && userProfile.badges) {

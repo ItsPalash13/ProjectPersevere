@@ -114,6 +114,67 @@ export async function processBadgesAfterQuiz(userLevelSessionId: string) {
     await processDailyStreakBadge(userProfile, dailyStreakBadge, new Date(), userLevelSessionId);
   }
 
-  // TODO: Add logic for other badges (Topics Collector, Questions Solved)
+  // Process Topics Collector badge (slug: 'tc_g')
+  const topicsCollectorBadge = allBadges.find(b => b.badgeslug === 'tc_g');
+  if (topicsCollectorBadge) {
+    console.log(`[BadgeProcessor] Processing Topics Collector badge for user ${userProfile.userId}`);
+    await processUniqueTopicsBadge(userProfile, topicsCollectorBadge, session, userLevelSessionId);
+  }
+
+  // TODO: Add logic for other badges (Questions Solved)
   console.log('[BadgeProcessor] --- End processBadgesAfterQuiz ---');
+}
+
+export async function processUniqueTopicsBadge(
+  userProfile: UserProfileDocument,
+  badge: any,
+  userLevelSession: any,
+  userLevelSessionId: string
+): Promise<boolean> {
+  let updated = false;
+  // Only use userProfile.uniqueTopics (already merged in /end route)
+  const uniqueTopicsCount = (userProfile.uniqueTopics || []).length;
+  const badgeLevels = badge.badgelevel || [];
+  let achievedLevel = -1;
+
+  console.log('[BadgeProcessor] --- Unique Topics Badge Processing ---');
+  console.log('[BadgeProcessor] User:', userProfile.userId);
+  console.log('[BadgeProcessor] uniqueTopicsCount:', uniqueTopicsCount);
+  console.log('[BadgeProcessor] badgeLevels:', JSON.stringify(badgeLevels));
+
+  for (let i = badgeLevels.length - 1; i >= 0; i--) {
+    if (uniqueTopicsCount >= badgeLevels[i].milestone) {
+      achievedLevel = i;
+      break;
+    }
+  }
+  console.log('[BadgeProcessor] achievedLevel:', achievedLevel);
+
+  if (achievedLevel >= 0) {
+    const alreadyAwarded = userProfile.badges.some(
+      b => b.badgeId.toString() === badge._id.toString() &&
+           b.level === achievedLevel &&
+           b.userLevelSessionId === userLevelSessionId
+    );
+    if (!alreadyAwarded) {
+      userProfile.badges.push({
+        badgeId: badge._id,
+        level: achievedLevel,
+        userLevelSessionId,
+        createdAt: new Date()
+      });
+      updated = true;
+      console.log(`[BadgeProcessor] Appended new Unique Topics badge for user ${userProfile.userId} at level ${achievedLevel}`);
+    } else {
+      console.log(`[BadgeProcessor] User ${userProfile.userId} already has Unique Topics badge at level ${achievedLevel} for this session`);
+    }
+  } else {
+    console.log(`[BadgeProcessor] User ${userProfile.userId} uniqueTopicsCount (${uniqueTopicsCount}) did not reach any milestone.`);
+  }
+  if (updated) {
+    await userProfile.save();
+    console.log('[BadgeProcessor] UserProfile badges after save:', JSON.stringify(userProfile.badges, null, 2));
+  }
+  console.log('[BadgeProcessor] --- End Unique Topics Badge Processing ---');
+  return updated;
 }

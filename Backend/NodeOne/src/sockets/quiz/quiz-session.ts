@@ -2,8 +2,7 @@ import { Socket } from 'socket.io';
 import { logger } from '../../utils/logger';
 import { UserLevelSession } from '../../models/UserLevelSession';
 import { Question } from '../../models/Questions';
-import { UserChapterLevel } from '../../models/UserChapterLevel';
-import { processBadgesAfterQuiz } from '../../utils/badgeprocessor';
+
 import { UserProfile } from '../../models/UserProfile';
 import Badge from '../../models/Badge';
 import axios from 'axios';
@@ -99,7 +98,6 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       });
 
       // Process badges and fetch earned badges
-      await processBadgesAfterQuiz(userLevelSessionId);
       const userProfile = await UserProfile.findOne({ userId: session.userId });
       let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
       if (userProfile && userProfile.badges) {
@@ -199,7 +197,6 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       });
 
       // Process badges and fetch earned badges
-      await processBadgesAfterQuiz(userLevelSessionId);
       const userProfile = await UserProfile.findOne({ userId: session.userId });
       let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
       if (userProfile && userProfile.badges) {
