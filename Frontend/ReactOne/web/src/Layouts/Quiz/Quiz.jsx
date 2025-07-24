@@ -348,6 +348,7 @@ const Quiz = ({ socket }) => {
 
     socket.on('question', (data) => {
       console.log("Received question:", data);
+      setAnswerResult(null);
       setCurrentQuestion(data);
       setSelectedAnswer('');
       setIsLoading(false);
@@ -593,6 +594,11 @@ const Quiz = ({ socket }) => {
     );
   };
 
+  const sendQuizEnd = (userLevelSessionId) => {
+    socket.emit('sendQuizEnd', { userLevelSessionId: userLevelSessionId });
+    setShowError(false);
+  };
+
   return (
       <QuizContainer>
         <QuizHeader>
@@ -767,11 +773,10 @@ const Quiz = ({ socket }) => {
               variant="outlined"
               onClick={() => {
                 setShowCongrats(false);
-                confirmEndQuiz();
-                navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
+                confirmEndQuiz(); // End the level
               }}
             >
-              Back to Levels
+              End Level
             </StyledButton>
             <StyledButton
               variant="contained"

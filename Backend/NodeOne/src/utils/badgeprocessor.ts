@@ -151,10 +151,10 @@ export async function processUniqueTopicsBadge(
   console.log('[BadgeProcessor] achievedLevel:', achievedLevel);
 
   if (achievedLevel >= 0) {
+    // Check if this level for this badge has already been awarded for any session
     const alreadyAwarded = userProfile.badges.some(
       b => b.badgeId.toString() === badge._id.toString() &&
-           b.level === achievedLevel &&
-           b.userLevelSessionId === userLevelSessionId
+           b.level === achievedLevel
     );
     if (!alreadyAwarded) {
       userProfile.badges.push({
@@ -166,7 +166,7 @@ export async function processUniqueTopicsBadge(
       updated = true;
       console.log(`[BadgeProcessor] Appended new Unique Topics badge for user ${userProfile.userId} at level ${achievedLevel}`);
     } else {
-      console.log(`[BadgeProcessor] User ${userProfile.userId} already has Unique Topics badge at level ${achievedLevel} for this session`);
+      console.log(`[BadgeProcessor] User ${userProfile.userId} already has Unique Topics badge at level ${achievedLevel} (any session)`);
     }
   } else {
     console.log(`[BadgeProcessor] User ${userProfile.userId} uniqueTopicsCount (${uniqueTopicsCount}) did not reach any milestone.`);

@@ -2,18 +2,22 @@
 
 
 🎯 TODO Actual:-
-Add a the other 2 Badges and test (Badges should store in ULS and reveal at the end)
-Fix Issues with Quiz
+Fix Issue with Performance - Thrusay
+Fix Issues with Quiz - Thursday
+Solutions after quiz end - Thrusday
+Questions Based on Texonomy - Research - Thrusday
+List Down MVP Features - Always
+Rethink Design - Sound - Feel - Gamify 
 
 
 
 🎯 TODO Stage:-
 Study UX Suggestions by GEMINI
 Study Marks App
-Rethink Design - Sound - Feel - Gamify
-Thinking about Question based on category or levels(e.g. Formula used)
+Smooth Question Adding system
+Countup xps should show after level end
+Scope of AI
 Normal Distributions curves of - levels in admin unit management and, levels and units in chapter management  
-Solutions after quiz end
 
 
 

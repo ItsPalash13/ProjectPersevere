@@ -1,9 +1,9 @@
 cd Services; .\nenv\bin\activate; python daily_aggregation.py
 
-cd Backend
+cd Backend\nodeone
 .\nenv\Scripts\activate
 npm run dev
 
-cd Frontend
+cd Frontend\reactone
 .\nenv\Scripts\activate
 npm run dev

@@ -363,12 +363,12 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
                   />
                   <XAxis 
                     dataKey={isSessionView ? "sessionNumber" : "date"} 
-                    stroke={themeColors.text.secondary}
-                    tick={{ fill: themeColors.text.secondary }}
+                    stroke={typeof themeColors.text.secondary === 'string' ? themeColors.text.secondary : '#888'}
+                    tick={{ fill: typeof themeColors.text.secondary === 'string' ? themeColors.text.secondary : '#888' }}
                   />
                   <YAxis 
-                    stroke={themeColors.text.secondary}
-                    tick={{ fill: themeColors.text.secondary }}
+                    stroke={typeof themeColors.text.secondary === 'string' ? themeColors.text.secondary : '#888'}
+                    tick={{ fill: typeof themeColors.text.secondary === 'string' ? themeColors.text.secondary : '#888' }}
                   />
                   <Tooltip 
                     formatter={(value) => [`${value}%`, 'Accuracy']}
@@ -410,9 +410,9 @@ const Performance: React.FC<PerformanceProps> = ({ chapterId, unitId, mode = 'ch
                   <Line 
                     type="monotone" 
                     dataKey="accuracy" 
-                    stroke={themeColors.ui.topicPrimary} 
+                    stroke={typeof themeColors.ui.topicPrimary === 'string' ? themeColors.ui.topicPrimary : '#3B82F6'} 
                     strokeWidth={3} 
-                    dot={{ r: 5, fill: themeColors.ui.topicPrimary }} 
+                    dot={{ r: 5, fill: typeof themeColors.ui.topicPrimary === 'string' ? themeColors.ui.topicPrimary : '#3B82F6' }} 
                   />
                 </LineChart>
               </ResponsiveContainer>

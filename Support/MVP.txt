@@ -1,0 +1,15 @@
+MVP Commmit ✅:-
+Time Rush 
+Precision Path 
+Health
+Question Streaks gives extra xp 
+Daily Quiz Streak (Under dev: add icon on top)
+Sound 
+UX
+Histogram
+
+
+Stage:- 
+Badges?(Top 3 badges I should keep(DailyQuizStreakBadge aalready implemented))
+Stats?
+XPs?(What types Xps to have)
