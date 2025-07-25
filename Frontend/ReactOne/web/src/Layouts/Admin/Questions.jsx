@@ -38,6 +38,7 @@ import {
   useGetChaptersQuery,
   useGetTopicsQuery
 } from '../../features/api/adminAPI';
+import { saveAs } from 'file-saver';
 
 const Questions = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -267,18 +268,22 @@ const Questions = () => {
       const parsedQuestions = lines.map(line => {
         const parts = parseCSVLine(line);
         if (parts.length < 8) {
-          throw new Error(`Invalid format. Each line should have: /question/,option1,option2,option3,option4,correctIndex,mu,sigma`);
+          throw new Error(`Invalid format. Each line should have: /\"question\"/,/\"option1\"/,/\"option2\"/,/\"option3\"/,/\"option4\"/,correctIndex,mu,sigma`);
         }
         
-        const [question, option1, option2, option3, option4, correctIndex, mu, sigma] = parts;
-        
-        // Remove quotes from options before sending to backend
-        const cleanOption1 = option1.replace(/^"|"$/g, '');
-        const cleanOption2 = option2.replace(/^"|"$/g, '');
-        const cleanOption3 = option3.replace(/^"|"$/g, '');
-        const cleanOption4 = option4.replace(/^"|"$/g, '');
-        
-        return [question, cleanOption1, cleanOption2, cleanOption3, cleanOption4, parseInt(correctIndex), parseFloat(mu), parseFloat(sigma)];
+        let [question, option1, option2, option3, option4, correctIndex, mu, sigma] = parts;
+        // Ensure question and options are wrapped as /"..."/
+        const wrapSlashQuote = (str) => {
+          str = str.trim();
+          if (!str.startsWith('/"')) str = '/"' + str.replace(/^\/|^"|^/g, '').replace(/"\/$/, '').replace(/"$/, '').replace(/\/$/, '') + '"/';
+          return str;
+        };
+        question = wrapSlashQuote(question);
+        option1 = wrapSlashQuote(option1.replace(/^"|"$/g, ''));
+        option2 = wrapSlashQuote(option2.replace(/^"|"$/g, ''));
+        option3 = wrapSlashQuote(option3.replace(/^"|"$/g, ''));
+        option4 = wrapSlashQuote(option4.replace(/^"|"$/g, ''));
+        return [question, option1, option2, option3, option4, parseInt(correctIndex), parseFloat(mu), parseFloat(sigma)];
       });
 
       await multiAddQuestions({
@@ -300,6 +305,48 @@ const Questions = () => {
     } catch (error) {
       console.error('Error multi-adding questions:', error);
     }
+  };
+
+  // Helper to escape CSV fields
+  const escapeCSV = (value) => {
+    if (value == null) return '';
+    const str = String(value);
+    if (str.includes('"')) {
+      // Escape quotes by doubling them
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    if (str.includes(',') || str.includes('\n') || str.includes('\r')) {
+      return '"' + str + '"';
+    }
+    return str;
+  };
+
+  // Helper to convert filtered questions to CSV
+  const downloadFilteredQuestionsCSV = () => {
+    if (!filteredQuestions.length) return;
+    const csvRows = filteredQuestions.map(q => {
+      // Compose the /"question"/ part
+      const question = escapeCSV(`/"${q.ques}"/`);
+      // Options (ensure 4, each wrapped as /"option"/)
+      const options = (q.options || []).map(opt => escapeCSV(`/"${opt}"/`)).slice(0, 4);
+      while (options.length < 4) options.push(escapeCSV('/""/'));
+      // Correct index
+      const correctIndex = escapeCSV(q.correct);
+      // Mu and Sigma
+      const mu = escapeCSV(q.questionTs?.difficulty?.mu ?? '');
+      const sigma = escapeCSV(q.questionTs?.difficulty?.sigma ?? '');
+      // Topics as JSON array of topic names
+      const topicsArr = (q.topics || []).map(t => t.name || t.topic || '').filter(Boolean);
+      const topicsJson = escapeCSV(JSON.stringify(topicsArr));
+      // Join all fields
+      return [question, ...options, correctIndex, mu, sigma, topicsJson].join(',');
+    });
+    // Add header
+    const header = '/question/,option1,option2,option3,option4,correctIndex,mu,sigma,topics';
+    const csvContent = [header, ...csvRows].join('\n');
+    // Download as file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'filtered_questions.csv');
   };
 
   const columns = [
@@ -471,6 +518,14 @@ const Questions = () => {
         >
           Multi Add
         </Button>
+        <Button
+          variant="outlined"
+          onClick={downloadFilteredQuestionsCSV}
+          disabled={filteredQuestions.length === 0}
+          sx={{ ml: 1 }}
+        >
+          Download CSV
+        </Button>
         {selectedRows.length > 0 && (
           <Button
             variant="contained"
@@ -616,7 +671,7 @@ const Questions = () => {
         <DialogTitle>Multi Add Questions</DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
-            Format: /question/,option1,option2,option3,option4,correctIndex,mu,sigma (one per line)
+            Format: /"question"/,/"option1"/,/"option2"/,/"option3"/,/"option4"/,correctIndex,mu,sigma (one per line)
           </Alert>
           
           <Grid container spacing={2}>
@@ -628,7 +683,7 @@ const Questions = () => {
                 rows={10}
                 value={multiAddData.questions}
                 onChange={(e) => setMultiAddData({ ...multiAddData, questions: e.target.value })}
-                placeholder="Format: /question/,option1,option2,option3,option4,correctIndex,mu,sigma"
+                placeholder={'Format: /"question"/,/"option1"/,/"option2"/,/"option3"/,/"option4"/,correctIndex,mu,sigma'}
               />
             </Grid>
 
@@ -702,7 +757,7 @@ const Questions = () => {
                 </TableContainer>
                 {csvPreviewData.some(row => !row.isValid) && (
                   <Alert severity="warning" sx={{ mt: 1 }}>
-                    Some rows have invalid format. Each row should have: /question/,option1,option2,option3,option4,correctIndex,mu,sigma
+                    Some rows have invalid format. Each row should have: /"question"/,/"option1"/,/"option2"/,/"option3"/,/"option4"/,correctIndex,mu,sigma
                   </Alert>
                 )}
               </Grid>

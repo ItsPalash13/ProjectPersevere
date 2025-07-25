@@ -208,3 +208,27 @@ L2: Binomial & Geometric Distributions
 L3: Combinatorics in Probability
 
 L4: Multi-step Word Problems & Final Challenges
+
+
+✔️ Skill Features That Work Well in Probability:
+Feature	Applies to Probability?	How
+✅ direct_formula_use	✅	Use of P(A) = favorable/total, P(A ∪ B) = P(A) + P(B) - P(A ∩ B), etc.
+✅ factual_recall_only	✅	Definitions: mutually exclusive, independent, etc.
+✅ algebraic_manipulation	✅	Solving equations involving P(A ∩ B) = P(A)·P(B
+✅ multi_step_reasoning	✅	Use of total probability + conditional or multiple case work
+✅ conceptual_choice	✅	Whether to use complement, Bayes, binomial, etc.
+✅ multi_formula_linking	✅	P(A ∪ B) with inclusion-exclusion + Venn interpretation
+✅ combined_concepts	✅	Combinatorics + conditional probability, Pascal’s triangle in binomial setting
+✅ reverse_thinking	✅	Infer favorable cases from options, or inverse logic in Bayes
+✅ trap_or_misconception	✅	Confusing disjoint vs. independent, or misapplying replacement logic
+✅ option_elimination_required	✅	Use dimensionality, pattern, logic
+✅ approximation_or_assumption	⚠️ (Rare)	May appear in word problems where small probabilities are ignored
+✅ boundary_case_check	✅	Probability as n→∞, or events with P = 0 or P = 1
+✅ simple_diagram_interpretation	✅	Venn diagrams or sample spaces
+✅ simple_graph_interpretation	✅	Could be relevant for discrete vs. continuous distributions (binomial curves)
+✅ graph_sketching_required	⚠️ (Rare)	Possible in distributions (binomial, geometric)
+✅ deep_conceptual	✅	Why mutually exclusive ≠ independent; interpretation of expected value/variance
+✅ frame_of_reference_change	⚠️ (Not relevant)	This is primarily physics-based
+✅ unit_conversion	❌	Not applicable in probability
+✅ reaction_mechanism_reasoning	❌	Specific to chemistry
+✅ graphical_derivation	❌	Rare in probability, unless using visual proof from bar graph or area

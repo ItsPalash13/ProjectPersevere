@@ -14,9 +14,7 @@ Topics → Granular knowledge components (e.g., "Mutually Exclusive Events")
 
 Each chapter is divided into units, and each unit contains MCQs tagged with topics and difficulty levels.
 
-Levels can be of 2 types
-⏱️ Time Rush Mode
-"Beat the clock, hit the target, and go for glory."
+
 
 🎮 Gameplay Summary:
 User is given a target XP score (say, 300 XP)
@@ -27,17 +25,10 @@ Finishing before the timer
 Answering consecutively correct (streaks)
 
 
+Levels can be of 2 types
+⏱️ Time Rush Mode
+"Beat the clock, hit the target, and go for glory."
+
 🎯 Precision Path Mode // Needs Revision
-"Every second counts. Reach the XP target in the fewest moves possible."
+"Every second counts. Reach the XP target in the given fixed number of questions."
 
-🎮 Gameplay Summary:
-Goal: Score a target XP (e.g., 300 XP)
-No time limit
-Your time per question is tracked silently
-You are judged by:
-Total time taken
-Number of questions used
-XP earned per attempt
-
-
-We need to keep levels solid and concise sometimes with units covers broder topics
