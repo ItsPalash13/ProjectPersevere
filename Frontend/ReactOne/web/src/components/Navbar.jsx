@@ -28,6 +28,7 @@ import {
   Palette as PaletteIcon,
   Favorite as HealthIcon,
   Star as XpIcon,
+  Whatshot as StreakIcon,
 } from '@mui/icons-material';
 import { authClient } from '../lib/auth-client';
 import { useDispatch } from 'react-redux';  
@@ -193,6 +194,21 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                     }
                   }}
                 />
+                {session?.user?.dailyAttemptsStreak !== undefined && (
+                  <Chip
+                    icon={<StreakIcon />}
+                    label={`${session.user.dailyAttemptsStreak}`}
+                    size="small"
+                    sx={{
+                      backgroundColor: '#ff5722',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      '& .MuiChip-icon': {
+                        color: 'white',
+                      }
+                    }}
+                  />
+                )}
               </Box>
               
               {/* Notifications Bell */}

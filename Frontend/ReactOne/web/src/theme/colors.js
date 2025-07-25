@@ -199,8 +199,8 @@ export const colors = {
     },
     dark: {
       // Topic chips and badges
-      topicPrimary: '#60A5FA', // Lighter blue for dark mode
-      topicSecondary: '#34D399', // Lighter green for dark mode
+      topicPrimary: '#3B82F6', // Lighter blue for dark mode
+      topicSecondary: '#10B981', // Lighter green for dark mode
       topicAccent: '#FBBF24', // Lighter amber for dark mode
       
       // Buttons and interactive elements

@@ -26,7 +26,8 @@ export const getAuth = async () => {
                           user: {
                             ...user,
                             health: userProfile.health,
-                            totalXp: userProfile.totalXp
+                            totalXp: userProfile.totalXp,
+                            dailyAttemptsStreak: userProfile.dailyAttemptsStreak
                           },
                           session
                         };

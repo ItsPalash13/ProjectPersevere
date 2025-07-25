@@ -1,0 +1,75 @@
+📌 Core Idea:
+A single well-constructed JEE question often:
+
+Pulls concepts from multiple topics (e.g., SHM + Friction + Energy),
+
+Tests various depths of thinking, from recall to creative synthesis (i.e., Bloom’s Taxonomy levels 1 to 6).
+
+🎓 Detailed Breakdown of the 6 Bloom’s Taxonomy Levels (Adapted for JEE)
+Level	What it Tests (JEE Context)	Example Skill
+1. Remembering	Recall basic facts, formulas, constants, or definitions.	- State Coulomb’s Law.
+- Recall the formula for the nth term of an AP.
+- Identify hybridization of C in CH₄.
+2. Understanding	Interpret or explain concepts, diagrams, or physical setups.	- Explain what a velocity-time graph implies.
+- Describe the effect of a dielectric in a capacitor.
+- Understand limiting reagent.
+3. Applying	Use known formulas and techniques to solve straightforward, familiar problems.	- Use Gauss’s law to find electric field.
+- Apply kinematics equations.
+- Use molarity equation to find concentration.
+4. Analyzing	Break down complex systems, identify patterns, and connect ideas across topics.	- Decompose forces on an inclined plane.
+- Break a function into parts to check continuity.
+- Compare reaction pathways.
+5. Evaluating	Make decisions, compare solution methods, check reasonableness, or judge feasibility.	- Choose between different circuit arrangements.
+- Compare integration methods.
+- Determine if a reaction is thermodynamically feasible.
+6. Creating	Combine knowledge from multiple areas to derive, prove, design, or propose something new.	- Derive the equation of motion under non-uniform acceleration.
+- Design an experiment to verify Ohm’s law.
+- Propose a synthetic route in organic chemistry.
+
+🧩 Example (Physics)
+Question: A block attached to a spring on a rough horizontal surface is compressed and released. Derive how far it moves before coming to rest, and find the condition under which it won’t return to equilibrium.
+
+Taxonomy Breakdown:
+
+Remembering: Recall 
+𝐹
+=
+−
+𝑘
+𝑥
+F=−kx, 
+𝑓
+𝑘
+=
+𝜇
+𝑘
+𝑁
+f 
+k
+​
+ =μ 
+k
+​
+ N (Topics: SHM, Friction)
+
+Understanding: Understand conversion of potential energy to work (Topic: Energy)
+
+Applying: Calculate max distance using energy conservation (Topic: Work)
+
+Analyzing: Break motion into spring and friction effects (Topics: SHM + Damping)
+
+Evaluating: Decide the critical condition for motion to stop (Topic: Threshold Analysis)
+
+Creating: Derive generalized formula involving 
+𝑘
+,
+𝜇
+𝑘
+,
+𝑚
+,
+𝑥
+k,μ 
+k
+​
+ ,m,x (Topic: Mixed Mechanics)

@@ -1,0 +1,114 @@
+✅ Common Feature Tags (Across All Subjects)
+Feature	Type	Description
+direct_formula_use	Boolean	Requires only plugging into standard formula
+multi_formula_linking	Boolean	Requires combining 2+ formulas, even from same topic
+algebraic_manipulation	Boolean	Requires solving, substituting, simplifying
+multi_step_reasoning	Boolean	At least 2+ logical/computational steps to answer
+boundary_case_check	Boolean	Test behavior at extremes (x → 0, x → ∞, etc.)
+graphical_reasoning	Boolean	Interpretation or deduction using a graph
+unit_conversion	Boolean	Includes dimensional/unit conversions
+conceptual_choice	Boolean	Tests concept selection, not just computation
+trap_or_misconception	Boolean	Question built around common misconception
+option_elimination_required	Boolean	Requires eliminating wrong options logically
+
+🧪 Chemistry-Specific Features
+Feature	Type	Example Description
+reaction_mechanism_reasoning	Boolean	Reason through organic reaction steps
+mole_concept_calculation	Boolean	Uses mole-mass-number conversions
+periodic_trend_application	Boolean	Uses trends (size, ionization energy, EN, etc.)
+hybridization_prediction	Boolean	Deduce hybridization from structure
+thermochemical_data_use	Boolean	Use enthalpy/entropy/ΔG data
+chemical_equilibrium_logic	Boolean	Requires using Le Chatelier’s principle or K_eq shifts
+naming_or_structure	Boolean	IUPAC naming or converting name ↔ structure
+
+📐 Math-Specific Features
+Feature	Type	Example Description
+pure_algebra	Boolean	Involves factorization, identities, equation solving
+graph_sketching	Boolean	Draw/interpret curves of functions
+calculus_application	Boolean	Application of derivatives/integrals
+standard_theorem_use	Boolean	Uses well-known theorems (e.g., Rolle's, AM ≥ GM)
+coordinate_geometry_logic	Boolean	Reasoning through lines, slopes, intersections
+sequence_series_logic	Boolean	Apply AP/GP/HP formulas and sum logic
+complex_number_reasoning	Boolean	Use modulus-argument form, conjugate geometry
+probability_logic	Boolean	Involves event space, counting, combinations
+
+🧲 Physics-Specific Features
+Feature	Type	Example Description
+free_body_diagram_required	Boolean	Needs drawing/imagining forces
+energy_method_choice	Boolean	Choosing energy over Newton’s laws (or vice versa)
+frame_of_reference_change	Boolean	Switching inertial frames
+graph_interpretation	Boolean	Velocity-time, acceleration-displacement, etc.
+approximation_or_assumption	Boolean	Uses small angle approx, ideal gas law, etc.
+unit_dimensional_analysis	Boolean	Use of dimensions to check or derive formula
+combined_concepts	Boolean	Involves two big ideas, like NLM + SHM, or Capacitors + Energy
+
+
+🧭 Feature-Based Learning Progression (Universal Order)
+Stage	Skill Feature	Why It Comes Here	Example
+1	direct_formula_use	Easiest entry point — plug-and-play problems	Use 
+𝐹
+=
+𝑚
+𝑎
+F=ma directly to find force
+2	factual_recall_only	Tests memory: constants, laws, names, etc.	Avogadro’s number, Bohr’s postulates
+3	unit_conversion	Essential tool, not conceptually heavy	Convert J to eV, m/s to km/h
+4	algebraic_manipulation	Core math skill, used in all subjects	Solve 
+𝑠
+=
+𝑢
+𝑡
++
+1
+2
+𝑎
+𝑡
+2
+s=ut+ 
+2
+1
+​
+ at 
+2
+  for 
+𝑡
+t
+5	simple_diagram_interpretation	Visual setups, basic geometry of physical systems	Force direction in inclined plane
+6	simple_graph_interpretation	Read & understand linear/nonlinear graphs	Velocity-time graphs, atomic radius trends
+7	multi_step_reasoning	Chain steps to reach result — builds discipline	Use SHM + energy conservation
+8	conceptual_choice	Choose correct approach based on concept	Should I use Newton’s Law or energy method?
+9	reaction_mechanism_reasoning	Step-wise logic in Chem, organic/inorganic	Nucleophilic substitution mechanism
+10	multi_formula_linking	Combine concepts or formulas	Bernoulli + Continuity in fluid mechanics
+11	boundary_case_check	Requires thinking about edge conditions	What happens as time → 0?
+12	combined_concepts	SHM + friction, Thermo + electrochemistry, etc.	Springs + inclined plane with friction
+13	reverse_thinking	Working backward from answer or option	Eliminate impossible values from options
+14	graph_sketching_required	Not just interpreting, but building graphs	Sketch ( f(x) =
+15	approximation_or_assumption	Use small angle, ignore air resistance, etc.	Use 
+sin
+⁡
+𝜃
+≈
+𝜃
+sinθ≈θ
+16	trap_or_misconception	Designed to test common errors	Misapplying KVL in open circuit; wrong sign in SHM
+17	frame_of_reference_change	Higher-order reasoning — depends on abstraction	Relative motion between train and ground
+18	deep_conceptual	Requires inner understanding, not memorization	Why is entropy zero at absolute zero?
+19	option_elimination_required	Purely strategic — pick answer logically, not fully compute	Identify dimensional inconsistency
+20	graphical_derivation	Build equation from graph geometry	Area under curve = work done
+
+🧠 Optional: Layered Skill Tiers (For UI, XP, and Unlocking)
+Tier	Type	Features Included
+Tier 1	Basic Computation	direct_formula_use, factual_recall_only, unit_conversion, algebraic_manipulation
+Tier 2	Basic Reasoning	diagram_interpretation, simple_graph_interpretation, conceptual_choice
+Tier 3	Intermediate Logic	multi_step_reasoning, multi_formula_linking, boundary_case_check, reaction_mechanism_reasoning
+Tier 4	Advanced Thinking	approximation_or_assumption, trap_or_misconception, combined_concepts, frame_of_reference_change
+Tier 5	Expert/Shortcut	reverse_thinking, option_elimination_required, graph_sketching_required, deep_conceptual
+
+ For Your App: Implementation Ideas
+Tag each question with multiple of these features.
+
+Group XP rewards or unlock levels based on feature tiers (not just chapters).
+
+Track student weakness not just by topic but by feature — e.g., “strong in formulas, weak in multi-step reasoning.”
+
+Allow smart adaptive review: "You missed 3 questions involving reverse_thinking – here’s a practice set for that."

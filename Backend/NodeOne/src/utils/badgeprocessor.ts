@@ -21,7 +21,10 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
   let updated = false;
   const lastDate = profile.lastAttemptDate ? new Date(profile.lastAttemptDate) : null;
   const today = new Date(quizDate);
-  today.setHours(0,0,0,0);
+  // Normalize both dates to UTC midnight
+  if (lastDate) lastDate.setUTCHours(0,0,0,0);
+  today.setUTCHours(0,0,0,0);
+  console.log('[BadgeProcessor] quizDate:', quizDate, 'lastDate (UTC):', lastDate, 'today (UTC):', today);
 
   console.log('[BadgeProcessor] --- Daily Streak Badge Processing ---');
   console.log('[BadgeProcessor] User:', profile.userId);
@@ -29,24 +32,27 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
   console.log('[BadgeProcessor] Today:', today);
   console.log('[BadgeProcessor] Previous dailyAttemptsStreak:', profile.dailyAttemptsStreak);
 
-  // If last attempt is yesterday, increment streak; if today, do nothing; else reset to 1
+  let streakChanged = false;
   if (lastDate) {
     // For testing: use only the day difference, ignoring time and month/year
-    const diffDays = today.getDate() - lastDate.getDate();
+    const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
     console.log('[BadgeProcessor] diffDays (testing, date only):', diffDays);
     if (diffDays === 1) {
       profile.dailyAttemptsStreak += 1;
+      streakChanged = true;
       console.log('[BadgeProcessor] Streak incremented to:', profile.dailyAttemptsStreak);
     } else if (diffDays === 0) {
       // Already played today, do nothing
       console.log('[BadgeProcessor] Daily Streak: Already played today, no update.');
       return false;
     } else {
-      profile.dailyAttemptsStreak = 1;
-      console.log('[BadgeProcessor] Streak reset to 1');
+      profile.dailyAttemptsStreak = 0;
+      streakChanged = true;
+      console.log('[BadgeProcessor] Streak reset to 0');
     }
   } else {
     profile.dailyAttemptsStreak = 1;
+    streakChanged = true;
     console.log('[BadgeProcessor] First attempt, streak set to 1');
   }
   profile.lastAttemptDate = today;
@@ -67,24 +73,24 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
   }
   console.log('[BadgeProcessor] achievedLevel:', achievedLevel);
   if (achievedLevel >= 0) {
-    // Check if this level for this badge and session has already been awarded
+    // Check if this level for this badge has already been awarded for any session
     const alreadyAwarded = profile.badges.some(
-      b => b.badgeId.toString() === badge._id.toString() && b.level === achievedLevel && b.userLevelSessionId === userLevelSessionId
+      b => b.badgeId.toString() === badge._id.toString() && b.level === achievedLevel
     );
     if (!alreadyAwarded) {
       profile.badges.push({ badgeId: badge._id, level: achievedLevel, userLevelSessionId, createdAt: new Date() });
       updated = true;
       console.log(`[BadgeProcessor] Appended new Daily Streak badge for user ${profile.userId} at level ${achievedLevel}`);
     } else {
-      console.log(`[BadgeProcessor] User ${profile.userId} already has Daily Streak badge at level ${achievedLevel} for this session`);
+      console.log(`[BadgeProcessor] User ${profile.userId} already has Daily Streak badge at level ${achievedLevel} (any session)`);
     }
   } else {
     console.log(`[BadgeProcessor] User ${profile.userId} streak (${streak}) did not reach any milestone.`);
   }
-  if (updated) {
-    console.log('[BadgeProcessor] UserProfile badges before save:', JSON.stringify(profile.badges, null, 2));
+  if (updated || streakChanged) {
+    console.log('[BadgeProcessor] UserProfile badges/streak before save:', JSON.stringify(profile.badges, null, 2));
     await profile.save();
-    console.log('[BadgeProcessor] UserProfile badges after save:', JSON.stringify(profile.badges, null, 2));
+    console.log('[BadgeProcessor] UserProfile badges/streak after save:', JSON.stringify(profile.badges, null, 2));
   }
   console.log('[BadgeProcessor] --- End Daily Streak Badge Processing ---');
   return updated;

@@ -1,0 +1,98 @@
+Problems at the Retrieval Level
+At the retrieval level, students are required to cope with questions that are very close to what they have already
+solved many times. They have to identify the problem, retrieve a close solution from memory, and adapt it to the
+given case. Figure 2 is an example of a question at the retrieval level.
+Figure 2 shows a mass m placed on a table. Draw arrows that show all the forces acting on the mass m.
+We can assume that the students have already solved many questions asking them to mark the gravity force
+and normal force acting on bodies and show that ΣF = 0. Therefore, they can answer the question in Figure 2 easily.
+
+Problems at the Diagnosis Level
+At the diagnosis level, students are required to cope with questions that are close to ones they already know
+but include certain changes, such as the way the question is presented, existing data, or required problem-solving
+processes. Figure 3 presents an example question to calculate the acceleration of a body moving on an inclined
+plane with no friction.
+Figure 3 shows a mass m that moves on an inclined plane under the force F. Calculate the acceleration of the 
+In the question presented in Figure 3, a student must calculate the gravity force FG acting on mass m, the force
+F1 acting opposite F, the equivalent force FT = F-F1, and the mass acceleration α = FT/m. Students often encounter
+questions similar to this example in physics class, homework, or textbooks. In each case, they must diagnose the
+system structure, identify the given parameters such as masses and forces existing in the system, and apply a
+sequence of steps to solve the problem.
+
+
+Problems at the Strategy Level
+At the strategy level, the student must process complex relationships by making a decision about finding a
+solution, such as a verbal solution, a graphical presentation of the solution, or a presentation using an algebraic
+calculation. Sometimes the student must choose a method to solve the problem, for example, dividing the solution
+into stages, dividing a subsystem into its components, radicalizing, or comparing with a borderline value.
+Following is an example of a question at the strategy level.
+Figure 4 shows a mass M1=1 Kg that slides on an inclined plane of angle α =17O. The mass is connected to a
+cord that passes over a pulley and carries a number of weights. The mass of a single weight is 100 g. The coefficient
+of static friction between the box and the surface is us = 0.35. The mass of the cord is negligible. Find the number
+of weights to be hung on the wire so that the box will not start moving up or down the slope.
+To solve the problem presented in Figure 4, a student must identify all forces operating in the system, break
+down the forces on the mass M1, find an expression for the equivalent force, and draw the answer. The learner must
+identify that the mass can move either up or down and analyze the forces acting on the system in each case. Because
+the learner is required to make a decision in a series of stages to solve the problem, the problem is ranked at the
+strategy level on the PPST scale.
+
+Problems at the Conceptual Level
+In a problem at the conceptual level, a learner is required to solve a problem by explicit reference to one or
+several physical principles, as demonstrated in the following example, Figure 5.
+Figure 5 shows a trolley moving to the right. A cord with a weight is attached to the ceiling of the trolley. The
+graph shows the trolley’s velocity versus time. Explain in which section, or sections A, B, C, the weight deviates to
+the left side.
+Solving the question presented in Figure 5 requires the learner to analyze a compound system composed of the
+trolley and the weight (a pendulum) and understand the cases of velocity and acceleration the graph shows. A
+learner can answer the question only by relying on physics principles in kinematics (motion properties: position,
+velocity, acceleration) dynamics (the rules according to which a body moves in these forms). This example
+demonstrates the frequent case of a qualitative question that students can answer only if they understand physics
+concepts well and can integrate a number of concepts into answering the question. Solving a problem on the
+Conceptual level in PPST is required for a learner to suggest a solution on the Relational level according to the
+SOLO taxonomy mentioned above. At this level, the learner has to address and integrate a range of aspects related
+to the problem to come to a deeper and more coherent understanding of the whole.
+Since ranking or creating physics questions at the conceptual level is often a challenge for teachers, we show
+below a second example of a physics question at this level on the subject of electricity and magnetism (from the
+physics Bagrut exam, 2009).
+Figure 6 shows a rod PS with mass m located on an electronic scale calibrated in Newton units. Above it hangs
+in parallel a pole RQ held in place. The length of each rod is L.
+A constant current of I Ampere flows in rod RQ and a constant current of I1 Ampere flows in rod PS.
+The scale shows N1 so N1<mg.
+a. Draw a diagram of the forces acting on rod PS.
+b. The direction of the current in the rod PS is from P to S. What is the direction of the current that passes
+through the RQ rod: from R to Q or from Q to R? Explain your answer.
+c. Write an expression for calculating the distance d between the two rods using the parameters I, I1, m, L
+and N1. Use physical constants, if needed.
+d. It is given that I1 > 4I.
+Point A is in the plane of the rods, and the magnetic field strength at this point is zero.
+(1) Is point A between the PS and RQ rods above the rod RQ or under the rod PS? Explain your answer.
+(2) Express the distance between point A and RQ by d.
+e. The rod PS is replaced by a magnetized rod (with similar dimensions). Can the RQ conductor rod, through
+which a current flows, exert force on the permanent magnet? Explain your answer.
+Items a and b in the question relating to Figure 6 could be ranked at the diagnosis level because students often
+cope with similar questions in learning the mechanics chapter in physics. Items c, d and e, however, are on the
+conceptual level because students must understand profoundly the electromagnetic phenomena relating to a wire
+carrying current and the interaction between a pair of wires carrying current. A student might remember that two
+wires carrying a current in the same direction attract each other, but this will not be enough for him/her to solve
+these questions.
+
+
+Problems at the Creative-Thinking Level
+Some problems require a student to invent a completely new solution—a path he or she has not encountered in
+the past. This might entail applying laws from other fields in a new way or using knowledge learned in one topic
+to solve a problem in another topic and in a new way. The following example, Figure 7, demonstrates questions at
+In the system shown in Figure 7, at time t = 0, ball A is thrown vertically up from a 45-meter building at a speed
+of 45 m/s. Ball B is thrown vertically up from the bottom of the building at a speed of 55 m/s. Arrows YA and YB
+indicate the axis the movement of each ball.
+1. Find the acceleration of ball A in reference to axis YB.
+2. Find the initial velocity of ball A in reference to axis YB.
+3. Draw a graph of the position of ball A in reference to axis YB versus time until the tine the two balls pass by
+each other.
+The question in Figure 7 corresponds to the creative-thinking level because it is very unusual to analyze the
+acceleration, speed, and distance of a body in reference to another one. The student must develop a solution and
+draw a graph new for him or her. Questions of this sort appear frequently in science competitions for excellent
+students but less often in regular science classes in schools.
+In summary, the examples presented in this section demonstrate that the PPST can help identify or design
+problems at different difficulty levels for the physics class. The PPST is unique in that a level assigned to a specific
+problem or question relates to learners’ previous experiences solving similar problems. The more experienced the
+learner is in solving similar problems, the lower the task or question ranks on the PPST. Consequently, the PPST
+can rank the same question low for one class and high for another.
