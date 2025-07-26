@@ -44,6 +44,7 @@ import {
 } from '../../theme/quizTheme';
 import { authClient } from '../../lib/auth-client';
 import { setSession } from '../../features/auth/authSlice';
+import SOUND_FILES from '../../assets/sound/soundFiles';
 
 
 
@@ -153,6 +154,10 @@ const Quiz = ({ socket }) => {
   useEffect(() => {
     console.log('Quiz component mounted, refetching session...');
     refetchSession();
+    
+    // Play countdown end sound when quiz starts
+    const audio = new Audio(SOUND_FILES.COUNTDOWN_END);
+    audio.play();
   }, [refetchSession]);
 
   const formatTime = (seconds, ongame = false) => {
@@ -199,6 +204,10 @@ const Quiz = ({ socket }) => {
   };
 
   const handleNextQuestion = () => {
+    // Play next question sound
+    const audio = new Audio(SOUND_FILES.NEXT_QUESTION);
+    audio.play();
+    
     setShowAnswerDrawer(false);
     // Reset answerResult after drawer closes with a small delay
     setTimeout(() => {
@@ -371,6 +380,10 @@ const Quiz = ({ socket }) => {
       console.log("Level completed:", message, eventAttemptType);
       if (eventAttemptType === 'time_rush') {
         // For Time Rush, show congrats
+        // Play level won sound
+        const audio = new Audio(SOUND_FILES.LEVEL_WON);
+        audio.play();
+        
         setShowCongrats(true);
       }
     });
@@ -380,6 +393,17 @@ const Quiz = ({ socket }) => {
       setQuizFinished(true);
       setQuizResults(data);
       setEarnedBadges(data.earnedBadges || []);
+      
+      // Play level won sound only when level is completed
+      const isTimeRush = data.attemptType === 'time_rush';
+      const dataObj = isTimeRush ? data.timeRush : data.precisionPath;
+      const isLevelCompleted = dataObj.currentXp >= dataObj.requiredXp;
+      
+      if (isLevelCompleted) {
+        const audio = new Audio(SOUND_FILES.LEVEL_WON);
+        audio.play();
+      }
+      
       setShowResults(true);
     });
 
@@ -420,6 +444,13 @@ const Quiz = ({ socket }) => {
       initializedRef.current = false;
     };
   }, [levelSession?._id, quizFinished, socket, showResults]);
+
+  // Play sound on answer result
+  useEffect(() => {
+    if (answerResult === null || typeof answerResult.isCorrect !== 'boolean') return;
+    const audio = new Audio(answerResult.isCorrect ? SOUND_FILES.CORRECT : SOUND_FILES.INCORRECT);
+    audio.play();
+  }, [answerResult]);
 
   const renderResults = () => {
     if (!quizResults) return null;
@@ -472,12 +503,12 @@ const Quiz = ({ socket }) => {
                 color: '#2e7d32',
                 mb: 1
               }}>
-                {data.percentile}th Percentile
+                {String(data.percentile)}th Percentile
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {isTimeRush 
-                  ? `You scored better than ${data.percentile}% of players on this level!`
-                  : `You completed this level faster than ${data.percentile}% of players!`
+                  ? `You scored better than ${String(data.percentile)}% of players on this level!`
+                  : `You completed this level faster than ${String(data.percentile)}% of players!`
                 }
               </Typography>
             </Box>
@@ -605,26 +636,27 @@ const Quiz = ({ socket }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton 
               onClick={handleBack} 
-              size="large"
+              size="medium"
               sx={quizStyles.backButton}
             >
               <ArrowBackIcon />
             </IconButton>
-            <XpDisplay>
-              <StarIcon />
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                {currentXp} XP
-              </Typography>
-            </XpDisplay>
+            <IconButton 
+              onClick={handleEndQuiz}
+              size="medium"
+              color="error"
+              disabled={!!quizMessage}
+              sx={quizStyles.backButton}
+            >
+              <CloseIcon />
+            </IconButton>
           </Box>
-          <StyledButton
-            variant="contained"
-            color="error"
-            onClick={handleEndQuiz}
-            disabled={!!quizMessage}
-          >
-            End Quiz
-          </StyledButton>
+          <XpDisplay>
+            <StarIcon />
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {currentXp} XP
+            </Typography>
+          </XpDisplay>
         </QuizHeader>
 
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>

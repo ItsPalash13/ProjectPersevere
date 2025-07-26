@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogContent,
   Alert,
+  Snackbar,
   Chip,
   Tooltip,
   LinearProgress
@@ -37,6 +38,8 @@ import LevelDetailsDialog from '../../components/LevelDetailsDialog';
 import Performance from '../../components/Performance';
 // @ts-ignore
 import { colors, themeColors } from '../../theme/colors';
+// @ts-ignore
+import SOUND_FILES from '../../assets/sound/soundFiles';
 
 export interface Level {
   _id: string;
@@ -231,12 +234,17 @@ const Levels: React.FC = () => {
   // Countdown effect
   useEffect(() => {
     if (showCountdown && countdown > 0) {
+      
       const timer = setTimeout(() => {
         setCountdown(prev => prev - 1);
       }, 1000);
       
       return () => clearTimeout(timer);
     } else if (showCountdown && countdown === 0) {
+      // Play countdown end sound
+      const audio = new Audio(SOUND_FILES.COUNTDOWN_END);
+      audio.play();
+      
       // Navigate to quiz when countdown reaches 0
       if (selectedLevelId) {
         navigate(`/quiz/${selectedLevelId}`);
@@ -274,17 +282,17 @@ const Levels: React.FC = () => {
 
   return (
     <Box sx={levelsStyles.container}>
-      {/* Health Error Alert */}
-      {healthError && (
-        <Alert 
-          severity="error" 
-          sx={{ mb: 2, mx: 2 }}
-          onClose={() => setHealthError(null)}
-        >
+      {/* Health Error Snackbar */}
+      <Snackbar
+        open={!!healthError}
+        autoHideDuration={2000}
+        onClose={() => setHealthError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setHealthError(null)} severity="error" sx={{ width: '100%' }}>
           {healthError}
         </Alert>
-      )}
-      
+      </Snackbar>
       
       {/* Countdown Fullscreen Overlay */}
       {showCountdown && (

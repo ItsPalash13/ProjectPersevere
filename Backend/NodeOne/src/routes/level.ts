@@ -621,7 +621,9 @@
             // Calculate progress: min(required score, current level scored) / required score * 100
             const requiredXp = session.timeRush?.requiredXp || 0;
             const achievedXp = Math.min(currentXp, requiredXp);
-            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const calculatedProgress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const currentProgress = userChapterLevel?.progress || 0;
+            const progress = Math.max(calculatedProgress, currentProgress);
 
             // Update UserChapterLevel for current level
             await UserChapterLevel.findOneAndUpdate(
@@ -687,12 +689,13 @@
             }
 
             // Calculate percentile based on maxXp
-            const percentile = await calculateTimeRushPercentile(
+            const percentileResult = await calculateTimeRushPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               Math.max(currentXp, maxXp),
               userId
             );
+            const percentile = percentileResult.percentile;
 
             // Now process badges
             await processBadgesAfterQuiz(userLevelSessionId);
@@ -719,7 +722,9 @@
             // Calculate progress: min(required score, current level scored) / required score * 100
             const requiredXp = session.timeRush?.requiredXp || 0;
             const achievedXp = Math.min(currentXp, requiredXp);
-            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const calculatedProgress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const currentProgress = userChapterLevel?.progress || 0;
+            const progress = Math.max(calculatedProgress, currentProgress);
 
             // Update maxXp and progress even if level not completed
             await UserChapterLevel.findOneAndUpdate(
@@ -739,12 +744,13 @@
             );
 
             // Calculate percentile based on maxXp
-            const percentile = await calculateTimeRushPercentile(
+            const percentileResult = await calculateTimeRushPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               Math.max(currentXp, maxXp),
               userId
             );
+            const percentile = percentileResult.percentile;
 
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
@@ -802,7 +808,9 @@
             // Calculate progress: min(required score, current level scored) / required score * 100
             const requiredXp = session.precisionPath?.requiredXp || 0;
             const achievedXp = Math.min(currentXp, requiredXp);
-            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const calculatedProgress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const currentProgress = userChapterLevel?.progress || 0;
+            const progress = Math.max(calculatedProgress, currentProgress);
 
             // Update UserChapterLevel for current level
             await UserChapterLevel.findOneAndUpdate(
@@ -871,12 +879,13 @@
             }
 
             // Calculate percentile based on minTime
-            const percentile = await calculatePrecisionPathPercentile(
+            const percentileResult = await calculatePrecisionPathPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               Math.min(finalTime, minTime),
               userId
             );
+            const percentile = percentileResult.percentile;
 
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
@@ -904,7 +913,9 @@
             // Calculate progress: min(required score, current level scored) / required score * 100
             const requiredXp = session.precisionPath?.requiredXp || 0;
             const achievedXp = Math.min(currentXp, requiredXp);
-            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const calculatedProgress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+            const currentProgress = userChapterLevel?.progress || 0;
+            const progress = Math.max(calculatedProgress, currentProgress);
 
             // Update progress even if level not completed
             await UserChapterLevel.findOneAndUpdate(
@@ -924,12 +935,12 @@
 
             // Level not completed - don't update best time
             // Calculate percentile based on current best time (if available)
-            const percentile = minTime !== Infinity ? await calculatePrecisionPathPercentile(
+            const percentile = minTime !== Infinity ? (await calculatePrecisionPathPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               minTime,
               userId
-            ) : 0;
+            )).percentile : 0;
 
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);

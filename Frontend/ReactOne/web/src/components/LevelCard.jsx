@@ -133,14 +133,6 @@ const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
         {/* Progress */}
         {level.status && level.progress !== undefined && level.progress !== null && (
           <Box sx={{ mt: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-              <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                Progress
-              </Typography>
-              <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                {level.progress}%
-              </Typography>
-            </Box>
             <ProgressBar score={level.progress} progressColor='blue' hideText={true} />
           </Box>
         )}

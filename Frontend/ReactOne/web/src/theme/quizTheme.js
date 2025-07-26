@@ -7,7 +7,7 @@ export const QuizContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#0A0A0A' : theme.palette.background.default,
   backgroundImage: theme.palette.mode === 'dark' ? 'none' : themeColors.background.main(theme),
   position: 'relative',
-  minHeight: 'calc(100vh - 64px)', // Account for navbar height
+  height: '100vh', // Full screen height since navbar is hidden on quiz routes
 }));
 
 export const QuestionCard = styled(Card)(({ theme }) => ({
@@ -110,16 +110,9 @@ export const QuizHeader = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   marginBottom: theme.spacing(4),
   padding: theme.spacing(2),
-  background: theme.palette.mode === 'dark' 
-    ? '#111111'
-    : colors.background.light.paper,
+
   borderRadius: 16,
-  border: theme.palette.mode === 'dark'
-    ? `1px solid ${colors.border.dark.primary}`
-    : `1px solid ${colors.border.light.primary}`,
-  boxShadow: theme.palette.mode === 'dark' 
-    ? colors.shadow.dark.low
-    : colors.shadow.light.low,
+
 }));
 
 export const StyledButton = styled(Button)(({ theme }) => ({

@@ -228,7 +228,7 @@ function AppContent() {
   }, [session, dispatch]);
 
   // Determine if we should show the navbar
-  const showNavbar = !['/login', '/register'].includes(location.pathname);
+  const showNavbar = !['/login', '/register'].includes(location.pathname) && !location.pathname.startsWith('/quiz');
   
   // Determine if we should show the sidebar
   const showSidebar = isAuthenticated && !['/login', '/register'].includes(location.pathname);
