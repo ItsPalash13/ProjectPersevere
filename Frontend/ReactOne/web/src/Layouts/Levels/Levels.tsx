@@ -12,8 +12,10 @@ import {
   DialogContent,
   Alert,
   Chip,
-  Tooltip
+  Tooltip,
+  LinearProgress
 } from '@mui/material';
+import { ProgressBar } from 'react-progressbar-fancy';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Favorite as HealthIcon } from '@mui/icons-material';
@@ -29,6 +31,8 @@ import { authClient } from '../../lib/auth-client';
 import { levelsStyles } from '../../theme/levelsTheme';
 // @ts-ignore
 import LevelCard from '../../components/LevelCard';
+// @ts-ignore
+import LevelDetailsDialog from '../../components/LevelDetailsDialog';
 // @ts-ignore
 import Performance from '../../components/Performance';
 // @ts-ignore
@@ -58,6 +62,9 @@ export interface Level {
   
   // Additional fields from API response
   isStarted: boolean;
+  progress?: number; // Progress field from UserChapterLevel
+  percentile?: number; // Percentile ranking from backend calculation
+  participantCount?: number; // Number of users who participated in this level
   
   userProgress?: {
     timeRush?: {
@@ -104,6 +111,7 @@ const Levels: React.FC = () => {
   const [showPerformance, setShowPerformance] = useState(false);
   const [showUnitPerformance, setShowUnitPerformance] = useState<string | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
+  const [selectedLevelForDetails, setSelectedLevelForDetails] = useState<Level | null>(null);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -411,6 +419,25 @@ const Levels: React.FC = () => {
                 </Typography>
               )}
             </Box>
+            {/* Chapter Progress Bar */}
+            <Box sx={{ mb: 3 }}>
+              {levels.length > 0 && (
+                (() => {
+                  // Calculate chapter progress using individual level progress
+                  const totalLevels = levels.length;
+                  const totalProgress = levels.reduce((sum, level) => sum + (level.progress || 0), 0);
+                  const chapterProgress = totalLevels > 0 ? Math.round(totalProgress / totalLevels) : 0;
+                  
+                  return (
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      </Box>
+                      <ProgressBar score={chapterProgress} progressColor='blue' hideText={true}/>
+                    </Box>
+                  );
+                })()
+              )}
+            </Box>
           </Box>
         )}
         {/* Render units and their levels */}
@@ -472,6 +499,7 @@ const Levels: React.FC = () => {
                     level={level}
                     chapter={chapter}
                     onLevelClick={handleLevelClick}
+                    onLevelDetails={level.status ? setSelectedLevelForDetails : () => {}}
                   />
                 ))}
                 {(levelsByUnit[unit._id] || []).length === 0 && (
@@ -577,6 +605,15 @@ const Levels: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Level Details Dialog */}
+      <LevelDetailsDialog
+        open={!!selectedLevelForDetails}
+        onClose={() => setSelectedLevelForDetails(null)}
+        level={selectedLevelForDetails}
+        chapter={chapter}
+        onLevelClick={handleLevelClick}
+      />
     </Box>
   );
 };

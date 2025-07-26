@@ -10,6 +10,7 @@ export interface IUserChapterLevel extends Document {
   attemptType: 'time_rush' | 'precision_path';
   completedAt?: Date;
   lastAttemptedAt: Date;
+  progress: number;
 
   // Time Rush specific fields (only present when attemptType is 'time_rush')
   timeRush?: {
@@ -68,6 +69,12 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
     type: Date,
     default: Date.now,
     required: true
+  },
+  progress:{
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
   },
 
   // Time Rush specific fields (conditional based on attemptType)

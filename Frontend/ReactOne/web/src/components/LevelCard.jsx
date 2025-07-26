@@ -3,38 +3,31 @@ import {
   Card, 
   CardContent, 
   Typography, 
-  CardActions, 
-  Button,
   Chip,
   Box,
-  LinearProgress,
   IconButton
 } from '@mui/material';
+import { ProgressBar } from 'react-progressbar-fancy';
 import LockIcon from '@mui/icons-material/Lock';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { setLevelSession } from '../features/auth/levelSessionSlice';
 import { levelsStyles } from '../theme/levelsTheme';
 
-const LevelCard = ({ level, chapter, onLevelClick }) => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
+const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
   const isTimeRush = level.mode === 'time_rush';
-  const progress = isTimeRush ? level.userProgress?.timeRush : level.userProgress?.precisionPath;
   const cardStyles = {
     ...levelsStyles.levelCard,
-    ...(level.status ? levelsStyles.activeCard : levelsStyles.lockedCard)
+    ...(level.status ? levelsStyles.activeCard : levelsStyles.lockedCard),
+    cursor: 'pointer',
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    }
   };
 
   return (
-    <Card sx={cardStyles}>
+    <Card 
+      sx={cardStyles}
+      onClick={() => onLevelDetails(level)}
+    >
       {/* Chapter Image with Level Name Overlay */}
       <Box 
         sx={{ 
@@ -125,10 +118,7 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
       
       <CardContent sx={levelsStyles.cardContent}>
         
-        <Typography variant="body2" paragraph sx={levelsStyles.cardDescription}>
-          {level.description}
-        </Typography>
-        
+        {/* Topics */}
         <Box sx={levelsStyles.topicsContainer}>
           {level.topics.map((topic, index) => (
             <Chip 
@@ -140,89 +130,21 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
           ))}
         </Box>
         
-        <Box sx={levelsStyles.metricsGrid}>
-          {/* Target XP - Always show if available */}
-          {(isTimeRush ? level.timeRush?.requiredXp : level.precisionPath?.requiredXp) && (
-            <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>🎯</Typography>
-              <Typography sx={levelsStyles.metricValue}>
-                {isTimeRush ? level.timeRush.requiredXp : level.precisionPath.requiredXp}
+        {/* Progress */}
+        {level.status && level.progress !== undefined && level.progress !== null && (
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+              <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                Progress
               </Typography>
-              <Typography sx={levelsStyles.metricLabel}>
-                Target XP
-              </Typography>
-            </Box>
-          )}
-          
-          {/* Time Rush: Total Time */}
-          {isTimeRush && level.timeRush?.totalTime && (
-            <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>⏱️</Typography>
-              <Typography sx={levelsStyles.metricValue}>
-                {formatTime(level.timeRush.totalTime)}
-              </Typography>
-              <Typography sx={levelsStyles.metricLabel}>
-                Total Time
+              <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
+                {level.progress}%
               </Typography>
             </Box>
-          )}
-          
-          {/* Time Rush: Best Score (Max XP) */}
-          {isTimeRush && progress?.maxXp !== null && progress?.maxXp !== undefined && (
-            <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>🏆</Typography>
-              <Typography sx={levelsStyles.metricValue}>
-                {progress.maxXp}
-              </Typography>
-              <Typography sx={levelsStyles.metricLabel}>
-                Best Score
-              </Typography>
-            </Box>
-          )}
-          
-          {/* Precision Path: Min Time */}
-          {!isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && (
-            <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>⚡</Typography>
-              <Typography sx={levelsStyles.metricValue}>
-                {formatTime(progress.minTime)}
-              </Typography>
-              <Typography sx={levelsStyles.metricLabel}>
-                Best Time
-              </Typography>
-            </Box>
-          )}
-
-          {/* Precision Path: Total Questions */}
-          {!isTimeRush && level.precisionPath?.totalQuestions && (
-            <Box sx={levelsStyles.metricCard}>
-              <Typography sx={levelsStyles.metricIcon}>❓</Typography>
-              <Typography sx={levelsStyles.metricValue}>
-                {level.precisionPath.totalQuestions}
-              </Typography>
-              <Typography sx={levelsStyles.metricLabel}>
-                Questions
-              </Typography>
-            </Box>
-          )}
-        </Box>
+            <ProgressBar score={level.progress} progressColor='blue' hideText={true} />
+          </Box>
+        )}
       </CardContent>
-      
-      <CardActions sx={{ p: 0 }}>
-        <Box sx={levelsStyles.buttonsContainer}>
-          <Button 
-            fullWidth
-            disabled={!level.status}
-            sx={level.status ? levelsStyles.startButton.sx : levelsStyles.lockedButton.sx}
-            onClick={(e) => {
-              e.stopPropagation();
-              level.status && onLevelClick(level._id, level.mode);
-            }}
-          >
-            {level.status ? 'Start Level' : '🔒 Locked'}
-          </Button>
-        </Box>
-      </CardActions>
     </Card>
   );
 };

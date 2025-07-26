@@ -16,7 +16,7 @@
     import { processBadgesAfterQuiz } from '../utils/badgeprocessor';
 
     // Helper function to calculate percentile for Time Rush (maxXp)
-    const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxXp: number, userId: string): Promise<number> => {
+    const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxXp: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
       try {
         // Get all completed Time Rush attempts for this level, excluding current user
         const allScores = await UserChapterLevel.find({
@@ -27,14 +27,14 @@
           'timeRush.maxXp': { $ne: null, $exists: true }
         }).select('timeRush.maxXp');
 
-        if (allScores.length === 0) return 100; // Only user who completed this level
+        if (allScores.length === 0) return { percentile: 100, participantCount: 0 }; // Only user who completed this level
 
         // Extract maxXp values and filter out null/undefined
         const maxXpValues = allScores
           .map(score => score.timeRush?.maxXp)
           .filter(xp => xp !== null && xp !== undefined) as number[];
 
-        if (maxXpValues.length === 0) return 100;
+        if (maxXpValues.length === 0) return { percentile: 100, participantCount: 0 };
 
         // Count how many users have lower maxXp than current user
         const usersWithLowerXp = maxXpValues.filter(xp => xp < userMaxXp).length;
@@ -42,15 +42,15 @@
         // Calculate percentile (percentage of users with lower score)
         const percentile = Math.round((usersWithLowerXp / maxXpValues.length) * 100);
         
-        return percentile;
+        return { percentile, participantCount: maxXpValues.length };
       } catch (error) {
         console.error('Error calculating Time Rush percentile:', error);
-        return 0; // Return 0 on error
+        return { percentile: 0, participantCount: 0 }; // Return 0 on error
       }
     };
 
     // Helper function to calculate percentile for Precision Path (minTime)
-    const calculatePrecisionPathPercentile = async (chapterId: string, levelId: string, userMinTime: number, userId: string): Promise<number> => {
+    const calculatePrecisionPathPercentile = async (chapterId: string, levelId: string, userMinTime: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
       try {
         // Get all completed Precision Path attempts for this level, excluding current user
         const allTimes = await UserChapterLevel.find({
@@ -61,14 +61,14 @@
           'precisionPath.minTime': { $exists: true, $nin: [null, Infinity] }
         }).select('precisionPath.minTime');
 
-        if (allTimes.length === 0) return 100; // Only user who completed this level
+        if (allTimes.length === 0) return { percentile: 100, participantCount: 0 }; // Only user who completed this level
 
         // Extract minTime values and filter out null/undefined/Infinity
         const minTimeValues = allTimes
           .map(time => time.precisionPath?.minTime)
           .filter(time => time !== null && time !== undefined && time !== Infinity) as number[];
 
-        if (minTimeValues.length === 0) return 100;
+        if (minTimeValues.length === 0) return { percentile: 100, participantCount: 0 };
 
         // Count how many users have higher minTime (slower) than current user
         const usersWithHigherTime = minTimeValues.filter(time => time > userMinTime).length;
@@ -76,10 +76,10 @@
         // Calculate percentile (percentage of users with slower time)
         const percentile = Math.round((usersWithHigherTime / minTimeValues.length) * 100);
         
-        return percentile;
+        return { percentile, participantCount: minTimeValues.length };
       } catch (error) {
         console.error('Error calculating Precision Path percentile:', error);
-        return 0; // Return 0 on error
+        return { percentile: 0, participantCount: 0 }; // Return 0 on error
       }
     };
 
@@ -441,7 +441,7 @@
         );
 
         // Process levels: add locked property if no UCL for this user/level/type
-        const mixedLevels = levels.map(level => {
+        const mixedLevels = await Promise.all(levels.map(async (level) => {
           const progressKey = `${level._id.toString()}_${level.type}`;
           const hasProgress = progressMap.has(progressKey);
           const rawProgress = progressMap.get(progressKey);
@@ -459,17 +459,46 @@
               } : {})
             };
           }
+          
+          // Calculate percentile for this level
+          let percentile = null;
+          let participantCount = null;
+          if (rawProgress) {
+            if (level.type === 'time_rush' && rawProgress.timeRush?.maxXp) {
+              const result = await calculateTimeRushPercentile(
+                chapterId,
+                level._id.toString(),
+                rawProgress.timeRush.maxXp,
+                userId
+              );
+              percentile = result.percentile;
+              participantCount = result.participantCount;
+            } else if (level.type === 'precision_path' && rawProgress.precisionPath?.minTime && rawProgress.precisionPath.minTime !== Infinity) {
+              const result = await calculatePrecisionPathPercentile(
+                chapterId,
+                level._id.toString(),
+                rawProgress.precisionPath.minTime,
+                userId
+              );
+              percentile = result.percentile;
+              participantCount = result.participantCount;
+            }
+          }
+          
           // Level is locked if user does not have UCL for this level/type
           const locked = !hasProgress;
-          return {
-            ...level,
-            userProgress: cleanProgress,
-            isStarted: hasProgress,
-            status: level.status && hasProgress, // keep status logic for backward compat
-            mode: level.type,
-            locked
-          };
-        });
+                      return {
+              ...level,
+              userProgress: cleanProgress,
+              isStarted: hasProgress,
+              status: level.status && hasProgress, // keep status logic for backward compat
+              mode: level.type,
+              locked,
+              progress: rawProgress?.progress || 0, // Include progress field from UserChapterLevel
+              percentile: percentile, // Include percentile ranking
+              participantCount: participantCount // Include participant count
+            };
+        }));
 
         return res.status(200).json({
           success: true,
@@ -589,6 +618,11 @@
               levelNumber: currentLevel.levelNumber + 1
             }).select('_id levelNumber type');
 
+            // Calculate progress: min(required score, current level scored) / required score * 100
+            const requiredXp = session.timeRush?.requiredXp || 0;
+            const achievedXp = Math.min(currentXp, requiredXp);
+            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+
             // Update UserChapterLevel for current level
             await UserChapterLevel.findOneAndUpdate(
               {
@@ -601,7 +635,8 @@
                 $set: {
                   status: 'completed',
                   completedAt: new Date(),
-                  'timeRush.maxXp': Math.max(currentXp, maxXp)
+                  'timeRush.maxXp': Math.max(currentXp, maxXp),
+                  progress: progress
                 }
               },
               { upsert: true }
@@ -681,23 +716,27 @@
               }
             });
           } else {
-            // Update maxXp even if level not completed
-            if (currentXp > maxXp) {
-              await UserChapterLevel.findOneAndUpdate(
-                {
-                  userId,
-                  chapterId: session.chapterId,
-                  levelId: session.levelId,
-                  attemptType: 'time_rush'
-                },
-                {
-                  $set: {
-                    'timeRush.maxXp': currentXp
-                  }
-                },
-                { upsert: true }
-              );
-            }
+            // Calculate progress: min(required score, current level scored) / required score * 100
+            const requiredXp = session.timeRush?.requiredXp || 0;
+            const achievedXp = Math.min(currentXp, requiredXp);
+            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+
+            // Update maxXp and progress even if level not completed
+            await UserChapterLevel.findOneAndUpdate(
+              {
+                userId,
+                chapterId: session.chapterId,
+                levelId: session.levelId,
+                attemptType: 'time_rush'
+              },
+              {
+                $set: {
+                  'timeRush.maxXp': Math.max(currentXp, maxXp),
+                  progress: progress
+                }
+              },
+              { upsert: true }
+            );
 
             // Calculate percentile based on maxXp
             const percentile = await calculateTimeRushPercentile(
@@ -760,6 +799,11 @@
               levelNumber: currentLevel.levelNumber + 1
             }).select('_id levelNumber type');
 
+            // Calculate progress: min(required score, current level scored) / required score * 100
+            const requiredXp = session.precisionPath?.requiredXp || 0;
+            const achievedXp = Math.min(currentXp, requiredXp);
+            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+
             // Update UserChapterLevel for current level
             await UserChapterLevel.findOneAndUpdate(
               {
@@ -772,7 +816,8 @@
                 $set: {
                   status: 'completed',
                   completedAt: new Date(),
-                  'precisionPath.minTime': Math.min(finalTime, minTime)
+                  'precisionPath.minTime': Math.min(finalTime, minTime),
+                  progress: progress
                 }
               },
               { upsert: true }
@@ -856,6 +901,27 @@
               }
             });
           } else {
+            // Calculate progress: min(required score, current level scored) / required score * 100
+            const requiredXp = session.precisionPath?.requiredXp || 0;
+            const achievedXp = Math.min(currentXp, requiredXp);
+            const progress = requiredXp > 0 ? Math.round((achievedXp / requiredXp) * 100) : 0;
+
+            // Update progress even if level not completed
+            await UserChapterLevel.findOneAndUpdate(
+              {
+                userId,
+                chapterId: session.chapterId,
+                levelId: session.levelId,
+                attemptType: 'precision_path'
+              },
+              {
+                $set: {
+                  progress: progress
+                }
+              },
+              { upsert: true }
+            );
+
             // Level not completed - don't update best time
             // Calculate percentile based on current best time (if available)
             const percentile = minTime !== Infinity ? await calculatePrecisionPathPercentile(
