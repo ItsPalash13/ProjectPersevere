@@ -2,10 +2,7 @@
 
 
 🎯 TODO Actual:-
-Fix Issue with Performance - Thrusay
-Fix Issues with Quiz - Thursday
-Solutions after quiz end - Thrusday
-Questions Based on Texonomy - Research - Thrusday
+Convert Levels topics to ids
 List Down MVP Features - Always
 Rethink Design - Sound - Feel - Gamify 
 
@@ -16,9 +13,9 @@ Study UX Suggestions by GEMINI
 Study Marks App
 Smooth Question Adding system
 Countup xps should show after level end
+Solutions after quiz end - Thrusday
 Scope of AI
-Normal Distributions curves of - levels in admin unit management and, levels and units in chapter management  
-
+Questions Based on Texonomy - Research - Thrusday
 
 
 ✅ Done:-

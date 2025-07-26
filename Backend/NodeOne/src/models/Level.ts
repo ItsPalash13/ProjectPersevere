@@ -4,7 +4,7 @@ export interface ILevel extends Document {
   name: string;
   levelNumber: number;
   description: string;
-  topics: string[];
+  topics: mongoose.Types.ObjectId[];
   status: boolean;
   chapterId: mongoose.Types.ObjectId;
   unitId: mongoose.Types.ObjectId;
@@ -65,9 +65,9 @@ export const LevelSchema = new Schema<ILevel>({
     required: true
   },
   topics: [{ 
-    type: String,
-    required: true,
-    trim: true
+    type: Schema.Types.ObjectId,
+    ref: 'Topic',
+    required: true
   }],
   
   // Time Rush specific fields (conditional)

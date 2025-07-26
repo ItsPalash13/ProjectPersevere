@@ -231,7 +231,7 @@
         }
 
         // Fetch topic IDs for the level's topic names
-        const topicDocs = await Topic.find({ topic: { $in: level.topics } });
+        const topicDocs = await Topic.find({ _id: { $in: level.topics } });
         const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
         const questionTsList = await QuestionTs.find({
           'difficulty.mu': { $gte: difficulty }
@@ -426,6 +426,7 @@
           unitId: { $in: allUnitIds }
         })
           .select('name levelNumber description type timeRush precisionPath topics status unitId')
+          .populate('topics', 'topic') // Populate topics with their names
           .sort({ levelNumber: 1 })
           .lean() as any[];
 

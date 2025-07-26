@@ -133,7 +133,7 @@ const LevelCard = ({ level, chapter, onLevelClick }) => {
           {level.topics.map((topic, index) => (
             <Chip 
               key={index}
-              label={topic}
+              label={typeof topic === 'string' ? topic : topic.topic}
               size="small"
               sx={levelsStyles.topicChip}
             />

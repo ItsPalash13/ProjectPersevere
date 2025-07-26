@@ -26,7 +26,7 @@ const replenishQuestionBank = async (session: any, level: any) => {
   );
 
   // Get allowed topic IDs for this level (fetch Topic docs for names)
-  const topicDocs = await require('../../models/Topic').Topic.find({ topic: { $in: level.topics } });
+  const topicDocs = await require('../../models/Topic').Topic.find({ _id: { $in: level.topics } });
   const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
 
   // Strategy 1: Get questions based on difficulty and topic subset

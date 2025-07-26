@@ -78,6 +78,10 @@ export const adminApi = createApi({
       query: () => ({ url: '/api/admin/units', method: 'GET' }),
       providesTags: ['Chapter'],
     }),
+    getLevelsByUnit: builder.query({
+      query: (unitId) => ({ url: `/api/admin/units/${unitId}/levels`, method: 'GET' }),
+      providesTags: ['Level'],
+    }),
     // Question endpoints
     getQuestions: builder.query({
       query: (chapterId) => ({ 
@@ -106,6 +110,13 @@ export const adminApi = createApi({
     deleteQuestion: builder.mutation({
       query: (id) => ({ url: `/api/admin/questions/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Question'],
+    }),
+    getQuestionsMuByTopics: builder.mutation({
+      query: (topics) => ({
+        url: '/api/admin/questions/mu-by-topics',
+        method: 'POST',
+        body: { topics },
+      }),
     }),
     // Level endpoints
     getLevels: builder.query({
@@ -262,12 +273,14 @@ export const {
   useDeleteUnitMutation,
   useGetUnitsQuery,
   useGetAllUnitsQuery,
+  useGetLevelsByUnitQuery,
   useGetQuestionsQuery,
   useGetQuestionByIdQuery,
   useCreateQuestionMutation,
   useMultiAddQuestionsMutation,
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
+  useGetQuestionsMuByTopicsMutation,
   useGetLevelsQuery,
   useGetLevelsByChapterQuery,
   useGetLevelByIdQuery,

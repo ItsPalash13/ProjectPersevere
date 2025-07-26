@@ -32,7 +32,44 @@ import {
   useGetChaptersQuery,
   useGetAllUnitsQuery,
   useGetTopicsQuery,
+  useGetQuestionsMuByTopicsMutation,
 } from '../../features/api/adminAPI';
+
+import { ChartContainer } from '@mui/x-charts/ChartContainer';
+import { LinePlot, MarkPlot } from '@mui/x-charts/LineChart';
+import { ScatterPlot } from '@mui/x-charts/ScatterChart';
+import { ChartsXAxis, ChartsYAxis } from '@mui/x-charts';
+import { ChartsTooltip } from '@mui/x-charts/ChartsTooltip';
+
+// Utility functions for skew normal distribution
+function erf(x) {
+  const sign = x >= 0 ? 1 : -1;
+  x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+  const a4 = -1.453152027, a5 = 1.061405429;
+  const y = 1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t) * Math.exp(-x * x);
+  return sign * y;
+}
+
+function skewNormalPDF(x, mu, sigma, alpha) {
+  const z = (x - mu) / sigma;
+  const norm = (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * z * z);
+  const skew = 1 + erf((alpha * z) / Math.sqrt(2));
+  return norm * skew;
+}
+
+function generateSkewNormalData(mu, sigma, alpha, points = 100) {
+  const data = [];
+  const min = mu - 4 * sigma;
+  const max = mu + 4 * sigma;
+  const step = (max - min) / points;
+  for (let i = 0; i <= points; i++) {
+    const x = min + i * step;
+    data.push({ x, y: skewNormalPDF(x, mu, sigma, alpha) });
+  }
+  return data;
+}
 
 export default function LevelsAdmin() {
   const [openDialog, setOpenDialog] = useState(false);
@@ -41,6 +78,12 @@ export default function LevelsAdmin() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [selectedChapterFilter, setSelectedChapterFilter] = useState('');
   const [selectedUnitFilter, setSelectedUnitFilter] = useState('');
+
+  // For question mu scatter
+  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [muPoints, setMuPoints] = useState([]);
+  const [questionsData, setQuestionsData] = useState([]);
+  const [getQuestionsMuByTopics, { isLoading: muLoading }] = useGetQuestionsMuByTopicsMutation();
 
   // API hooks
   const { data: levelsData, isLoading: levelsLoading } = useGetLevelsQuery(
@@ -56,6 +99,27 @@ export default function LevelsAdmin() {
   const [createLevel] = useCreateLevelMutation();
   const [updateLevel] = useUpdateLevelMutation();
   const [deleteLevel] = useDeleteLevelMutation();
+
+  // Fetch mu values when selectedTopics changes
+  React.useEffect(() => {
+    if (selectedTopics.length > 0) {
+      getQuestionsMuByTopics(selectedTopics).unwrap().then(res => {
+        if (res.success) {
+          setQuestionsData(res.data);
+          setMuPoints(res.data.map(d => d.mu).filter(mu => mu !== null));
+        } else {
+          setQuestionsData([]);
+          setMuPoints([]);
+        }
+      }).catch(() => {
+        setQuestionsData([]);
+        setMuPoints([]);
+      });
+    } else {
+      setQuestionsData([]);
+      setMuPoints([]);
+    }
+  }, [selectedTopics, getQuestionsMuByTopics]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -120,6 +184,14 @@ export default function LevelsAdmin() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingLevel(null);
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setOpenDetailsDialog(false);
+    setSelectedLevel(null);
+    setSelectedTopics([]);
+    setMuPoints([]);
+    setQuestionsData([]);
   };
 
   const handleSubmit = async () => {
@@ -211,7 +283,7 @@ export default function LevelsAdmin() {
       renderCell: (params) => (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
           {params.value?.map((topic, index) => (
-            <Chip key={index} label={topic} size="small" variant="outlined" />
+            <Chip key={index} label={typeof topic === 'string' ? topic : topic.topic} size="small" variant="outlined" />
           ))}
         </Box>
       ),
@@ -457,14 +529,15 @@ export default function LevelsAdmin() {
                   disabled={!formData.unitId}
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} size="small" />
-                      ))}
+                      {selected.map((topicId) => {
+                        const topic = filteredTopics.find(t => t._id === topicId);
+                        return <Chip key={topicId} label={topic?.topic || topicId} size="small" />;
+                      })}
                     </Box>
                   )}
                 >
                   {filteredTopics.map((topic) => (
-                    <MenuItem key={topic._id} value={topic.topic}>
+                    <MenuItem key={topic._id} value={topic._id}>
                       {topic.topic}
                     </MenuItem>
                   ))}
@@ -613,7 +686,7 @@ export default function LevelsAdmin() {
       </Dialog>
 
       {/* Details Dialog */}
-      <Dialog open={openDetailsDialog} onClose={() => setOpenDetailsDialog(false)} maxWidth="md" fullWidth>
+      <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
         <DialogTitle>Level Details</DialogTitle>
         <DialogContent>
           {selectedLevel && (
@@ -650,7 +723,7 @@ export default function LevelsAdmin() {
                 <Typography variant="subtitle1">Topics</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                   {selectedLevel.topics?.map((topic, index) => (
-                    <Chip key={index} label={topic} variant="outlined" />
+                    <Chip key={index} label={typeof topic === 'string' ? topic : topic.topic} variant="outlined" />
                   ))}
                 </Box>
               </Grid>
@@ -677,24 +750,237 @@ export default function LevelsAdmin() {
                 </Grid>
               )}
               {selectedLevel.difficultyParams && (
-                <Grid item xs={12}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="h6">Difficulty Parameters</Typography>
-                      <Typography>Mean: {selectedLevel.difficultyParams.mean}</Typography>
-                      <Typography>Standard Deviation: {selectedLevel.difficultyParams.sd}</Typography>
-                      <Typography>Alpha: {selectedLevel.difficultyParams.alpha}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                (() => {
+                  // Calculate x-axis domain to include both skewed normal and mu points
+                  const skewMin = selectedLevel.difficultyParams.mean - 4 * selectedLevel.difficultyParams.sd;
+                  const skewMax = selectedLevel.difficultyParams.mean + 4 * selectedLevel.difficultyParams.sd;
+                  const muMin = muPoints.length > 0 ? Math.min(...muPoints) : skewMin;
+                  const muMax = muPoints.length > 0 ? Math.max(...muPoints) : skewMax;
+                  const xMin = Math.floor(Math.min(skewMin, muMin)) - 20;
+                  const xMax = Math.ceil(Math.max(skewMax, muMax)) + 20;
+
+                  // Generate skewed normal data for MUI X Charts
+                  const skewedNormalData = generateSkewNormalData(
+                    selectedLevel.difficultyParams.mean,
+                    selectedLevel.difficultyParams.sd,
+                    selectedLevel.difficultyParams.alpha
+                  );
+
+                  // Prepare series data for MUI X Charts
+                  const series = [
+                    {
+                      type: 'line',
+                      data: skewedNormalData.map(point => point.y),
+                      color: '#8884d8',
+                      label: 'Skewed Normal Distribution',
+                      showMark: false // Remove dots from the line
+                    }
+                  ];
+
+                  // Add mu points as scatter if available
+                  if (muPoints.length > 0) {
+                    series.push({
+                      type: 'scatter',
+                      data: muPoints.map(mu => ({ x: mu, y: 0.001 })), // Small y value to make dots visible
+                      color: 'red',
+                      label: 'Question μ',
+                      markerSize: 4 // Make dots larger
+                    });
+                  }
+
+                  const xAxis = [
+                    {
+                      data: skewedNormalData.map(point => point.x),
+                      scaleType: 'linear',
+                      valueFormatter: (value) => value.toFixed(0),
+                      min: xMin,
+                      max: xMax
+                    }
+                  ];
+                  return (
+                    <>
+                      <Grid item xs={12}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="h6">Difficulty Parameters</Typography>
+                            <Typography>Mean: {selectedLevel.difficultyParams.mean}</Typography>
+                            <Typography>Standard Deviation: {selectedLevel.difficultyParams.sd}</Typography>
+                            <Typography>Alpha: {selectedLevel.difficultyParams.alpha}</Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                      <Box sx={{ width: '100%', mt: 3, mb: 2 }}>
+                        <Card variant="outlined">
+                          <CardContent>
+                            <Typography variant="h6" gutterBottom>Skewed Normal Distribution Map</Typography>
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="body2">
+                                μ = {selectedLevel.difficultyParams.mean}, σ = {selectedLevel.difficultyParams.sd}, α = {selectedLevel.difficultyParams.alpha}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ width: '100%', minWidth: 600, height: 400 }}>
+                              <ChartContainer
+                                series={series}
+                                xAxis={xAxis}
+                                height={400}
+                                margin={{ left: 60, right: 20, top: 20, bottom: 40 }}
+                                slotProps={{
+                                  legend: {
+                                    hidden: true
+                                  }
+                                }}
+                              >
+                                <LinePlot />
+                                {muPoints.length > 0 && <ScatterPlot />}
+                                <ChartsXAxis label="Score" />
+                                <ChartsYAxis label="Density" />
+                                <ChartsTooltip 
+                                  trigger="axis"
+                                  slotProps={{
+                                    content: {
+                                      sx: {
+                                        bgcolor: 'background.paper',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 1,
+                                        boxShadow: 2,
+                                        p: 1
+                                      }
+                                    }
+                                  }}
+                                />
+                              </ChartContainer>
+                            </Box>
+                            {/* Topic selector for mu points */}
+                            <Box sx={{ mt: 2 }}>
+                              <FormControl fullWidth>
+                                <InputLabel>Select Topics to Show Question μ</InputLabel>
+                                <Select
+                                  multiple
+                                  value={selectedTopics}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    // Remove duplicates
+                                    const uniqueValues = value.filter((item, index, self) => 
+                                      index === self.findIndex(t => t === item)
+                                    );
+                                    setSelectedTopics(uniqueValues);
+                                  }}
+                                  label="Select Topics to Show Question μ"
+                                  renderValue={(selected) => (
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                      {selected.map((topicId) => {
+                                        const topic = selectedLevel.topics?.find(t => t._id === topicId);
+                                        return (
+                                          <Chip
+                                            key={topicId}
+                                            label={topic?.topic || 'Unknown Topic'}
+                                            size="small"
+                                            color="primary"
+                                            variant="outlined"
+                                          />
+                                        );
+                                      })}
+                                    </Box>
+                                  )}
+                                >
+                                  {selectedLevel.topics?.map((topic) => (
+                                    <MenuItem key={topic._id} value={topic._id}>
+                                      {topic.topic}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              {muLoading && <Typography variant="body2">Loading μ values...</Typography>}
+                              {/* Debug info */}
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                                Available topics: {selectedLevel.topics?.map(t => t.topic).join(', ') || 'None'}
+                              </Typography>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Box>
+                      {/* Questions Display */}
+                      {questionsData.length > 0 && (
+                        <Box sx={{ mt: 3 }}>
+                          <Card variant="outlined">
+                            <CardContent>
+                              <Typography variant="h6" gutterBottom>
+                                Questions for Selected Topics ({questionsData.length} questions)
+                              </Typography>
+                              <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                                {questionsData.map((question, index) => (
+                                                                      <Box key={question.quesId} sx={{ mb: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                        <Typography variant="subtitle2" color="primary">
+                                          Question {index + 1}
+                                        </Typography>
+                                        <Chip 
+                                          label={`μ = ${question.mu || 'N/A'}`} 
+                                          color={question.mu ? 'success' : 'default'}
+                                          size="small"
+                                        />
+                                      </Box>
+                                      <Typography variant="body2" sx={{ mb: 1 }}>
+                                        {question.ques}
+                                      </Typography>
+                                      {/* Question Topics */}
+                                      {question.topics && question.topics.length > 0 && (
+                                        <Box sx={{ mb: 1 }}>
+                                          <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                                            Topics:
+                                          </Typography>
+                                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                            {question.topics.map((topic, topicIndex) => (
+                                              <Chip 
+                                                key={topicIndex} 
+                                                label={typeof topic === 'string' ? topic : (topic.name || topic.id || 'Unknown')} 
+                                                size="small" 
+                                                variant="outlined"
+                                                color="primary"
+                                              />
+                                            ))}
+                                          </Box>
+                                        </Box>
+                                      )}
+                                      <Box sx={{ ml: 2 }}>
+                                        {question.options.map((option, optIndex) => (
+                                          <Typography 
+                                            key={optIndex} 
+                                            variant="body2" 
+                                            sx={{ 
+                                              color: optIndex === question.correct ? 'success.main' : 'text.secondary',
+                                              fontWeight: optIndex === question.correct ? 'bold' : 'normal'
+                                            }}
+                                          >
+                                            {String.fromCharCode(65 + optIndex)}. {option}
+                                            {optIndex === question.correct && ' ✓'}
+                                          </Typography>
+                                        ))}
+                                      </Box>
+                                    </Box>
+                                ))}
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        </Box>
+                      )}
+                    </>
+                  );
+                })()
               )}
             </Grid>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDetailsDialog(false)}>Close</Button>
+          <Button onClick={handleCloseDetailsDialog}>Close</Button>
         </DialogActions>
       </Dialog>
+      {/* Minimal test chart for debugging Scatter */}
+      <Box sx={{ width: 400, height: 200, bgcolor: 'white', mt: 2, border: '1px solid black' }}>
+        <Typography variant="h6">Test Chart</Typography>
+        {/* This box is no longer needed as the chart is now in the Details Dialog */}
+      </Box>
     </Box>
   );
 }

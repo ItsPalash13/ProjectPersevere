@@ -1,5 +1,6 @@
 import express from 'express';
 import { Unit } from '../../models/Units';
+import { Level } from '../../models/Level';
 
 const router = express.Router();
 
@@ -54,6 +55,18 @@ router.get('/', async (req, res) => {
     const filter = chapterId ? { chapterId } : {};
     const units = await Unit.find(filter);
     res.status(200).json({ success: true, data: units });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get all levels for a unit (with difficulty params)
+router.get('/:unitId/levels', async (req, res) => {
+  try {
+    const { unitId } = req.params;
+    const levels = await Level.find({ unitId })
+      .select('name levelNumber difficultyParams');
+    res.status(200).json({ success: true, data: levels });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

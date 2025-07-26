@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
     const levels = await Level.find(filter)
       .populate('chapterId', 'name')
       .populate('unitId', 'name')
+      .populate('topics', 'topic') // Populate topics with their names
       .sort({ levelNumber: 1 });
 
     res.json({
@@ -59,6 +60,7 @@ router.get('/by-chapter/:chapterId', async (req, res) => {
     const levels = await Level.find({ chapterId })
       .populate('chapterId', 'name')
       .populate('unitId', 'name')
+      .populate('topics', 'topic') // Populate topics with their names
       .sort({ levelNumber: 1 });
 
     res.json({
@@ -126,13 +128,15 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Validate topics exist (topics are stored as topic names, not IDs)
-    const existingTopics = await Topic.find({ topic: { $in: topics } });
-    if (existingTopics.length !== topics.length) {
-      return res.status(400).json({
-        success: false,
-        message: 'One or more topics not found'
-      });
+    // Validate topics exist (topics are now stored as ObjectIds)
+    if (topics && Array.isArray(topics)) {
+      const existingTopics = await Topic.find({ _id: { $in: topics } });
+      if (existingTopics.length !== topics.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'One or more topics not found'
+        });
+      }
     }
 
     // Validate level number uniqueness within chapter
@@ -268,9 +272,9 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    // Validate topics exist if changing (topics are stored as topic names, not IDs)
-    if (topics) {
-      const existingTopics = await Topic.find({ topic: { $in: topics } });
+    // Validate topics exist if changing (topics are now stored as ObjectIds)
+    if (topics && Array.isArray(topics)) {
+      const existingTopics = await Topic.find({ _id: { $in: topics } });
       if (existingTopics.length !== topics.length) {
         return res.status(400).json({
           success: false,
@@ -336,7 +340,7 @@ router.put('/:id', async (req, res) => {
       id,
       updateData,
       { new: true, runValidators: true }
-    ).populate('chapterId', 'name').populate('unitId', 'name');
+    ).populate('chapterId', 'name').populate('unitId', 'name').populate('topics', 'topic');
 
     res.json({
       success: true,
@@ -389,7 +393,8 @@ router.get('/:id', async (req, res) => {
 
     const level = await Level.findById(id)
       .populate('chapterId', 'name')
-      .populate('unitId', 'name');
+      .populate('unitId', 'name')
+      .populate('topics', 'topic');
 
     if (!level) {
       return res.status(404).json({

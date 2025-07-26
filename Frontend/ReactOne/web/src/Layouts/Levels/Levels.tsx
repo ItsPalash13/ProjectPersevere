@@ -39,7 +39,7 @@ export interface Level {
   name: string;
   levelNumber: number;
   description: string;
-  topics: string[];
+  topics: Array<{ _id: string; topic: string }> | string[]; // Updated to handle both populated and unpopulated topics
   status: boolean;
   type: 'time_rush' | 'precision_path';
   unitId: string; // <-- Add this line
@@ -89,7 +89,7 @@ export interface Chapter {
   name: string;
   description: string;
   gameName: string;
-  topics: string[];
+  topics: Array<{ _id: string; topic: string }> | string[]; // Updated to handle both populated and unpopulated topics
   status: boolean;
   thumbnailUrl?: string;
 }
@@ -402,7 +402,7 @@ const Levels: React.FC = () => {
                     }
                   }}
                 >
-                  {topic}
+                  {typeof topic === 'string' ? topic : topic.topic}
                 </Box>
                 ))
               ) : (
@@ -440,7 +440,7 @@ const Levels: React.FC = () => {
                 {unit.description}
               </Typography>
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
-                {unit.topics.map((topic: string, idx: number) => (
+                {unit.topics.map((topic: any, idx: number) => (
                   <Box
                     key={idx}
                     sx={{
@@ -461,7 +461,7 @@ const Levels: React.FC = () => {
                       }
                     }}
                   >
-                    {topic}
+                    {typeof topic === 'string' ? topic : topic.topic}
                   </Box>
                 ))}
               </Box>

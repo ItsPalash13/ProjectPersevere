@@ -246,4 +246,81 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Get mu for all questions by topics
+router.post('/mu-by-topics', async (req, res) => {
+  try {
+    const { topics } = req.body; // topics: array of topic IDs
+    if (!topics || !Array.isArray(topics) || topics.length === 0) {
+      return res.status(400).json({ success: false, error: 'topics array required' });
+    }
+    
+    // Use MongoDB aggregation to efficiently filter questions
+    // Questions must have at least one topic from selected topics AND no topics outside selected topics
+    const questions = await Question.aggregate([
+      {
+        $match: {
+          'topics': { $exists: true, $ne: [] }, // Questions must have topics
+          'topics.id': { $in: topics.map(id => new mongoose.Types.ObjectId(id)) } // At least one topic from selected
+        }
+      },
+      {
+        $addFields: {
+          // Check if ALL question topics are in the selected topics
+          allTopicsInSelected: {
+            $reduce: {
+              input: '$topics',
+              initialValue: true,
+              in: {
+                $and: [
+                  '$$value',
+                  { $in: ['$$this.id', topics.map(id => new mongoose.Types.ObjectId(id))] }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          allTopicsInSelected: true // Only questions where ALL topics are in selected
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          ques: 1,
+          options: 1,
+          correct: 1,
+          topics: 1
+        }
+      }
+    ]);
+    
+    const quesIds = questions.map(q => q._id);
+    
+    // Get mu for each filtered question
+    const questionTs = await QuestionTs.find({ quesId: { $in: quesIds } }).select('quesId difficulty.mu');
+    
+    // Create a map for quick lookup
+    const questionTsMap = questionTs.reduce((acc, qt) => {
+      acc[String(qt.quesId)] = qt.difficulty.mu;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Combine question data with mu values and include topics
+    const questionsWithMu = questions.map(question => ({
+      quesId: question._id,
+      ques: question.ques,
+      options: question.options,
+      correct: question.correct,
+      topics: question.topics, // Include the question topics
+      mu: questionTsMap[String(question._id)] || null
+    }));
+
+    res.json({ success: true, data: questionsWithMu });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;
