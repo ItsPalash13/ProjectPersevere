@@ -108,7 +108,9 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
           </Box>
 
           {/* Progress Section */}
-          {level?.progress !== undefined && level?.progress !== null && (
+          {level?.progress !== undefined && 
+           level?.progress !== null && 
+           level?.userProgress?.status !== 'not_started' && (
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                 Progress

@@ -57,6 +57,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       socket.emit('levelSession', {
         currentQuestion,
         attemptType: session.attemptType,
+        currentStreak: session.streak || 0,
         ...(session.attemptType === 'time_rush' ? {
           timeRush: {
             currentTime: session.timeRush.currentTime,

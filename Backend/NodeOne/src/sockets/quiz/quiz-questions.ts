@@ -148,7 +148,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
         correctAnswer: question?.correct,
         topics: question?.topics?.map(t => t.name) || [],
         currentQuestionIndex: session.currentQuestionIndex,
-        totalQuestions: session.questionBank.length
+        totalQuestions: session.questionBank.length,
+        currentStreak: session.streak || 0
       });
 
       // Check if we need to replenish the question bank (at 40% threshold)
@@ -283,10 +284,41 @@ export const quizQuestionHandlers = (socket: Socket) => {
       }
       if (isCorrect) {
         session.questionsAnswered.correct.push(session.currentQuestion);
+        
+        // Handle streak logic for correct answers
+        session.streak = (session.streak || 0) + 1;
+        
+        // Check for streak milestones (3, 6, 9)
+        if (session.streak === 3 || session.streak === 6 || session.streak === 9) {
+          // Award bonus XP for streak milestones
+          const bonusXp = session.streak;
+          
+          // Update XP based on game mode
+          if (session.attemptType === 'time_rush') {
+            session.timeRush.currentXp += bonusXp;
+          } else {
+            session.precisionPath.currentXp += bonusXp;
+          }
+          
+          socket.emit('streak', {
+            streakCount: session.streak,
+            milestone: session.streak,
+            bonusXp: bonusXp,
+            message: `Amazing! ${session.streak} correct answers in a row! +${bonusXp} bonus XP!`
+          });
+        }
+        
+        // Reset streak after reaching 9
+        if (session.streak > 9) {
+          session.streak = 0;
+        }
       } else {
         session.questionsAnswered.incorrect.push(session.currentQuestion);
+        
+        // Reset streak on incorrect answer
+        session.streak = 0;
       }
-      ``
+      
       // Clear current question and increment index
       session.currentQuestion = null;
       session.currentQuestionIndex = (session.currentQuestionIndex || 0) + 1;
@@ -300,7 +332,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
         currentXp: session.attemptType === 'time_rush' ? 
           session.timeRush.currentXp : 
           session.precisionPath.currentXp,
-        totalQuestions: session.questionBank.length
+        totalQuestions: session.questionBank.length,
+        currentStreak: session.streak
       });
 
       // Check for level completion

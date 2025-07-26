@@ -6,4 +6,5 @@ npm run dev
 
 cd Frontend\reactone
 .\nenv\Scripts\activate
+cd web
 npm run dev

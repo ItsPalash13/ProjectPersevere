@@ -131,7 +131,10 @@ const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
         </Box>
         
         {/* Progress */}
-        {level.status && level.progress !== undefined && level.progress !== null && (
+        {level.status && 
+         level.progress !== undefined && 
+         level.progress !== null && 
+         level.userProgress?.status !== 'not_started' && (
           <Box sx={{ mt: 2 }}>
             <ProgressBar score={level.progress} progressColor='blue' hideText={true} />
           </Box>

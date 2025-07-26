@@ -45,6 +45,9 @@ import {
 import { authClient } from '../../lib/auth-client';
 import { setSession } from '../../features/auth/authSlice';
 import SOUND_FILES from '../../assets/sound/soundFiles';
+import { StreakNotification } from './Achievements';
+
+
 
 
 
@@ -105,6 +108,9 @@ const Quiz = ({ socket }) => {
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [showStreakNotification, setShowStreakNotification] = useState(false);
+  const [streakData, setStreakData] = useState(null);
   
   // Get user health and totalXp from Redux store
   const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
@@ -328,6 +334,7 @@ const Quiz = ({ socket }) => {
     socket.on('levelSession', (data) => {
       console.log("Received level session data:", data);
       setAttemptType(data.attemptType);
+      setCurrentStreak(data.currentStreak || 0);
       
       if (data.currentQuestion) {
         console.log("Received current question from level session:", data.currentQuestion);
@@ -365,13 +372,15 @@ const Quiz = ({ socket }) => {
       setQuestionStartTime(Date.now());
       if (data.currentQuestionIndex !== undefined) setCurrentQuestionIndex(data.currentQuestionIndex);
       if (data.totalQuestions !== undefined) setTotalQuestions(data.totalQuestions);
+      if (data.currentStreak !== undefined) setCurrentStreak(data.currentStreak);
       setIsTimerPaused(false);
     });
 
-    socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp }) => {
-      console.log("Received answer result:", { isCorrect, correctAnswer, currentXp });
+    socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp, currentStreak }) => {
+      console.log("Received answer result:", { isCorrect, correctAnswer, currentXp, currentStreak });
       setAnswerResult({ isCorrect, correctAnswer });
       setCurrentXp(currentXp);
+      if (currentStreak !== undefined) setCurrentStreak(currentStreak);
       setShowAnswerDrawer(true);
       setIsTimerPaused(true);
     });
@@ -388,12 +397,33 @@ const Quiz = ({ socket }) => {
       }
     });
 
+    socket.on('streak', (data) => {
+      console.log("Streak milestone reached:", data);
+      setStreakData(data);
+      setShowStreakNotification(true);
+      
+      // Update current XP with bonus
+      if (data.bonusXp) {
+        setCurrentXp(prev => prev + data.bonusXp);
+      }
+      
+      // Play achievement sound
+      const audio = new Audio(SOUND_FILES.ACHIEVEMENT);
+      audio.play();
+      
+      // Auto-hide streak notification after 3 seconds
+      setTimeout(() => {
+        setShowStreakNotification(false);
+        setStreakData(null);
+      }, 3000);
+    });
+
     socket.on('quizFinished', (data) => {
       console.log("Quiz finished:", data);
       setQuizFinished(true);
       setQuizResults(data);
       setEarnedBadges(data.earnedBadges || []);
-      
+      ``
       // Play level won sound only when level is completed
       const isTimeRush = data.attemptType === 'time_rush';
       const dataObj = isTimeRush ? data.timeRush : data.precisionPath;
@@ -440,6 +470,7 @@ const Quiz = ({ socket }) => {
       socket.off('levelCompleted');
       socket.off('levelSession');
       socket.off('sessionDeleted');
+      socket.off('streak');
       socketInitializedRef.current = false;
       initializedRef.current = false;
     };
@@ -1013,6 +1044,13 @@ const Quiz = ({ socket }) => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Streak Notification Component */}
+        <StreakNotification 
+          show={showStreakNotification}
+          streakData={streakData}
+          onClose={() => setShowStreakNotification(false)}
+        />
       </QuizContainer>
   );
 };
