@@ -240,7 +240,8 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         hasNextLevel: response.data.data.hasNextLevel,
         nextLevelNumber: response.data.data.nextLevelNumber,
         xpNeeded: response.data.data.xpNeeded,
-        earnedBadges
+        earnedBadges,
+        isNewHighScore: response.data.data.isNewHighScore
       });
 
     } catch (error) {

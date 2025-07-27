@@ -46,6 +46,7 @@ import { authClient } from '../../lib/auth-client';
 import { setSession } from '../../features/auth/authSlice';
 import SOUND_FILES from '../../assets/sound/soundFiles';
 import { StreakNotification } from './Achievements';
+import ConfettiFireworks from '../../components/ConfettiFireworks';
 
 
 
@@ -111,6 +112,7 @@ const Quiz = ({ socket }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [showStreakNotification, setShowStreakNotification] = useState(false);
   const [streakData, setStreakData] = useState(null);
+  const [showHighScoreFireworks, setShowHighScoreFireworks] = useState(false);
   
   // Get user health and totalXp from Redux store
   const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
@@ -423,7 +425,17 @@ const Quiz = ({ socket }) => {
       setQuizFinished(true);
       setQuizResults(data);
       setEarnedBadges(data.earnedBadges || []);
-      ``
+      
+      // Trigger fireworks for new high scores
+      if (data.isNewHighScore) {
+        // Delay fireworks to appear after dialog is shown
+        setTimeout(() => {
+          setShowHighScoreFireworks(true);
+          // Reset fireworks trigger after animation
+          setTimeout(() => setShowHighScoreFireworks(false), 100);
+        }, 500);
+      }
+      
       // Play level won sound only when level is completed
       const isTimeRush = data.attemptType === 'time_rush';
       const dataObj = isTimeRush ? data.timeRush : data.precisionPath;
@@ -704,11 +716,12 @@ const Quiz = ({ socket }) => {
           </Alert>
         )}
 
-        {isLoading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-            <CircularProgress />
-          </Box>
-        ) : currentQuestion ? (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {isLoading ? (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+              <CircularProgress />
+            </Box>
+          ) : currentQuestion ? (
           <>
             <QuestionCard>
               <CardContent sx={quizStyles.questionCardContent}>
@@ -785,6 +798,7 @@ const Quiz = ({ socket }) => {
             </Box>
           </>
         ) : null}
+        </Box>
 
         {currentQuestion && (
           <FloatingButton
@@ -1051,6 +1065,9 @@ const Quiz = ({ socket }) => {
           streakData={streakData}
           onClose={() => setShowStreakNotification(false)}
         />
+        
+        {/* High Score Fireworks Component */}
+        <ConfettiFireworks trigger={showHighScoreFireworks} />
       </QuizContainer>
   );
 };

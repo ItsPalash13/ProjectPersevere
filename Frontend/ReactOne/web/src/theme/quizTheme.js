@@ -7,7 +7,10 @@ export const QuizContainer = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#0A0A0A' : theme.palette.background.default,
   backgroundImage: theme.palette.mode === 'dark' ? 'none' : themeColors.background.main(theme),
   position: 'relative',
-  height: '100vh', // Full screen height since navbar is hidden on quiz routes
+  minHeight: '100vh', // Auto-scale based on content while ensuring minimum full height
+  height: 'auto', // Allow content to determine height
+  display: 'flex',
+  flexDirection: 'column',
 }));
 
 export const QuestionCard = styled(Card)(({ theme }) => ({

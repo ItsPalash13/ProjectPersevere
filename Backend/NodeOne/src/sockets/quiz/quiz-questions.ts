@@ -412,7 +412,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
             hasNextLevel: response.data.data.hasNextLevel,
             nextLevelNumber: response.data.data.nextLevelNumber,
             xpNeeded: response.data.data.xpNeeded,
-            earnedBadges
+            earnedBadges,
+            isNewHighScore: response.data.data.isNewHighScore
           });
           socket.disconnect();
         }
@@ -457,7 +458,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           hasNextLevel: response.data.data.hasNextLevel,
           nextLevelNumber: response.data.data.nextLevelNumber,
           xpNeeded: response.data.data.xpNeeded,
-          earnedBadges
+          earnedBadges,
+          isNewHighScore: response.data.data.isNewHighScore
         });
         socket.disconnect();
       }
