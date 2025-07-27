@@ -31,7 +31,9 @@ import { authClient } from '../../lib/auth-client';
 // @ts-ignore
 import { levelsStyles } from '../../theme/levelsTheme';
 // @ts-ignore
-import LevelCard from '../../components/LevelCard';
+import LevelCard from '../../components/LevelCard/LevelCard';
+// @ts-ignore
+//const LevelCard = LevelCard;
 // @ts-ignore
 import LevelDetailsDialog from '../../components/LevelDetailsDialog';
 // @ts-ignore
@@ -115,7 +117,6 @@ const Levels: React.FC = () => {
   const [showUnitPerformance, setShowUnitPerformance] = useState<string | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
   const [selectedLevelForDetails, setSelectedLevelForDetails] = useState<Level | null>(null);
-  const [currentUnitIndex, setCurrentUnitIndex] = useState(0);
   const { chapterId } = useParams<{ chapterId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -259,13 +260,7 @@ const Levels: React.FC = () => {
     setSelectedLevelId(null);
   };
 
-  const handlePreviousUnit = () => {
-    setCurrentUnitIndex(prev => Math.max(0, prev - 1));
-  };
 
-  const handleNextUnit = () => {
-    setCurrentUnitIndex(prev => Math.min(units.length - 1, prev + 1));
-  };
 
   // Group levels by unitId
   const levelsByUnit: { [unitId: string]: Level[] } = {};
@@ -274,8 +269,7 @@ const Levels: React.FC = () => {
     levelsByUnit[level.unitId].push(level);
   });
 
-  // Get current unit
-  const currentUnit = units[currentUnitIndex] || null;
+
 
   if (isLoading) {
     return (
@@ -407,6 +401,7 @@ const Levels: React.FC = () => {
                 </Tooltip>
               </Box>
             </Box>
+            {/* Chapter Topics */}
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
               {chapter.topics && chapter.topics.length > 0 ? (
                 chapter.topics.map((topic, index) => (
@@ -460,106 +455,18 @@ const Levels: React.FC = () => {
             </Box>
           </Box>
         )}
-        {/* Unit Navigation and Display */}
+        {/* All Units Display */}
         {units.length > 0 && (
           <Box sx={{ mb: 4 }}>
-            {/* Unit Navigation Header */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between', 
-              mb: 3,
-              p: 2,
-              backgroundColor: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.05)' 
-                : 'rgba(0, 0, 0, 0.02)',
-              borderRadius: 2,
-              border: theme => theme.palette.mode === 'dark' 
-                ? '1px solid rgba(255, 255, 255, 0.1)' 
-                : '1px solid rgba(0, 0, 0, 0.1)'
-            }}>
-              <IconButton
-                onClick={handlePreviousUnit}
-                disabled={currentUnitIndex === 0}
-                sx={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: theme => theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.08)',
-                  color: theme => theme.palette.mode === 'dark'
-                    ? colors.ui.dark.buttonSecondary
-                    : colors.ui.light.buttonSecondary,
-                  border: theme => theme.palette.mode === 'dark'
-                    ? '1px solid rgba(255, 255, 255, 0.2)'
-                    : '1px solid rgba(0, 0, 0, 0.12)',
-                  '&:hover': {
-                    backgroundColor: theme => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.15)'
-                      : 'rgba(0, 0, 0, 0.12)',
-                  },
-                  '&:disabled': {
-                    opacity: 0.3,
-                    backgroundColor: theme => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.05)'
-                      : 'rgba(0, 0, 0, 0.04)',
-                  }
-                }}
-              >
-                <ArrowLeftIcon />
-              </IconButton>
-              
-              <Box sx={{ textAlign: 'center', flex: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  {currentUnit?.name || 'No Unit'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Unit {currentUnitIndex + 1} of {units.length}
-                </Typography>
-              </Box>
-              
-              <IconButton
-                onClick={handleNextUnit}
-                disabled={currentUnitIndex === units.length - 1}
-                sx={{
-                  width: 48,
-                  height: 48,
-                  backgroundColor: theme => theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.08)',
-                  color: theme => theme.palette.mode === 'dark'
-                    ? colors.ui.dark.buttonSecondary
-                    : colors.ui.light.buttonSecondary,
-                  border: theme => theme.palette.mode === 'dark'
-                    ? '1px solid rgba(255, 255, 255, 0.2)'
-                    : '1px solid rgba(0, 0, 0, 0.12)',
-                  '&:hover': {
-                    backgroundColor: theme => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.15)'
-                      : 'rgba(0, 0, 0, 0.12)',
-                  },
-                  '&:disabled': {
-                    opacity: 0.3,
-                    backgroundColor: theme => theme.palette.mode === 'dark'
-                      ? 'rgba(255, 255, 255, 0.05)'
-                      : 'rgba(0, 0, 0, 0.04)',
-                  }
-                }}
-              >
-                <ArrowRightIcon />
-              </IconButton>
-            </Box>
-
-            {/* Current Unit Content */}
-            {currentUnit && (
-              <Box>
+            {units.map((unit, unitIndex) => (
+              <Box key={unit._id} sx={{ mb: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {currentUnit.name}
+                    {unit.name}
                   </Typography>
                   <Tooltip title="Unit Analytics">
                     <IconButton
-                      onClick={() => setShowUnitPerformance(currentUnit._id)}
+                      onClick={() => setShowUnitPerformance(unit._id)}
                       size="small"
                       sx={{
                         color: theme => theme.palette.mode === 'dark'
@@ -573,10 +480,10 @@ const Levels: React.FC = () => {
                   </Tooltip>
                 </Box>
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  {currentUnit.description}
+                  {unit.description}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
-                  {currentUnit.topics.map((topic: any, idx: number) => (
+                  {unit.topics.map((topic: any, idx: number) => (
                     <Box
                       key={idx}
                       sx={{
@@ -602,7 +509,7 @@ const Levels: React.FC = () => {
                   ))}
                 </Box>
                 <Box sx={levelsStyles.gridContainer}>
-                  {(levelsByUnit[currentUnit._id] || []).map(level => (
+                  {(levelsByUnit[unit._id] || []).map(level => (
                     <LevelCard
                       key={`${level._id}_${level.type}`}
                       level={level}
@@ -611,14 +518,14 @@ const Levels: React.FC = () => {
                       onLevelDetails={level.status ? setSelectedLevelForDetails : () => {}}
                     />
                   ))}
-                  {(levelsByUnit[currentUnit._id] || []).length === 0 && (
+                  {(levelsByUnit[unit._id] || []).length === 0 && (
                     <Typography variant="body2" color="text.secondary">
                       No levels available for this unit.
                     </Typography>
                   )}
                 </Box>
               </Box>
-            )}
+            ))}
           </Box>
         )}
       </Container>

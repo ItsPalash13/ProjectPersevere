@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { ProgressBar } from 'react-progressbar-fancy';
 import LockIcon from '@mui/icons-material/Lock';
-import { levelsStyles } from '../theme/levelsTheme';
+import { levelsStyles } from '../../theme/levelsTheme';
 
 const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
   const isTimeRush = level.mode === 'time_rush';
@@ -135,8 +135,26 @@ const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
          level.progress !== undefined && 
          level.progress !== null && 
          level.userProgress?.status !== 'not_started' && (
-          <Box sx={{ mt: 2 }}>
-            <ProgressBar score={level.progress} progressColor='blue' hideText={true} />
+          <Box sx={{ 
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%'
+          }}>
+            <Box sx={{ 
+              '& .progressbarWidth': {
+                margin: '0 !important',
+              },
+              '& .progressBarFancyContainer': {
+                margin: '0 !important',
+              },
+              '& [style*="margin"]': {
+                margin: '0 !important',
+              },
+            }}>
+              <ProgressBar score={level.progress} progressColor={isTimeRush ? 'red' : 'purple'} hideText={true} />
+            </Box>
           </Box>
         )}
       </CardContent>
