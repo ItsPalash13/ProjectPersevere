@@ -5,6 +5,7 @@ interface IQuestion extends Document {
   options: string[];
   correct: number;
   chapterId: mongoose.Types.ObjectId; 
+  unitId?: mongoose.Types.ObjectId;
   topics: Array<{ id: mongoose.Types.ObjectId | string; name: string }>;
 }
 
@@ -27,6 +28,10 @@ const QuestionSchema = new Schema<IQuestion>({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Chapter',
     required: true
+  },
+  unitId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Unit'
   },
   topics: [{
     id: {

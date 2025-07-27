@@ -36,7 +36,8 @@ import {
   useUpdateQuestionMutation,
   useDeleteQuestionMutation,
   useGetChaptersQuery,
-  useGetTopicsQuery
+  useGetTopicsQuery,
+  useGetUnitsQuery
 } from '../../features/api/adminAPI';
 import { saveAs } from 'file-saver';
 
@@ -45,19 +46,25 @@ const Questions = () => {
   const [openMultiAddDialog, setOpenMultiAddDialog] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopicFilters, setSelectedTopicFilters] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [multiAddData, setMultiAddData] = useState({
     questions: '',
     chapterId: '',
+    unitId: '',
     topicIds: [],
     xpCorrect: 2,
     xpIncorrect: 0
   });
 
   const { data: chaptersData } = useGetChaptersQuery();
-  const { data: questionsData, isLoading } = useGetQuestionsQuery(selectedChapter, { skip: !selectedChapter });
+  const { data: unitsData } = useGetUnitsQuery(selectedChapter, { skip: !selectedChapter });
+  const { data: questionsData, isLoading } = useGetQuestionsQuery(
+    { chapterId: selectedChapter, unitId: selectedUnit }, 
+    { skip: !selectedChapter }
+  );
   const { data: topicsData } = useGetTopicsQuery(selectedChapter, { skip: !selectedChapter });
 
   // Filter questions based on search query and topic filter
@@ -105,6 +112,7 @@ const Questions = () => {
     options: ['', '', '', ''],
     correct: 0,
     chapterId: '',
+    unitId: '',
     topics: []
   });
 
@@ -116,6 +124,7 @@ const Questions = () => {
         options: question.options,
         correct: question.correct,
         chapterId: question.chapterId?._id || question.chapterId,
+        unitId: question.unitId?._id || question.unitId || '',
         topics: question.topics || []
       });
     } else {
@@ -125,6 +134,7 @@ const Questions = () => {
         options: ['', '', '', ''],
         correct: 0,
         chapterId: selectedChapter,
+        unitId: selectedUnit,
         topics: []
       });
     }
@@ -139,6 +149,7 @@ const Questions = () => {
       options: ['', '', '', ''],
       correct: 0,
       chapterId: '',
+      unitId: '',
       topics: []
     });
   };
@@ -289,6 +300,7 @@ const Questions = () => {
       await multiAddQuestions({
         questions: parsedQuestions,
         chapterId: selectedChapter,
+        unitId: multiAddData.unitId || undefined,
         topicIds: multiAddData.topicIds,
         xpCorrect: multiAddData.xpCorrect,
         xpIncorrect: multiAddData.xpIncorrect
@@ -298,6 +310,7 @@ const Questions = () => {
       setMultiAddData({
         questions: '',
         chapterId: '',
+        unitId: '',
         topicIds: [],
         xpCorrect: 2,
         xpIncorrect: 0
@@ -375,6 +388,16 @@ const Questions = () => {
       field: 'chapterId', 
       headerName: 'Chapter', 
       width: 150,
+      renderCell: (params) => (
+        <Typography>
+          {params.value?.name || 'N/A'}
+        </Typography>
+      )
+    },
+    { 
+      field: 'unitId', 
+      headerName: 'Unit', 
+      width: 120,
       renderCell: (params) => (
         <Typography>
           {params.value?.name || 'N/A'}
@@ -465,11 +488,32 @@ const Questions = () => {
             labelId="chapter-select-label"
             label="Chapter"
             value={selectedChapter}
-            onChange={(e) => setSelectedChapter(e.target.value)}
+            onChange={(e) => {
+              setSelectedChapter(e.target.value);
+              setSelectedUnit(''); // Reset unit when chapter changes
+            }}
           >
             {chaptersData?.data?.map((chapter) => (
               <MenuItem key={chapter._id} value={chapter._id}>
                 {chapter.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel id="unit-select-label">Unit (Optional)</InputLabel>
+          <Select
+            labelId="unit-select-label"
+            label="Unit (Optional)"
+            value={selectedUnit}
+            onChange={(e) => setSelectedUnit(e.target.value)}
+          >
+            <MenuItem value="">
+              <em>All Units</em>
+            </MenuItem>
+            {unitsData?.data?.map((unit) => (
+              <MenuItem key={unit._id} value={unit._id}>
+                {unit.name}
               </MenuItem>
             ))}
           </Select>
@@ -605,6 +649,26 @@ const Questions = () => {
             </Grid>
 
             <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Unit (Optional)</InputLabel>
+                <Select
+                  value={formData.unitId}
+                  onChange={(e) => setFormData({ ...formData, unitId: e.target.value })}
+                  label="Unit (Optional)"
+                >
+                  <MenuItem value="">
+                    <em>No Unit</em>
+                  </MenuItem>
+                  {unitsData?.data?.map((unit) => (
+                    <MenuItem key={unit._id} value={unit._id}>
+                      {unit.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
               <Autocomplete
                 multiple
                 options={topicsData?.data || []}
@@ -617,7 +681,7 @@ const Questions = () => {
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip
-                      label={option.topic}
+                      label={option.name}
                       {...getTagProps({ index })}
                       key={option._id}
                     />
@@ -767,6 +831,26 @@ const Questions = () => {
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 Chapter: {chaptersData?.data?.find(c => c._id === selectedChapter)?.name}
               </Typography>
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Unit (Optional)</InputLabel>
+                <Select
+                  value={multiAddData.unitId}
+                  onChange={(e) => setMultiAddData({ ...multiAddData, unitId: e.target.value })}
+                  label="Unit (Optional)"
+                >
+                  <MenuItem value="">
+                    <em>No Unit</em>
+                  </MenuItem>
+                  {unitsData?.data?.map((unit) => (
+                    <MenuItem key={unit._id} value={unit._id}>
+                      {unit.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
 
             <Grid item xs={12}>

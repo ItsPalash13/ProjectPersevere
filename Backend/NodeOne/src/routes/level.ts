@@ -15,6 +15,200 @@
     import { Topic } from '../models/Topic';
     import { processBadgesAfterQuiz } from '../utils/badgeprocessor';
 
+    // Function to create question bank based on level and attempt type using MU (difficulty)
+    const createQuestionBankByMu = async (level: any, attemptType: string): Promise<any[]> => {
+      try {
+        // Generate difficulty using skew normal distribution
+        const difficulty = getSkewNormalRandom(
+          level.difficultyParams?.mean || 0,
+          level.difficultyParams?.sd || 1,
+          level.difficultyParams?.alpha || 0
+        );
+
+        // Determine number of questions for the session
+        let numQuestions = 10;
+        if (attemptType === 'precision_path') {
+          numQuestions = level.precisionPath?.totalQuestions || 10;
+        }
+
+        // Fetch topic IDs for the level's topic names
+        const topicDocs = await Topic.find({ _id: { $in: level.topics } });
+        const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
+        
+        // Helper function to filter questions by topics
+        const filterQuestionsByTopics = (questions: any[]): any[] => {
+          return questions.filter(qt => {
+            if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+            const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+            return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+          });
+        };
+
+        // Get questions with difficulty >= generated
+        const questionTsList = await QuestionTs.find({
+          'difficulty.mu': { $gte: difficulty }
+        })
+        .populate('quesId')
+        .sort({ 'difficulty.mu': 1 })
+        .limit(numQuestions);
+
+        let finalQuestionTsList = filterQuestionsByTopics(questionTsList);
+
+        // If not enough questions found with difficulty >= generated, get questions with difficulty <= generated
+        if (finalQuestionTsList.length < numQuestions) {
+          const additionalQuestions = await QuestionTs.find({
+            'difficulty.mu': { $lte: difficulty }
+          })
+          .populate('quesId')
+          .sort({ 'difficulty.mu': -1 })
+          .limit(numQuestions - finalQuestionTsList.length);
+          
+          const filteredAdditional = filterQuestionsByTopics(additionalQuestions);
+          finalQuestionTsList.push(...filteredAdditional);
+        }
+
+        // If still not enough, relax difficulty (only topic filter)
+        if (finalQuestionTsList.length < numQuestions) {
+          const moreByTopic = await QuestionTs.find({})
+            .populate('quesId')
+            .sort({ 'difficulty.mu': 1 })
+            .limit(numQuestions - finalQuestionTsList.length);
+          
+          const filteredMoreByTopic = filterQuestionsByTopics(moreByTopic);
+          finalQuestionTsList.push(...filteredMoreByTopic);
+        }
+
+        // If still not enough, fill with any random questions
+        if (finalQuestionTsList.length < numQuestions) {
+          const randomQuestions = await QuestionTs.aggregate([
+            { $sample: { size: numQuestions - finalQuestionTsList.length } },
+            { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesObj' } },
+            { $unwind: '$quesObj' }
+          ]);
+          randomQuestions.forEach(q => { q.quesId = q.quesObj; });
+          finalQuestionTsList.push(...randomQuestions);
+        }
+
+        // Truncate to numQuestions if overfilled
+        finalQuestionTsList = finalQuestionTsList.slice(0, numQuestions);
+
+        if (!finalQuestionTsList.length) {
+          throw new Error('No suitable questions found');
+        }
+
+        // Extract question IDs for the question bank
+        return finalQuestionTsList.map(qt => qt.quesId);
+      } catch (error) {
+        console.error('Error creating question bank by MU:', error);
+        throw error;
+      }
+    };
+
+    // Function to create question bank based on level's unitId
+    const createQuestionBankByUnit = async (level: any, attemptType: string): Promise<any[]> => {
+      try {
+        // Determine number of questions for the session
+        let numQuestions = 10;
+        if (attemptType === 'precision_path') {
+          numQuestions = level.precisionPath?.totalQuestions || 10;
+        }
+
+        // Get questions that belong to the level's unit
+        const questions = await Question.find({ unitId: level.unitId })
+          .populate('topics.id')
+          .limit(numQuestions * 3); // Get more questions to filter from
+
+        if (!questions.length) {
+          throw new Error('No questions found for this unit');
+        }
+
+        // Filter questions by level topics
+        const topicDocs = await Topic.find({ _id: { $in: level.topics } });
+        const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
+        
+        const filteredQuestions = questions.filter(question => {
+          if (!question.topics || !Array.isArray(question.topics) || !question.topics.length) return false;
+          const questionTopicIds = question.topics.map((t: any) => t.id.toString());
+          return questionTopicIds.length >= 1 && questionTopicIds.every((id: string) => levelTopicIds.includes(id));
+        });
+
+        // Shuffle and take random questions from unit
+        const shuffledUnitQuestions = filteredQuestions.sort(() => Math.random() - 0.5).slice(0, numQuestions);
+        let finalQuestions = [...shuffledUnitQuestions];
+
+        // If not enough questions found, get random questions from the same chapter
+        if (finalQuestions.length < numQuestions) {
+          const chapterQuestions = await Question.find({ 
+            chapterId: level.chapterId,
+            unitId: { $ne: level.unitId } // Exclude questions from the same unit
+          })
+          .populate('topics.id')
+          .limit((numQuestions - finalQuestions.length) * 2);
+
+          const additionalFiltered = chapterQuestions.filter(question => {
+            if (!question.topics || !Array.isArray(question.topics) || !question.topics.length) return false;
+            const questionTopicIds = question.topics.map((t: any) => t.id.toString());
+            return questionTopicIds.length >= 1 && questionTopicIds.every((id: string) => levelTopicIds.includes(id));
+          });
+
+          // Shuffle and add random questions from chapter
+          const shuffledChapterQuestions = additionalFiltered.sort(() => Math.random() - 0.5);
+          finalQuestions.push(...shuffledChapterQuestions.slice(0, numQuestions - finalQuestions.length));
+        }
+
+        // If still not enough, get random questions from the chapter
+        if (finalQuestions.length < numQuestions) {
+          const anyChapterQuestions = await Question.find({ chapterId: level.chapterId })
+            .populate('topics.id')
+            .limit((numQuestions - finalQuestions.length) * 2);
+          
+          // Shuffle and add random questions
+          const shuffledAnyChapterQuestions = anyChapterQuestions.sort(() => Math.random() - 0.5);
+          finalQuestions.push(...shuffledAnyChapterQuestions.slice(0, numQuestions - finalQuestions.length));
+        }
+
+        // If still not enough, get random questions from all questions
+        if (finalQuestions.length < numQuestions) {
+          const randomQuestions = await Question.aggregate([
+            { $sample: { size: (numQuestions - finalQuestions.length) * 2 } },
+            { $lookup: { from: 'topics', localField: 'topics.id', foreignField: '_id', as: 'topics' } }
+          ]);
+          
+          // Shuffle and add random questions
+          const shuffledRandomQuestions = randomQuestions.sort(() => Math.random() - 0.5);
+          finalQuestions.push(...shuffledRandomQuestions.slice(0, numQuestions - finalQuestions.length));
+        }
+
+        // Final shuffle of all selected questions
+        finalQuestions = finalQuestions.sort(() => Math.random() - 0.5);
+
+        // Truncate to numQuestions if overfilled
+        finalQuestions = finalQuestions.slice(0, numQuestions);
+
+        if (!finalQuestions.length) {
+          throw new Error('No suitable questions found for this unit');
+        }
+
+        return finalQuestions;
+      } catch (error) {
+        console.error('Error creating question bank by Unit:', error);
+        throw error;
+      }
+    };
+
+    // Main function to create question bank based on environment variable
+    const createQuestionBank = async (level: any, attemptType: string): Promise<any[]> => {
+      const questionFetchStrategy = process.env.QUESTION_FETCH || '0';
+      
+      if (questionFetchStrategy === '1') {
+        console.log('Using Unit-based question fetching strategy');
+        return await createQuestionBankByUnit(level, attemptType);
+      } else {
+        console.log('Using MU-based question fetching strategy');
+        return await createQuestionBankByMu(level, attemptType);
+      }
+    };
+
     // Helper function to calculate percentile for Time Rush (maxXp)
     const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxXp: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
       try {
@@ -217,95 +411,8 @@
           });
         }
 
-        // Generate difficulty using skew normal distribution
-        const difficulty = getSkewNormalRandom(
-          level.difficultyParams.mean,
-          level.difficultyParams.sd,
-          level.difficultyParams.alpha
-        );
-
-        // Determine number of questions for the session
-        let numQuestions = 10;
-        if (attemptType === 'precision_path') {
-          numQuestions = level.precisionPath?.totalQuestions || 10;
-        }
-
-        // Fetch topic IDs for the level's topic names
-        const topicDocs = await Topic.find({ _id: { $in: level.topics } });
-        const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
-        const questionTsList = await QuestionTs.find({
-          'difficulty.mu': { $gte: difficulty }
-        })
-        .populate('quesId')
-        .sort({ 'difficulty.mu': 1 })
-        .limit(numQuestions);
-        // JS filter: only keep questions where all topics are in levelTopicIds and at least 1 topic
-        questionTsList.forEach(qt => {
-          if (!qt.quesId) {
-          } else if (typeof qt.quesId !== 'object' || !('topics' in qt.quesId)) {
-          } else if (!Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) {
-          } else {
-            const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-            const allIn = topicIds.every((id: string) => levelTopicIds.includes(id));
-            if (!allIn) {
-            }
-          }
-        });
-        const filteredQuestionTsList = questionTsList.filter(qt => {
-          if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-          const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-          return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-        });
-
-        // If not enough questions found with difficulty >= generated, get questions with difficulty <= generated
-        let finalQuestionTsList = [...filteredQuestionTsList];
-        if (finalQuestionTsList.length < numQuestions) {
-          const additionalQuestions = await QuestionTs.find({
-            'difficulty.mu': { $lte: difficulty }
-          })
-          .populate('quesId')
-          .sort({ 'difficulty.mu': -1 })
-          .limit(numQuestions - finalQuestionTsList.length);
-          finalQuestionTsList.push(...additionalQuestions.filter(qt => {
-            if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-            const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-            return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-          }));
-        }
-
-        // If still not enough, relax difficulty (only topic filter)
-        if (finalQuestionTsList.length < numQuestions) {
-          const moreByTopic = await QuestionTs.find({})
-            .populate('quesId')
-            .sort({ 'difficulty.mu': 1 })
-            .limit(numQuestions - finalQuestionTsList.length);
-          finalQuestionTsList.push(...moreByTopic.filter(qt => {
-            if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-            const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-            return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-          }));
-        }
-
-        // If still not enough, fill with any random questions
-        if (finalQuestionTsList.length < numQuestions) {
-          const randomQuestions = await QuestionTs.aggregate([
-            { $sample: { size: numQuestions - finalQuestionTsList.length } },
-            { $lookup: { from: 'questions', localField: 'quesId', foreignField: '_id', as: 'quesObj' } },
-            { $unwind: '$quesObj' }
-          ]);
-          randomQuestions.forEach(q => { q.quesId = q.quesObj; });
-          finalQuestionTsList.push(...randomQuestions);
-        }
-
-        // Truncate to numQuestions if overfilled
-        finalQuestionTsList = finalQuestionTsList.slice(0, numQuestions);
-
-        if (!finalQuestionTsList.length) {
-          throw new Error('No suitable questions found');
-        }
-
-        // Extract question IDs for the question bank
-        const questionBank = finalQuestionTsList.map(qt => qt.quesId);
+        // Create question bank using the helper function
+        const questionBank = await createQuestionBank(level, attemptType);
 
         // Create new session with question bank
         const session = await UserLevelSession.create({

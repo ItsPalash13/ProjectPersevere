@@ -84,10 +84,13 @@ export const adminApi = createApi({
     }),
     // Question endpoints
     getQuestions: builder.query({
-      query: (chapterId) => ({ 
+      query: ({ chapterId, unitId }) => ({ 
         url: '/api/admin/questions', 
         method: 'GET',
-        params: chapterId ? { chapterId } : {}
+        params: { 
+          ...(chapterId && { chapterId }),
+          ...(unitId && { unitId })
+        }
       }),
       providesTags: ['Question'],
     }),

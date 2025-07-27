@@ -3,14 +3,83 @@ import { Question } from '../../models/Questions';
 import { QuestionTs } from '../../models/QuestionTs';
 import { Chapter } from '../../models/Chapter';
 import { Topic } from '../../models/Topic';
+import { Unit } from '../../models/Units';
 import mongoose from 'mongoose';
 
 const router = express.Router();
 
+// Create question
+router.post('/', async (req, res) => {
+  try {
+    const { ques, options, correct, chapterId, unitId, topics, xpCorrect, xpIncorrect, mu, sigma } = req.body;
+
+    // Validate required fields
+    if (!ques || !options || correct === undefined || !chapterId) {
+      return res.status(400).json({ error: 'Question text, options, correct answer, and chapter are required' });
+    }
+
+    if (!Array.isArray(options) || options.length !== 4) {
+      return res.status(400).json({ error: 'Exactly 4 options are required' });
+    }
+
+    if (correct < 0 || correct > 3) {
+      return res.status(400).json({ error: 'Correct answer must be 0, 1, 2, or 3' });
+    }
+
+    // Validate chapter exists
+    const chapter = await Chapter.findById(chapterId);
+    if (!chapter) {
+      return res.status(404).json({ error: 'Chapter not found' });
+    }
+
+    // Validate unit exists if provided
+    if (unitId) {
+      const unit = await Unit.findById(unitId);
+      if (!unit) {
+        return res.status(404).json({ error: 'Unit not found' });
+      }
+    }
+
+    // Create question
+    const question = new Question({
+      ques,
+      options,
+      correct,
+      chapterId: new mongoose.Types.ObjectId(chapterId),
+      unitId: unitId ? new mongoose.Types.ObjectId(unitId) : undefined,
+      topics: topics || []
+    });
+
+    const savedQuestion = await question.save();
+
+    // Create QuestionTs entry if difficulty or XP values provided
+    if (mu !== undefined || sigma !== undefined || xpCorrect !== undefined || xpIncorrect !== undefined) {
+      const questionTs = new QuestionTs({
+        quesId: savedQuestion._id,
+        difficulty: {
+          mu: mu || 0,
+          sigma: sigma || 1
+        },
+        xp: {
+          correct: xpCorrect || 2,
+          incorrect: xpIncorrect || 0
+        }
+      });
+      await questionTs.save();
+    }
+
+    res.status(201).json(savedQuestion);
+
+  } catch (error) {
+    console.error('Error creating question:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Multi-add questions endpoint
 router.post('/multi-add', async (req, res) => {
   try {
-    const { questions, chapterId, topicIds, xpCorrect, xpIncorrect } = req.body;
+    const { questions, chapterId, unitId, topicIds, xpCorrect, xpIncorrect } = req.body;
 
     // Validate required fields
     if (!questions || !Array.isArray(questions) || questions.length === 0) {
@@ -33,6 +102,14 @@ router.post('/multi-add', async (req, res) => {
     const chapter = await Chapter.findById(chapterId);
     if (!chapter) {
       return res.status(404).json({ error: 'Chapter not found' });
+    }
+
+    // Validate unit exists if provided
+    if (unitId) {
+      const unit = await Unit.findById(unitId);
+      if (!unit) {
+        return res.status(404).json({ error: 'Unit not found' });
+      }
     }
 
     // Validate topics exist and get their names
@@ -82,6 +159,7 @@ router.post('/multi-add', async (req, res) => {
         options: [option1.trim(), option2.trim(), option3.trim(), option4.trim()],
         correct: correctIndex,
         chapterId: new mongoose.Types.ObjectId(chapterId),
+        unitId: unitId ? new mongoose.Types.ObjectId(unitId) : undefined,
         topics: topicIds.map(id => ({
           id: new mongoose.Types.ObjectId(id),
           name: topicMap[id]
@@ -123,12 +201,16 @@ router.post('/multi-add', async (req, res) => {
 // Get all questions
 router.get('/', async (req, res) => {
   try {
-    const { chapterId, topicId } = req.query;
+    const { chapterId, unitId, topicId } = req.query;
 
     let query: any = {};
     
     if (chapterId) {
       query.chapterId = chapterId;
+    }
+
+    if (unitId) {
+      query.unitId = unitId;
     }
 
     if (topicId) {
@@ -137,6 +219,7 @@ router.get('/', async (req, res) => {
 
     const questions = await Question.find(query)
       .populate('chapterId', 'name')
+      .populate('unitId', 'name')
       .sort({ createdAt: -1 });
 
     // Get QuestionTs data for each question
@@ -170,6 +253,7 @@ router.get('/:id', async (req, res) => {
   try {
     const question = await Question.findById(req.params.id)
       .populate('chapterId', 'name')
+      .populate('unitId', 'name')
       .populate('topics.id', 'name');
 
     if (!question) {
@@ -187,7 +271,7 @@ router.get('/:id', async (req, res) => {
 // Update question
 router.put('/:id', async (req, res) => {
   try {
-    const { ques, options, correct, chapterId, topics, xpCorrect, xpIncorrect, mu, sigma } = req.body;
+    const { ques, options, correct, chapterId, unitId, topics, xpCorrect, xpIncorrect, mu, sigma } = req.body;
 
     const question = await Question.findById(req.params.id);
     if (!question) {
@@ -199,6 +283,7 @@ router.put('/:id', async (req, res) => {
     if (options) question.options = options;
     if (correct !== undefined) question.correct = correct;
     if (chapterId) question.chapterId = chapterId;
+    if (unitId !== undefined) question.unitId = unitId || null;
     if (topics) question.topics = topics;
 
     await question.save();

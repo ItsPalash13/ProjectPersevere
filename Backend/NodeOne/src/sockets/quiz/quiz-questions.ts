@@ -13,21 +13,30 @@ import Badge from '../../models/Badge';
 import axios from 'axios';
 import mongoose from 'mongoose';
 
-// Helper function to replenish question bank
-const replenishQuestionBank = async (session: any, level: any) => {
+// Helper function to replenish question bank using MU-based strategy
+const replenishQuestionBankByMu = async (session: any, level: any) => {
   const replenishmentSize = Math.ceil(session.questionBank.length * 0.5); // 50% of current bank size
   const newQuestions: any[] = [];
   
   // Generate difficulty using same parameters as initial load
   const difficulty = getSkewNormalRandom(
-    level.difficultyParams.mean,
-    level.difficultyParams.sd,
-    level.difficultyParams.alpha
+    level.difficultyParams?.mean || 0,
+    level.difficultyParams?.sd || 1,
+    level.difficultyParams?.alpha || 0
   );
 
   // Get allowed topic IDs for this level (fetch Topic docs for names)
   const topicDocs = await require('../../models/Topic').Topic.find({ _id: { $in: level.topics } });
   const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
+
+  // Helper function to filter questions by topics
+  const filterQuestionsByTopics = (questions: any[]): any[] => {
+    return questions.filter(qt => {
+      if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
+      const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
+      return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
+    });
+  };
 
   // Strategy 1: Get questions based on difficulty and topic subset
   let difficultyQuestions = await QuestionTs.find({
@@ -37,11 +46,7 @@ const replenishQuestionBank = async (session: any, level: any) => {
   .populate('quesId')
   .sort({ 'difficulty.mu': 1 })
   .limit(replenishmentSize);
-  newQuestions.push(...difficultyQuestions.filter(qt => {
-    if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-    const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-    return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-  }));
+  newQuestions.push(...filterQuestionsByTopics(difficultyQuestions));
 
   // Strategy 2: If not enough, add wrong questions from user history (with topic filter)
   if (newQuestions.length < replenishmentSize && session.questionsAnswered.incorrect.length > 0) {
@@ -55,11 +60,7 @@ const replenishQuestionBank = async (session: any, level: any) => {
         'quesId': { $in: wrongQuestionIds.slice(0, wrongQuestionsNeeded) }
       })
       .populate('quesId');
-      newQuestions.push(...wrongQuestions.filter(qt => {
-        if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-        return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-      }));
+      newQuestions.push(...filterQuestionsByTopics(wrongQuestions));
     }
   }
 
@@ -75,11 +76,7 @@ const replenishQuestionBank = async (session: any, level: any) => {
         'quesId': { $in: correctQuestionIds.slice(0, correctQuestionsNeeded) }
       })
       .populate('quesId');
-      newQuestions.push(...correctQuestions.filter(qt => {
-        if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-        const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-        return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-      }));
+      newQuestions.push(...filterQuestionsByTopics(correctQuestions));
     }
   }
 
@@ -100,11 +97,7 @@ const replenishQuestionBank = async (session: any, level: any) => {
     ]);
     // Attach quesId for consistency
     randomQuestions.forEach(q => { q.quesId = q.quesObj; });
-    newQuestions.push(...randomQuestions.filter(qt => {
-      if (!qt.quesId || typeof qt.quesId !== 'object' || !('topics' in qt.quesId) || !Array.isArray(qt.quesId.topics) || !qt.quesId.topics.length) return false;
-      const topicIds = qt.quesId.topics.map((t: any) => t.id.toString());
-      return topicIds.length >= 1 && topicIds.every((id: string) => levelTopicIds.includes(id));
-    }));
+    newQuestions.push(...filterQuestionsByTopics(randomQuestions));
   }
 
   // Shuffle the new questions and add to bank
@@ -112,6 +105,102 @@ const replenishQuestionBank = async (session: any, level: any) => {
   const newQuestionIds = shuffledQuestions.map(q => q.quesId);
   
   return newQuestionIds;
+};
+
+// Helper function to replenish question bank using unit-based strategy
+const replenishQuestionBankByUnit = async (session: any, level: any) => {
+  const replenishmentSize = Math.ceil(session.questionBank.length * 0.5); // 50% of current bank size
+  const newQuestions: any[] = [];
+
+  // Get allowed topic IDs for this level
+  const topicDocs = await require('../../models/Topic').Topic.find({ _id: { $in: level.topics } });
+  const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
+
+  // Helper function to filter questions by topics
+  const filterQuestionsByTopics = (questions: any[]): any[] => {
+    return questions.filter(question => {
+      if (!question.topics || !Array.isArray(question.topics) || !question.topics.length) return false;
+      const questionTopicIds = question.topics.map((t: any) => t.id.toString());
+      return questionTopicIds.length >= 1 && questionTopicIds.every((id: string) => levelTopicIds.includes(id));
+    });
+  };
+
+  // Strategy 1: Get random questions from the level's unit (excluding already used questions)
+  const unitQuestions = await Question.find({ 
+    unitId: level.unitId,
+    _id: { $nin: session.questionBank }
+  })
+  .populate('topics.id')
+  .limit(replenishmentSize * 3);
+
+  const filteredUnitQuestions = filterQuestionsByTopics(unitQuestions);
+  // Shuffle and take random questions from unit
+  const shuffledUnitQuestions = filteredUnitQuestions.sort(() => Math.random() - 0.5);
+  newQuestions.push(...shuffledUnitQuestions.slice(0, replenishmentSize));
+
+  // Strategy 2: If not enough, get random questions from the same chapter (different units)
+  if (newQuestions.length < replenishmentSize) {
+    const chapterQuestions = await Question.find({ 
+      chapterId: level.chapterId,
+      unitId: { $ne: level.unitId },
+      _id: { $nin: [...session.questionBank, ...newQuestions.map(q => q._id)] }
+    })
+    .populate('topics.id')
+    .limit((replenishmentSize - newQuestions.length) * 2);
+
+    const filteredChapterQuestions = filterQuestionsByTopics(chapterQuestions);
+    // Shuffle and add random questions from chapter
+    const shuffledChapterQuestions = filteredChapterQuestions.sort(() => Math.random() - 0.5);
+    newQuestions.push(...shuffledChapterQuestions.slice(0, replenishmentSize - newQuestions.length));
+  }
+
+  // Strategy 3: If still not enough, get random questions from the chapter
+  if (newQuestions.length < replenishmentSize) {
+    const anyChapterQuestions = await Question.find({ 
+      chapterId: level.chapterId,
+      _id: { $nin: [...session.questionBank, ...newQuestions.map(q => q._id)] }
+    })
+    .populate('topics.id')
+    .limit((replenishmentSize - newQuestions.length) * 2);
+    
+    // Shuffle and add random questions
+    const shuffledAnyChapterQuestions = anyChapterQuestions.sort(() => Math.random() - 0.5);
+    newQuestions.push(...shuffledAnyChapterQuestions.slice(0, replenishmentSize - newQuestions.length));
+  }
+
+  // Strategy 4: If still not enough, get random questions from all questions
+  if (newQuestions.length < replenishmentSize) {
+    const randomQuestionsNeeded = replenishmentSize - newQuestions.length;
+    const existingQuestionIds = [...session.questionBank, ...newQuestions.map(q => q._id)];
+    const randomQuestions = await Question.aggregate([
+      { $match: { _id: { $nin: existingQuestionIds } } },
+      { $lookup: { from: 'topics', localField: 'topics.id', foreignField: '_id', as: 'topics' } },
+      { $sample: { size: randomQuestionsNeeded * 2 } }
+    ]);
+    
+    // Shuffle and add random questions
+    const shuffledRandomQuestions = randomQuestions.sort(() => Math.random() - 0.5);
+    newQuestions.push(...shuffledRandomQuestions.slice(0, replenishmentSize - newQuestions.length));
+  }
+
+  // Final shuffle of all selected questions
+  const shuffledQuestions = newQuestions.sort(() => Math.random() - 0.5);
+  const newQuestionIds = shuffledQuestions.map(q => q._id);
+  
+  return newQuestionIds;
+};
+
+// Main function to replenish question bank based on environment variable
+const replenishQuestionBank = async (session: any, level: any) => {
+  const questionFetchStrategy = process.env.QUESTION_FETCH || '0';
+  
+  if (questionFetchStrategy === '1') {
+    console.log('Using Unit-based question replenishment strategy');
+    return await replenishQuestionBankByUnit(session, level);
+  } else {
+    console.log('Using MU-based question replenishment strategy');
+    return await replenishQuestionBankByMu(session, level);
+  }
 };
 
 // Socket event handlers for quiz questions and answers
