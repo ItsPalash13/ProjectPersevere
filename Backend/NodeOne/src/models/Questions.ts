@@ -4,6 +4,7 @@ interface IQuestion extends Document {
   ques: string;
   options: string[];
   correct: number;
+  solution: string;
   chapterId: mongoose.Types.ObjectId; 
   unitId?: mongoose.Types.ObjectId;
   topics: Array<{ id: mongoose.Types.ObjectId | string; name: string }>;

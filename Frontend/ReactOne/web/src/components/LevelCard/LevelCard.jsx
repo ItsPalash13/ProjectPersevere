@@ -116,18 +116,70 @@ const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
         </Typography>
       </Box>
       
-      <CardContent sx={levelsStyles.cardContent}>
+      <CardContent sx={{
+        ...levelsStyles.cardContent,
+        height: '120px', // Fixed height
+        overflow: 'hidden',
+      }}>
         
         {/* Topics */}
-        <Box sx={levelsStyles.topicsContainer}>
-          {level.topics.map((topic, index) => (
-            <Chip 
-              key={index}
-              label={typeof topic === 'string' ? topic : topic.topic}
-              size="small"
-              sx={levelsStyles.topicChip}
-            />
-          ))}
+        <Box sx={{
+          ...levelsStyles.topicsContainer,
+          height: '80px', // Fixed height for topics area
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.5,
+          '&::-webkit-scrollbar': {
+            height: '4px',
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+            borderRadius: '2px',
+          },
+        }}>
+          {/* First row (odd indices) */}
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 0.5, 
+            mb: 0.5,
+            minWidth: 'max-content',
+          }}>
+            {level.topics.filter((_, index) => index % 2 === 0).map((topic, index) => (
+              <Chip 
+                key={`even-${index}`}
+                label={typeof topic === 'string' ? topic : topic.topic}
+                size="small"
+                sx={{
+                  ...levelsStyles.topicChip,
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </Box>
+          
+          {/* Second row (even indices) */}
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 0.5,
+            minWidth: 'max-content',
+          }}>
+            {level.topics.filter((_, index) => index % 2 === 1).map((topic, index) => (
+              <Chip 
+                key={`odd-${index}`}
+                label={typeof topic === 'string' ? topic : topic.topic}
+                size="small"
+                sx={{
+                  ...levelsStyles.topicChip,
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </Box>
         </Box>
         
         {/* Progress */}

@@ -153,7 +153,7 @@ export default function LevelsAdmin() {
         name: level.name || '',
         levelNumber: level.levelNumber || '',
         description: level.description || '',
-        topics: level.topics || [], // Topics are stored as strings in the level
+        topics: level.topics?.map(t => typeof t === 'string' ? t : t._id) || [],
         status: level.status || false,
         chapterId: level.chapterId?._id || level.chapterId || '',
         unitId: level.unitId?._id || level.unitId || '',

@@ -132,7 +132,7 @@ export const levelsStyles = {
     maxWidth: {
       xs: '100%',
       sm: '350px',
-      md: '380px'
+      md: '330px'
     },
     display: 'flex',
     flexDirection: 'column',

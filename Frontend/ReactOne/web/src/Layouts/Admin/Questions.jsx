@@ -199,50 +199,61 @@ const Questions = () => {
   const parseCSVLine = (line) => {
     const parts = [];
     let current = '';
-    let inQuotes = false;
-    let inQuestion = false;
-    let question = '';
-    let options = [];
+    let inSlashQuotes = false;
+    let inRegularQuotes = false;
     
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
+      const nextChar = line[i + 1];
       
-      if (char === '/' && !inQuotes && !inQuestion) {
-        // Start of question
-        inQuestion = true;
+      // Check for /" pattern (start of slash-quoted field)
+      if (char === '/' && nextChar === '"' && !inSlashQuotes && !inRegularQuotes) {
+        inSlashQuotes = true;
         current = '';
-      } else if (char === '/' && !inQuotes && inQuestion) {
-        // End of question
-        question = current.trim();
-        inQuestion = false;
+        i++; // Skip the next quote character
+        continue;
+      }
+      
+      // Check for "/ pattern (end of slash-quoted field)
+      if (char === '"' && nextChar === '/' && inSlashQuotes) {
+        inSlashQuotes = false;
+        parts.push(current.trim());
         current = '';
-      } else if (char === '"' && !inQuestion) {
-        // Handle quotes for options
-        inQuotes = !inQuotes;
-        if (!inQuotes) {
-          // End of quoted option - keep the quotes
-          options.push(`"${current.trim()}"`);
+        i++; // Skip the next slash character
+        continue;
+      }
+      
+      // Handle regular quotes (for backward compatibility)
+      if (char === '"' && !inSlashQuotes) {
+        inRegularQuotes = !inRegularQuotes;
+        if (!inRegularQuotes) {
+          parts.push(current.trim());
           current = '';
         }
-      } else if (char === ',' && !inQuotes && !inQuestion) {
-        // Comma separator for non-quoted values (like numbers)
+        continue;
+      }
+      
+      // Handle comma separators (only when not in quotes)
+      if (char === ',' && !inSlashQuotes && !inRegularQuotes) {
         if (current.trim()) {
           parts.push(current.trim());
         }
         current = '';
-      } else {
+        continue;
+      }
+      
+      // Add character to current field
+      if (inSlashQuotes || inRegularQuotes || char !== ',') {
         current += char;
       }
     }
     
-    // Add the last part (usually the last number)
+    // Add the last part
     if (current.trim()) {
       parts.push(current.trim());
     }
     
-    // Combine question and options
-    const result = [question, ...options, ...parts];
-    return result;
+    return parts;
   };
 
   // Parse CSV data for preview
@@ -263,7 +274,7 @@ const Questions = () => {
         correctIndex: parts[5] || '',
         mu: parts[6] || '',
         sigma: parts[7] || '',
-        isValid: parts.length >= 8
+        isValid: parts.length >= 8 && parts[0] && parts[1] && parts[2] && parts[3] && parts[4]
       };
     });
   };
@@ -283,17 +294,17 @@ const Questions = () => {
         }
         
         let [question, option1, option2, option3, option4, correctIndex, mu, sigma] = parts;
-        // Ensure question and options are wrapped as /"..."/
-        const wrapSlashQuote = (str) => {
+        // Extract content from /"text"/ format
+        const extractContent = (str) => {
           str = str.trim();
-          if (!str.startsWith('/"')) str = '/"' + str.replace(/^\/|^"|^/g, '').replace(/"\/$/, '').replace(/"$/, '').replace(/\/$/, '') + '"/';
-          return str;
+          // Remove /" from start and "/ from end
+          return str.replace(/^\/"/, '').replace(/"\/$/, '');
         };
-        question = wrapSlashQuote(question);
-        option1 = wrapSlashQuote(option1.replace(/^"|"$/g, ''));
-        option2 = wrapSlashQuote(option2.replace(/^"|"$/g, ''));
-        option3 = wrapSlashQuote(option3.replace(/^"|"$/g, ''));
-        option4 = wrapSlashQuote(option4.replace(/^"|"$/g, ''));
+        question = extractContent(question);
+        option1 = extractContent(option1);
+        option2 = extractContent(option2);
+        option3 = extractContent(option3);
+        option4 = extractContent(option4);
         return [question, option1, option2, option3, option4, parseInt(correctIndex), parseFloat(mu), parseFloat(sigma)];
       });
 
