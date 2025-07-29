@@ -462,63 +462,63 @@ const Levels: React.FC = () => {
               <Box key={unit._id} sx={{ mb: 4 }}>
                 {/* Unit Info */}
                 <Box
-                  sx={{
+                sx={{
                     position: 'relative',
                     ...(unit.locked && {
                       opacity: 0.5,
                       filter: 'grayscale(0.2)',
                       pointerEvents: 'none',
                     }),
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       {unit.name}
-                    </Typography>
-                    <Tooltip title="Unit Analytics">
-                      <IconButton
-                        onClick={() => setShowUnitPerformance(unit._id)}
-                        size="small"
-                        sx={{
-                          color: theme => theme.palette.mode === 'dark'
-                            ? colors.ui.dark.buttonSecondary
-                            : colors.ui.light.buttonSecondary,
-                          ml: 0
-                        }}
-                      >
-                        <AnalyticsIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    {unit.description}
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+                  <Tooltip title="Unit Analytics">
+                    <IconButton
+                        onClick={() => setShowUnitPerformance(unit._id)}
+                      size="small"
+                      sx={{
+                        color: theme => theme.palette.mode === 'dark'
+                          ? colors.ui.dark.buttonSecondary
+                          : colors.ui.light.buttonSecondary,
+                        ml: 0
+                      }}
+                    >
+                      <AnalyticsIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                    {unit.description}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
                     {unit.topics.map((topic: any, idx: number) => (
-                      <Box
-                        key={idx}
-                        sx={{
-                          px: 1,
-                          py: 0.25,
-                          backgroundColor: theme => theme.palette.mode === 'dark'
-                            ? colors.ui.dark.topicSecondary
-                            : colors.ui.light.topicSecondary,
-                          color: 'white',
-                          borderRadius: 0.75,
-                          fontSize: '0.75rem',
-                          fontWeight: 500,
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
-                          }
-                        }}
-                      >
-                        {typeof topic === 'string' ? topic : topic.topic}
-                      </Box>
-                    ))}
-                  </Box>
+                    <Box
+                      key={idx}
+                      sx={{
+                        px: 1,
+                        py: 0.25,
+                        backgroundColor: theme => theme.palette.mode === 'dark' 
+                          ? colors.ui.dark.topicSecondary 
+                          : colors.ui.light.topicSecondary,
+                        color: 'white',
+                        borderRadius: 0.75,
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)',
+                        }
+                      }}
+                    >
+                      {typeof topic === 'string' ? topic : topic.topic}
+                    </Box>
+                  ))}
+                </Box>
                 </Box>
                 <Box sx={{
                   ...levelsStyles.gridContainer,

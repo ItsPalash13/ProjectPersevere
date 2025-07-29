@@ -113,59 +113,22 @@
           numQuestions = level.precisionPath?.totalQuestions || 10;
         }
 
-        // Get questions that belong to the level's unit
-        const questions = await Question.find({ unitId: level.unitId })
-          .populate('topics.id')
-          .limit(numQuestions * 3); // Get more questions to filter from
+        
+        const questions = await Question.find({
+          unitId: level.unitId,
+          'topics.id': { $in: level.topics }, // Must have AT LEAST ONE of the level's topics
+          $nor: [{ 'topics.id': { $elemMatch: { $nin: level.topics } } }] // Must NOT have any topics outside level scope
+        }).populate('topics.id').limit(numQuestions * 3); // Get more questions to filter from
+
 
         if (!questions.length) {
-          throw new Error('No questions found for this unit');
+          throw new Error('No questions found for this unit with the required topics');
         }
-
-        // Filter questions by level topics
-        const topicDocs = await Topic.find({ _id: { $in: level.topics } });
-        const levelTopicIds = topicDocs.map((t: any) => t._id.toString());
-        
-        const filteredQuestions = questions.filter(question => {
-          if (!question.topics || !Array.isArray(question.topics) || !question.topics.length) return false;
-          const questionTopicIds = question.topics.map((t: any) => t.id.toString());
-          return questionTopicIds.length >= 1 && questionTopicIds.every((id: string) => levelTopicIds.includes(id));
-        });
 
         // Shuffle and take random questions from unit
-        const shuffledUnitQuestions = filteredQuestions.sort(() => Math.random() - 0.5).slice(0, numQuestions);
+        const shuffledUnitQuestions = questions.sort(() => Math.random() - 0.5).slice(0, numQuestions);
         let finalQuestions = [...shuffledUnitQuestions];
 
-        // If not enough questions found, get random questions from the same chapter
-        if (finalQuestions.length < numQuestions) {
-          const chapterQuestions = await Question.find({ 
-            chapterId: level.chapterId,
-            unitId: { $ne: level.unitId } // Exclude questions from the same unit
-          })
-          .populate('topics.id')
-          .limit((numQuestions - finalQuestions.length) * 2);
-
-          const additionalFiltered = chapterQuestions.filter(question => {
-            if (!question.topics || !Array.isArray(question.topics) || !question.topics.length) return false;
-            const questionTopicIds = question.topics.map((t: any) => t.id.toString());
-            return questionTopicIds.length >= 1 && questionTopicIds.every((id: string) => levelTopicIds.includes(id));
-          });
-
-          // Shuffle and add random questions from chapter
-          const shuffledChapterQuestions = additionalFiltered.sort(() => Math.random() - 0.5);
-          finalQuestions.push(...shuffledChapterQuestions.slice(0, numQuestions - finalQuestions.length));
-        }
-
-        // If still not enough, get random questions from the chapter
-        if (finalQuestions.length < numQuestions) {
-          const anyChapterQuestions = await Question.find({ chapterId: level.chapterId })
-            .populate('topics.id')
-            .limit((numQuestions - finalQuestions.length) * 2);
-          
-          // Shuffle and add random questions
-          const shuffledAnyChapterQuestions = anyChapterQuestions.sort(() => Math.random() - 0.5);
-          finalQuestions.push(...shuffledAnyChapterQuestions.slice(0, numQuestions - finalQuestions.length));
-        }
 
         // If still not enough, get random questions from all questions
         if (finalQuestions.length < numQuestions) {
@@ -184,6 +147,8 @@
 
         // Truncate to numQuestions if overfilled
         finalQuestions = finalQuestions.slice(0, numQuestions);
+        
+
 
         if (!finalQuestions.length) {
           throw new Error('No suitable questions found for this unit');
@@ -332,6 +297,25 @@
           });
         }
 
+        // Check if UserChapterUnit exists, create if not found
+        const userChapterUnit = await UserChapterUnit.findOneAndUpdate(
+          {
+            userId,
+            chapterId: level.chapterId,
+            unitId: level.unitId
+          },
+          {
+            $setOnInsert: {
+              status: 'in_progress',
+              startedAt: new Date()
+            }
+          },
+          {
+            upsert: true,
+            new: true
+          }
+        );
+        
         // Deduct 1 health when starting a level (never go below 0)
         await UserProfile.findOneAndUpdate(
           { userId },

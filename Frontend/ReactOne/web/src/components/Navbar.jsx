@@ -32,8 +32,10 @@ import {
 } from '@mui/icons-material';
 import { authClient } from '../lib/auth-client';
 import { useDispatch } from 'react-redux';  
-import { logout, selectUserHealth, selectUserTotalXp } from '../features/auth/authSlice';
+import { logout, selectUserHealth, selectUserTotalXp, selectUserAvatarBgColor } from '../features/auth/authSlice';
 import { StyledAppBar, BrandText, navbarStyles } from '../theme/navbarTheme';
+import { getAvatarSrc, getDefaultAvatar, getDefaultAvatarBgColor } from '../utils/avatarUtils';
+import { colors } from '../theme/colors';
 
 const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle = false }) => {
   const navigate = useNavigate();
@@ -46,6 +48,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
   // Get health and totalXp from Redux store
   const userHealth = useSelector(selectUserHealth);
   const userTotalXp = useSelector(selectUserTotalXp);
+  const userAvatarBgColor = useSelector(selectUserAvatarBgColor);
   
   // Only show search bar on dashboard
   const showSearchBar = location.pathname === '/dashboard';
@@ -100,6 +103,19 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
 
   const handleClearSearch = () => {
     setSearchQuery('');
+  };
+
+  // Get avatar source for the user
+  const getCurrentAvatarSrc = () => {
+    if (session?.user?.avatar) {
+      return getAvatarSrc(session.user.avatar);
+    }
+    return getDefaultAvatar().src;
+  };
+
+  // Get avatar background color for the user
+  const getCurrentAvatarBgColor = () => {
+    return userAvatarBgColor || getDefaultAvatarBgColor();
   };
 
   return (
@@ -256,7 +272,23 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                   height: '36px'
                 }}
               >
-                <Avatar sx={navbarStyles.avatar}>
+                <Avatar 
+                  src={getCurrentAvatarSrc()}
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    background: getCurrentAvatarBgColor(),
+                    color: colors.special.white,
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    '&:hover': {
+                      background: getCurrentAvatarBgColor(),
+                      transform: 'scale(1.05)',
+                    },
+                    transition: 'all 0.2s ease',
+                  }}
+                >
                   {session?.user?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </Avatar>
               </IconButton>

@@ -3,20 +3,21 @@
 
 🎯 TODO Actual:-
 List Down MVP Features - Always
-Streak and Extra xps
-Change Drawer Responses after Correct and Wrong
 
 
 
 🎯 TODO Stage:-
 Rethink Design - Sound - Feel - Gamify
-Scope of AI 
+Try again and Play Next Level Feature
+XP based level unlock
+Scope of AI - Solutions after Quiz finished according to students reponse
 Study UX Suggestions by GEMINI
 Study Marks App
 Smooth Question Adding system
 Countup xps should show after level end
 During quiz sidebar only visible on quiz end
 Solutions after quiz end - Thrusday
+Levels have equal proportions of questions
 
 
 Out of Scope:-

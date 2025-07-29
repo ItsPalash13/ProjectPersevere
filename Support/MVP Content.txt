@@ -129,8 +129,6 @@ Goal: Learn how events relate — unions, intersections, and more.
 
 Topics:
 
-Not A (Complement Rule)
-
 Complementary Events
 
 Mutually Exclusive Events

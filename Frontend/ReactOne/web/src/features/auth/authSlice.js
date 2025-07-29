@@ -1,5 +1,6 @@
 // src/features/auth/authSlice.js
 import { createSlice } from '@reduxjs/toolkit';
+import { getDefaultAvatarBgColor } from '../../utils/avatarUtils';
 
 const initialState = {
   session: null,
@@ -61,3 +62,4 @@ export const selectSession = (state) => state?.auth?.session || null;
 // New selectors for health and totalXp
 export const selectUserHealth = (state) => state?.auth?.user?.health || 0;
 export const selectUserTotalXp = (state) => state?.auth?.user?.totalXp || 0;
+export const selectUserAvatarBgColor = (state) => state?.auth?.user?.avatarBgColor || getDefaultAvatarBgColor();

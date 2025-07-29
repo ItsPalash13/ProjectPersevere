@@ -379,9 +379,9 @@ const Quiz = ({ socket }) => {
       setIsTimerPaused(false);
     });
 
-    socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp, currentStreak }) => {
-      console.log("Received answer result:", { isCorrect, correctAnswer, currentXp, currentStreak });
-      setAnswerResult({ isCorrect, correctAnswer });
+    socket.on('answerResult', ({ isCorrect, correctAnswer, currentXp, currentStreak, message }) => {
+      console.log("Received answer result:", { isCorrect, correctAnswer, currentXp, currentStreak, message });
+      setAnswerResult({ isCorrect, correctAnswer, message });
       setCurrentXp(currentXp);
       if (currentStreak !== undefined) setCurrentStreak(currentStreak);
       setShowAnswerDrawer(true);
@@ -832,14 +832,12 @@ const Quiz = ({ socket }) => {
             {answerResult?.isCorrect ? '😊' : '😔'}
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              {answerResult?.isCorrect ? 'Correct!' : 'Try Again'}
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              {answerResult?.isCorrect 
+            <Typography variant="h4" sx={{ opacity: 0.9 }}>
+              {answerResult?.message || (answerResult?.isCorrect 
                 ? 'Great job! You got it right!' 
                 : 'Don\'t worry, keep trying!'
-              }
+              )}
+              !
             </Typography>
           </Box>
           <StyledButton

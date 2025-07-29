@@ -26,6 +26,8 @@ interface UserProfileDocument extends Document {
   totalXp: number;
   bio?: string;
   dob?: Date; // Added date of birth field (optional)
+  avatar?: string; // Added avatar field
+  avatarBgColor?: string; // Added avatar background color field
   badges: UserBadge[];
   dailyAttemptsStreak: number;
   lastAttemptDate: Date | null;
@@ -45,6 +47,8 @@ const UserProfileSchema: Schema = new Schema(
     fullName: { type: String },
     bio: { type: String },
     dob: { type: Date }, // Added date of birth field
+    avatar: { type: String }, // Added avatar field
+    avatarBgColor: { type: String }, // Added avatar background color field
     uniqueCorrectQuestions: [{
       type: Schema.Types.ObjectId,
       ref: 'Question'

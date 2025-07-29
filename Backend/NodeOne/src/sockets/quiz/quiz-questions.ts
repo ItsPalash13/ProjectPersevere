@@ -413,6 +413,40 @@ export const quizQuestionHandlers = (socket: Socket) => {
       session.currentQuestionIndex = (session.currentQuestionIndex || 0) + 1;
       await session.save();
 
+      // Random phrases for answer feedback
+      const correctPhrases = [
+        'Nice one',
+        'Good job',
+        'Well done',
+        'Great work',
+        'Fabulous',
+        'Marvelous',
+        'Awesome',
+        'Brilliant',
+        'Excellent',
+        'That\'s great'
+      ];
+      
+      const incorrectPhrases = [
+        'Try again',
+        'Better luck next time',
+        'Not quite',
+        'Oops',
+        'Incorrect',
+        'Give it another try',
+        'Nope',
+        'Wrong answer',
+        'Hmm... not this one',
+        'That\'s not right'
+      ];
+
+      // Select random phrase based on answer correctness
+      const randomPhrase = isCorrect 
+        ? correctPhrases[Math.floor(Math.random() * correctPhrases.length)]
+        : incorrectPhrases[Math.floor(Math.random() * incorrectPhrases.length)];
+      
+      const message = `${randomPhrase}`;
+
       // Send result to client
       socket.emit('answerResult', {
         isCorrect,
@@ -422,7 +456,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           session.timeRush.currentXp : 
           session.precisionPath.currentXp,
         totalQuestions: session.questionBank.length,
-        currentStreak: session.streak
+        currentStreak: session.streak,
+        message: message
       });
 
       // Check for level completion

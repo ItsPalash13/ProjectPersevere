@@ -33,7 +33,7 @@ router.patch('/info/:userId', authMiddleware, async (req, res) => {
     if (!authUser || authUser.id !== userId) {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
-    const allowedFields = ['username', 'fullName', 'bio', 'dob'];
+    const allowedFields = ['username', 'fullName', 'bio', 'dob', 'avatar', 'avatarBgColor'];
     const update: any = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) update[field] = req.body[field];

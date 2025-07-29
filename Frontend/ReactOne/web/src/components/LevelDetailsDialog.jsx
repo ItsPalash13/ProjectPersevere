@@ -120,7 +120,7 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
                   {level.progress}%
                 </Typography>
               </Box>
-              <ProgressBar score={level.progress} progressColor='blue' hideText={true} />
+              <ProgressBar score={level.progress} progressColor={isTimeRush ? 'red' : 'purple'} hideText={true} />
             </Box>
           )}
 
