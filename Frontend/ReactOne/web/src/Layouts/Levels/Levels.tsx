@@ -446,8 +446,12 @@ const Levels: React.FC = () => {
                   return (
                     <Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                      </Box>
+                      
                       <ProgressBar score={chapterProgress} progressColor='blue' hideText={true}/>
+                      <Typography variant="body2" sx={{ fontSize: '14px'}}>
+                        {chapterProgress}%
+                      </Typography>
+                      </Box>
                     </Box>
                   );
                 })()

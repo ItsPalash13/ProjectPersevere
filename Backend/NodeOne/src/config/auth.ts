@@ -26,7 +26,7 @@ export const getAuth = async () => {
                           user: {
                             ...user,
                             health: userProfile.health,
-                            totalXp: userProfile.totalXp,
+                            totalCoins: userProfile.totalCoins,
                             dailyAttemptsStreak: userProfile.dailyAttemptsStreak,
                             avatar: userProfile.avatar,
                             avatarBgColor: userProfile?.avatarBgColor || 'blue'

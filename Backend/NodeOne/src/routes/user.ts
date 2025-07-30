@@ -78,4 +78,71 @@ router.patch('/settings/:userId', authMiddleware, async (req, res) => {
   }
 });
 
+// GET monthly leaderboard
+router.get('/monthly-leaderboard', async (req, res) => {
+  try {
+    const { month } = req.query;
+    const currentMonth = month || new Date().toISOString().slice(0, 7).replace('-', '/');
+    
+    // Get top 10 users for the specified month
+    const leaderboard = await UserProfile.aggregate([
+      {
+        $match: {
+          [`monthlyXp.${currentMonth}`]: { $exists: true, $gt: 0 }
+        }
+      },
+      {
+        $project: {
+          userId: 1,
+          username: 1,
+          fullName: 1,
+          avatar: 1,
+          avatarBgColor: 1,
+          monthlyXp: 1,
+          totalCoins: 1
+        }
+      },
+      {
+        $addFields: {
+          currentMonthXp: { $ifNull: [`$monthlyXp.${currentMonth}`, 0] }
+        }
+      },
+      {
+        $sort: { currentMonthXp: -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $project: {
+          _id: 1,
+          userId: 1,
+          username: 1,
+          fullName: 1,
+          avatar: 1,
+          avatarBgColor: 1,
+          currentMonthXp: 1,
+          totalCoins: 1,
+          displayName: {
+            $cond: {
+              if: { $and: [{ $ne: ['$fullName', null] }, { $ne: ['$fullName', ''] }] },
+              then: '$fullName',
+              else: '$username'
+            }
+          }
+        }
+      }
+    ]);
+
+    res.json({ 
+      success: true, 
+      data: leaderboard,
+      month: currentMonth
+    });
+  } catch (error) {
+    console.error('Error fetching monthly leaderboard:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

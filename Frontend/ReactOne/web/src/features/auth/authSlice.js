@@ -59,7 +59,7 @@ export const selectCurrentUser = (state) => {
 export const selectIsAuthenticated = (state) => state?.auth?.isAuthenticated || false;
 export const selectSession = (state) => state?.auth?.session || null;
 
-// New selectors for health and totalXp
+// New selectors for health and totalCoins
 export const selectUserHealth = (state) => state?.auth?.user?.health || 0;
-export const selectUserTotalXp = (state) => state?.auth?.user?.totalXp || 0;
+export const selectUserTotalCoins = (state) => state?.auth?.user?.totalCoins || 0;
 export const selectUserAvatarBgColor = (state) => state?.auth?.user?.avatarBgColor || getDefaultAvatarBgColor();

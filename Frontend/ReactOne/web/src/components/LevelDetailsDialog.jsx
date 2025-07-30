@@ -116,11 +116,11 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
                 Progress
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <ProgressBar score={level.progress} progressColor={isTimeRush ? 'red' : 'purple'} hideText={true} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {level.progress}%
                 </Typography>
               </Box>
-              <ProgressBar score={level.progress} progressColor={isTimeRush ? 'red' : 'purple'} hideText={true} />
             </Box>
           )}
 

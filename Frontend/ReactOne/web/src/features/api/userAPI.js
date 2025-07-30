@@ -57,6 +57,14 @@ export const userApi = createApi({
         };
       },
       invalidatesTags: ['UserProfile']
+    }),
+    getMonthlyLeaderboard: builder.query({
+      query: (month) => ({
+        url: `/user/monthly-leaderboard`,
+        method: 'GET',
+        params: month ? { month } : {}
+      }),
+      providesTags: ['UserProfile']
     })
   })
 });
@@ -65,5 +73,6 @@ export const {
   useGetUserInfoQuery,
   useUpdateUserInfoMutation,
   useGetUserSettingsQuery,
-  useUpdateUserSettingsMutation
+  useUpdateUserSettingsMutation,
+  useGetMonthlyLeaderboardQuery
 } = userApi;

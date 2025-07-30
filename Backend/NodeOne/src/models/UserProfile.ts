@@ -23,7 +23,7 @@ interface UserProfileDocument extends Document {
   email: string;
   fullName?: string;
   health: number;
-  totalXp: number;
+  totalCoins: number;
   bio?: string;
   dob?: Date; // Added date of birth field (optional)
   avatar?: string; // Added avatar field
@@ -34,6 +34,7 @@ interface UserProfileDocument extends Document {
   dailyScorePR: number;
   uniqueCorrectQuestions: string[];
   uniqueTopics: string[];
+  monthlyXp: { [key: string]: number }; // YYYY/MM format keys with totalXp values
   createdAt: Date;
   updatedAt: Date;
 }
@@ -61,13 +62,16 @@ const UserProfileSchema: Schema = new Schema(
     dailyAttemptsStreak: { type: Number, default: 0 },
     lastAttemptDate: { type: Date, default: null },
     health: { type: Number, default: 6 },
-    totalXp: { type: Number, default: 0 },
+    totalCoins: { type: Number, default: 0 },
     badges: { type: [UserBadgeSchema], default: [] },
+    monthlyXp: { type: Object, default: {} }, // YYYY/MM format keys with totalXp values
   },
   {
     timestamps: true,
   }
 );
+
+UserProfileSchema.index({ userId: 1, monthlyXp: 1 }, { unique: true });
 
 // Create the Mongoose model for UserProfile
 const UserProfile = mongoose.model<UserProfileDocument>('UserProfile', UserProfileSchema);

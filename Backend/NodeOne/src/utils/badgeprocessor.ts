@@ -42,9 +42,17 @@ export async function processDailyStreakBadge(userProfile: UserProfileDocument, 
       streakChanged = true;
       console.log('[BadgeProcessor] Streak incremented to:', profile.dailyAttemptsStreak);
     } else if (diffDays === 0) {
-      // Already played today, do nothing
-      console.log('[BadgeProcessor] Daily Streak: Already played today, no update.');
-      return false;
+      // Same day - check if this is the first attempt of the day
+      if (profile.dailyAttemptsStreak === 0) {
+        // First attempt of the day, start streak
+        profile.dailyAttemptsStreak = 1;
+        streakChanged = true;
+        console.log('[BadgeProcessor] First attempt of the day, streak set to 1');
+      } else {
+        // Already played today, do nothing
+        console.log('[BadgeProcessor] Daily Streak: Already played today, no update.');
+        return false;
+      }
     } else {
       profile.dailyAttemptsStreak = 0;
       streakChanged = true;

@@ -115,9 +115,9 @@ const Quiz = ({ socket }) => {
   const [streakData, setStreakData] = useState(null);
   const [showHighScoreFireworks, setShowHighScoreFireworks] = useState(false);
   
-  // Get user health and totalXp from Redux store
+  // Get user health and totalCoins from Redux store
   const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
-  const userTotalXp = useSelector((state) => state?.auth?.user?.totalXp || 0);
+  const userTotalCoins = useSelector((state) => state?.auth?.user?.totalCoins || 0);
   
   // Get session data from auth client
   const { data: session, refetch: refetchSession } = authClient.useSession();
@@ -522,6 +522,7 @@ const Quiz = ({ socket }) => {
             >
               <ArrowBackIcon />
             </IconButton>
+            {/*
             <IconButton 
               onClick={handleEndQuiz}
               size="medium"
@@ -531,6 +532,7 @@ const Quiz = ({ socket }) => {
             >
               <CloseIcon />
             </IconButton>
+            */}
           </Box>
           <XpDisplay>
             <StarIcon />
@@ -677,7 +679,7 @@ const Quiz = ({ socket }) => {
               You've completed the level with {currentXp} XP!
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Your total XP is now {userTotalXp + currentXp}!
+              Your total Coins is now {userTotalCoins + currentXp}!
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Keep up the great work! 🚀

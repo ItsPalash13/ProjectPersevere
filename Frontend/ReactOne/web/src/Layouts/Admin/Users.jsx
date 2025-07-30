@@ -123,7 +123,7 @@ function UserProfilesTab() {
     bio: '',
     dob: '',
     health: 6,
-    totalXp: 0,
+    totalCoins: 0,
     dailyAttemptsStreak: 0,
     lastAttemptDate: '',
     uniqueCorrectQuestions: [],
@@ -141,7 +141,7 @@ function UserProfilesTab() {
         bio: profile.bio || '',
         dob: profile.dob ? new Date(profile.dob).toISOString().split('T')[0] : '',
         health: profile.health || 6,
-        totalXp: profile.totalXp || 0,
+        totalCoins: profile.totalCoins || 0,
         dailyAttemptsStreak: profile.dailyAttemptsStreak || 0,
         lastAttemptDate: profile.lastAttemptDate ? new Date(profile.lastAttemptDate).toISOString().split('T')[0] : '',
         uniqueCorrectQuestions: profile.uniqueCorrectQuestions || [],
@@ -157,7 +157,7 @@ function UserProfilesTab() {
         bio: '',
         dob: '',
         health: 6,
-        totalXp: 0,
+        totalCoins: 0,
         dailyAttemptsStreak: 0,
         lastAttemptDate: '',
         uniqueCorrectQuestions: [],
@@ -177,7 +177,7 @@ function UserProfilesTab() {
       const submitData = {
         ...formData,
         health: parseInt(formData.health),
-        totalXp: parseInt(formData.totalXp),
+        totalCoins: parseInt(formData.totalCoins),
         dob: formData.dob ? new Date(formData.dob) : undefined,
         lastAttemptDate: formData.lastAttemptDate ? new Date(formData.lastAttemptDate) : null,
         uniqueCorrectQuestions: Array.isArray(formData.uniqueCorrectQuestions)
@@ -219,7 +219,7 @@ function UserProfilesTab() {
     { field: 'email', headerName: 'Email', width: 200 },
     { field: 'fullName', headerName: 'Full Name', width: 150 },
     { field: 'health', headerName: 'Health', width: 100 },
-    { field: 'totalXp', headerName: 'Total XP', width: 120 },
+    { field: 'totalCoins', headerName: 'Total Coins', width: 120 },
     {
       field: 'dob',
       headerName: 'Date of Birth',
@@ -352,10 +352,10 @@ function UserProfilesTab() {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Total XP"
+                label="Total Coins"
                 type="number"
-                value={formData.totalXp}
-                onChange={(e) => setFormData({ ...formData, totalXp: e.target.value })}
+                value={formData.totalCoins}
+                onChange={(e) => setFormData({ ...formData, totalCoins: e.target.value })}
               />
             </Grid>
             <Grid item xs={12} sm={6}>

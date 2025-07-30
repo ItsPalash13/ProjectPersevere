@@ -734,12 +734,16 @@
               },
               { upsert: true }
             );
-
-            // Update user's totalXp and health when level is completed
+            const currentMonth = new Date().toISOString().slice(0, 7).replace('-', '/'); // YYYY/MM
+            // Update user's totalCoins and health when level is completed
             const userProfile = await UserProfile.findOneAndUpdate(
               { userId },
               { 
-                $inc: { totalXp: currentXp, health: 1 }
+                $inc: { 
+                  totalCoins: currentXp, 
+                  health: 1,
+                  [`monthlyXp.${currentMonth}`]: currentXp
+                }
               },
               { upsert: true }
             );           
@@ -922,13 +926,17 @@
               { upsert: true }
             );
 
-            // Update user's totalXp and health when level is completed
+            // Update user's totalCoins and health when level is completed
             //check if todays date is 1 more than last attempt date 
-            
+            const currentMonth = new Date().toISOString().slice(0, 7).replace('-', '/'); // YYYY/MM
             await UserProfile.findOneAndUpdate(
               { userId },
               { 
-                $inc: { totalXp: currentXp, health: 1 }
+                $inc: { 
+                  totalCoins: currentXp, 
+                  health: 1,
+                  [`monthlyXp.${currentMonth}`]: currentXp
+                }
               },
               { upsert: true }
             );

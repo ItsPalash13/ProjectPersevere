@@ -12,22 +12,26 @@ import {
   Button,
   IconButton,
   Tooltip,
-  Stack
+  Stack,
+  Chip,
+  Grid
 } from '@mui/material';
-import { Edit as EditIcon, Palette as PaletteIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Palette as PaletteIcon, Email as EmailIcon, MonetizationOn as CoinsIcon, Favorite as HealthIcon, Whatshot as StreakIcon } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
 // @ts-ignore
 import { selectCurrentUser } from '../../features/auth/authSlice';
 // @ts-ignore
-import { useGetUserInfoQuery, useUpdateUserInfoMutation } from '../../features/api/userAPI';
+import { useGetUserInfoQuery, useUpdateUserInfoMutation, useGetMonthlyLeaderboardQuery } from '../../features/api/userAPI';
 import AvatarSelector from '../../components/AvatarSelector';
 import AvatarColorPicker from '../../components/AvatarColorPicker';
+import Leaderboard from '../../components/Leaderboard';
 import { getAvatarSrc, getDefaultAvatar, getDefaultAvatarBgColor } from '../../utils/avatarUtils';
 
 interface UserInfo {
   _id?: string;
   name?: string;
   email?: string;
-  totalXp?: number;
+  totalCoins?: number;
   health?: number;
   avatar?: string;
   avatarBgColor?: string;
@@ -38,6 +42,8 @@ interface UserInfo {
 const Profile: React.FC = () => {
   const [avatarSelectorOpen, setAvatarSelectorOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   
   // Get current user from Redux
   const user: UserInfo = useSelector(selectCurrentUser) || {};
@@ -48,6 +54,9 @@ const Profile: React.FC = () => {
   const { data, isLoading, error, refetch } = useGetUserInfoQuery(userId, { skip: !userId });
   const userInfo: UserInfo = data?.data || user;
   const badges = userInfo?.badges || [];
+  
+  // Fetch monthly leaderboard
+  const { data: leaderboardData, isLoading: leaderboardLoading, error: leaderboardError } = useGetMonthlyLeaderboardQuery();
   
   // Update user info mutation
   const [updateUserInfo, { isLoading: isUpdating }] = useUpdateUserInfoMutation();
@@ -89,92 +98,190 @@ const Profile: React.FC = () => {
     return userInfo?.avatarBgColor || getDefaultAvatarBgColor();
   };
 
+  // --- New: Stats for coins, health, streak ---
+  const stats = [
+    {
+      label: 'Coins',
+      value: userInfo?.totalCoins ?? 0,
+      icon: <CoinsIcon sx={{ color: '#FFD700' }} />, // gold
+      color: 'warning',
+    },
+    {
+      label: 'Health',
+      value: userInfo?.health ?? 0,
+      icon: <HealthIcon sx={{ color: '#FF0808' }} />, // red
+      color: 'error',
+    },
+    {
+      label: 'Streak',
+      value: userInfo?.dailyAttemptsStreak ?? 0,
+      icon: <StreakIcon sx={{ color: '#ff5722' }} />, // orange
+      color: 'secondary',
+    },
+  ];
+
   if (!userId) {
     return <Alert severity="error">User not found. Please log in again.</Alert>;
   }
 
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'background.default', p: 4, boxSizing: 'border-box' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
-        <Box sx={{ position: 'relative', mb: 2 }}>
-          <Avatar 
-            src={getCurrentAvatarSrc()}
-            sx={{ 
-              width: 120, 
-              height: 120, 
-              fontSize: 48,
-              border: '3px solid',
-              borderColor: 'primary.main',
-              bgcolor: getCurrentBgColor()
+    <Box
+      sx={{
+        width: '100%',
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        p: { xs: 1, sm: 4 },
+        boxSizing: 'border-box',
+        background: isDark
+          ? 'linear-gradient(135deg, #232526 0%, #414345 100%)'
+          : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        transition: 'background 0.3s',
+      }}
+    >
+      {/* Profile Card and Leaderboard Side by Side */}
+      <Grid container spacing={3} sx={{ mt: { xs: 2, sm: 6 } }}>
+        {/* Profile Card */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              borderRadius: 4,
+              boxShadow: 6,
+              p: { xs: 2, sm: 4 },
+              position: 'relative',
+              overflow: 'visible',
+              height: 'fit-content',
             }}
           >
-            {userInfo?.name?.charAt(0)?.toUpperCase() || 'U'}
-          </Avatar>
-          
-          {/* Avatar Edit Button */}
-          <Tooltip title="Change Avatar">
-            <IconButton
-              onClick={() => setAvatarSelectorOpen(true)}
-              sx={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                bgcolor: 'primary.main',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                },
-                width: 36,
-                height: 36,
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          
-          {/* Color Picker Button */}
-          <Tooltip title="Change Background Color">
-            <IconButton
-              onClick={() => setColorPickerOpen(true)}
-              sx={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                bgcolor: 'secondary.main',
-                color: 'white',
-                '&:hover': {
-                  bgcolor: 'secondary.dark',
-                },
-                width: 36,
-                height: 36,
-              }}
-            >
-              <PaletteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-        
-        <Typography variant="h4" fontWeight={600} gutterBottom>
-          {userInfo?.name || 'User'}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {userInfo?.email || 'No email'}
-        </Typography>
-        {isLoading && <CircularProgress size={24} sx={{ mt: 2 }} />}
-        {error && <Alert severity="error" sx={{ mt: 2 }}>Failed to load profile. <Button onClick={() => refetch()} size="small">Retry</Button></Alert>}
-        <Box sx={{ mt: 3, width: '100%', maxWidth: 500 }}>
-          <Typography variant="subtitle1" fontWeight={500} gutterBottom>Profile Info</Typography>
-          <Typography variant="body2" color="text.secondary">XP: {userInfo?.totalXp ?? 0}</Typography>
-          <Typography variant="body2" color="text.secondary">Health: {userInfo?.health ?? 0}</Typography>
-        </Box>
-      </Box>
-      
+            {/* Avatar with glow and edit buttons */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ position: 'relative', mb: 1 }}>
+                <Avatar
+                  src={getCurrentAvatarSrc()}
+                  sx={{
+                    width: 120,
+                    height: 120,
+                    fontSize: 48,
+                    border: '4px solid',
+                    borderColor: 'primary.main',
+                    boxShadow: '0 0 24px 4px #6C05FA44',
+                    bgcolor: getCurrentBgColor(),
+                    transition: 'box-shadow 0.3s',
+                  }}
+                >
+                  {userInfo?.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                </Avatar>
+                {/* Edit Avatar Button */}
+                <Tooltip title="Change Avatar">
+                  <IconButton
+                    onClick={() => setAvatarSelectorOpen(true)}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      bgcolor: 'secondary.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'secondary.dark' },
+                      boxShadow: 2,
+                      zIndex: 2,
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                {/* Edit Color Button */}
+                <Tooltip title="Change Background Color">
+                  <IconButton
+                    onClick={() => setColorPickerOpen(true)}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      left: 8,
+                      bgcolor: 'secondary.main',
+                      color: 'white',
+                      '&:hover': { bgcolor: 'secondary.dark' },
+                      boxShadow: 2,
+                      zIndex: 2,
+                    }}
+                  >
+                    <PaletteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              {/* Name and Email */}
+              <Typography variant="h4" fontWeight={700} gutterBottom align="center" sx={{ letterSpacing: 1 }}>
+                {userInfo?.fullName || 'User'}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <EmailIcon fontSize="small" color="action" />
+                <Typography variant="body1" color="text.secondary" fontWeight={500}>
+                  {userInfo?.email || 'No email'}
+                </Typography>
+              </Box>
+              {/* Stats Chips */}
+              <Box sx={{ display: 'flex', gap: 2, mt: 1, mb: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                {stats.map((stat, idx) => (
+                  <Chip
+                    key={stat.label}
+                    icon={stat.icon}
+                    label={`${stat.value} ${stat.label}`}
+                    color={stat.color as any}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      px: 2,
+                      boxShadow: 1,
+                      letterSpacing: 0.5,
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+            {/* Profile Info Section */}
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                Profile Info
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Bio:</strong> {userInfo?.bio || 'No bio set.'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Date of Birth:</strong> {userInfo?.dob ? new Date(userInfo.dob).toLocaleDateString() : 'N/A'}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+        </Grid>
+
+        {/* Leaderboard */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              borderRadius: 4,
+              boxShadow: 6,
+              p: { xs: 2, sm: 3 },
+              height: 'fit-content',
+            }}
+          >
+            <Leaderboard 
+              data={leaderboardData?.data || []}
+              month={leaderboardData?.month}
+              isLoading={leaderboardLoading}
+              error={leaderboardError}
+            />
+          </Card>
+        </Grid>
+      </Grid>
       {/* Badges Section */}
-      <Box sx={{ width: '100%', mt: 4 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>Badges</Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-start', alignItems: 'center', width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
+      <Box sx={{ width: '100%', maxWidth: 900, mt: 4}}>
+        <Typography variant="h5" fontWeight={700} gutterBottom align="left" sx={{ mb: 2 }}>
+          Badges
+        </Typography>
+        <Grid container spacing={3}>
           {badges.length === 0 && (
-            <Typography color="text.secondary">No badges earned yet.</Typography>
+            <Grid item xs={12}>
+              <Typography color="text.secondary">No badges earned yet.</Typography>
+            </Grid>
           )}
           {badges.map((badge, idx) => {
             const badgeDef = badge.badgeId;
@@ -182,27 +289,46 @@ const Profile: React.FC = () => {
             const level = badge.level ?? 0;
             const badgeLevel = badgeDef.badgelevel?.[level] || {};
             return (
-              <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 120, maxWidth: 180 }}>
-                <img
-                  src={badgeLevel.badgeImage || ''}
-                  alt={badgeDef.badgeName}
-                  style={{ width: 72, height: 72, objectFit: 'contain', borderRadius: 12, marginBottom: 8, background: '#f5f5f5' }}
-                />
-                <Typography variant="subtitle1" fontWeight={500} align="center">
-                  {badgeDef.badgeName}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" align="center">
-                  {badgeDef.badgeDescription}
-                </Typography>
-                <Typography variant="caption" color="primary" align="center" sx={{ mt: 0.5 }}>
-                  Level: {level + 1}
-                </Typography>
-              </Box>
+              <Grid item xs={6} sm={4} md={3} key={idx}>
+                <Tooltip title={<>
+                  <Typography variant="subtitle2" fontWeight={600}>{badgeDef.badgeName}</Typography>
+                  <Typography variant="body2">{badgeDef.badgeDescription}</Typography>
+                  <Typography variant="caption" color="primary">Level: {level + 1}</Typography>
+                </>} arrow>
+                  <Card
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      p: 2,
+                      borderRadius: 3,
+                      boxShadow: 3,
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: 6,
+                      },
+                      minHeight: 180,
+                    }}
+                  >
+                    <img
+                      src={badgeLevel.badgeImage || ''}
+                      alt={badgeDef.badgeName}
+                      style={{ width: 72, height: 72, objectFit: 'contain', borderRadius: 12, marginBottom: 8, background: '#f5f5f5' }}
+                    />
+                    <Typography variant="subtitle1" fontWeight={600} align="center">
+                      {badgeDef.badgeName}
+                    </Typography>
+                    <Typography variant="caption" color="primary" align="center" sx={{ mt: 0.5 }}>
+                      Level: {level + 1}
+                    </Typography>
+                  </Card>
+                </Tooltip>
+              </Grid>
             );
           })}
-        </Box>
+        </Grid>
       </Box>
-
       {/* Avatar Selector Dialog */}
       <AvatarSelector
         open={avatarSelectorOpen}
@@ -210,7 +336,6 @@ const Profile: React.FC = () => {
         onSelect={handleAvatarSelect}
         currentAvatar={userInfo?.avatar}
       />
-
       {/* Avatar Color Picker Dialog */}
       <AvatarColorPicker
         open={colorPickerOpen}

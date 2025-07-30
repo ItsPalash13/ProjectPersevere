@@ -27,12 +27,12 @@ import {
   Notifications as NotificationsIcon,
   Palette as PaletteIcon,
   Favorite as HealthIcon,
-  Star as XpIcon,
+  MonetizationOn as CoinsIcon,
   Whatshot as StreakIcon,
 } from '@mui/icons-material';
 import { authClient } from '../lib/auth-client';
 import { useDispatch } from 'react-redux';  
-import { logout, selectUserHealth, selectUserTotalXp, selectUserAvatarBgColor } from '../features/auth/authSlice';
+import { logout, selectUserHealth, selectUserTotalCoins, selectUserAvatarBgColor } from '../features/auth/authSlice';
 import { StyledAppBar, BrandText, navbarStyles } from '../theme/navbarTheme';
 import { getAvatarSrc, getDefaultAvatar, getDefaultAvatarBgColor } from '../utils/avatarUtils';
 import { colors } from '../theme/colors';
@@ -45,9 +45,9 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Get health and totalXp from Redux store
+  // Get health and totalCoins from Redux store
   const userHealth = useSelector(selectUserHealth);
-  const userTotalXp = useSelector(selectUserTotalXp);
+  const userTotalCoins = useSelector(selectUserTotalCoins);
   const userAvatarBgColor = useSelector(selectUserAvatarBgColor);
   
   // Only show search bar on dashboard
@@ -198,8 +198,8 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                   }}
                 />
                 <Chip
-                  icon={<XpIcon />}
-                  label={`${userTotalXp} XP`}
+                  icon={<CoinsIcon />}
+                  label={`${userTotalCoins} Coins`}
                   size="small"
                   sx={{
                     backgroundColor: '#ff9800',

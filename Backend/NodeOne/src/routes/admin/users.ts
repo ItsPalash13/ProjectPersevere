@@ -86,7 +86,7 @@ router.get('/profiles/:id', async (req, res) => {
 // POST create user profile
 router.post('/profiles', async (req, res) => {
   try {
-    const { userId, username, email, fullName, bio, dob, health, totalXp } = req.body;
+    const { userId, username, email, fullName, bio, dob, health, totalCoins } = req.body;
 
     // Validate required fields
     if (!userId || !username || !email) {
@@ -116,7 +116,7 @@ router.post('/profiles', async (req, res) => {
       bio,
       dob: dob ? new Date(dob) : undefined,
       health: health || 6,
-      totalXp: totalXp || 0
+      totalCoins: totalCoins || 0
     });
 
     await profile.save();
@@ -141,7 +141,7 @@ router.put('/profiles/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      username, email, fullName, bio, dob, health, totalXp,
+      username, email, fullName, bio, dob, health, totalCoins,
       dailyAttemptsStreak, lastAttemptDate, uniqueCorrectQuestions, uniqueTopics
     } = req.body;
 
@@ -182,7 +182,7 @@ router.put('/profiles/:id', async (req, res) => {
       bio,
       dob: dob ? new Date(dob) : undefined,
       health,
-      totalXp
+      totalCoins
     };
     if (dailyAttemptsStreak !== undefined) updateObj.dailyAttemptsStreak = dailyAttemptsStreak;
     if (lastAttemptDate !== undefined) updateObj.lastAttemptDate = lastAttemptDate ? new Date(lastAttemptDate) : null;
