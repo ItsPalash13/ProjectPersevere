@@ -114,6 +114,7 @@ const Quiz = ({ socket }) => {
   const [showStreakNotification, setShowStreakNotification] = useState(false);
   const [streakData, setStreakData] = useState(null);
   const [showHighScoreFireworks, setShowHighScoreFireworks] = useState(false);
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
   
   // Get user health and totalCoins from Redux store
   const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
@@ -198,6 +199,9 @@ const Quiz = ({ socket }) => {
       setQuizMessage('Please select an answer');
       return;
     }
+    
+    // Set answer submitted state
+    setAnswerSubmitted(true);
     
     // Calculate time spent on this question
     const timeSpent = questionStartTime ? Date.now() - questionStartTime : 0;
@@ -388,6 +392,7 @@ const Quiz = ({ socket }) => {
       if (currentStreak !== undefined) setCurrentStreak(currentStreak);
       setShowAnswerDrawer(true);
       setIsTimerPaused(true);
+      setAnswerSubmitted(false); // Reset answer submitted state
     });
 
     socket.on('levelCompleted', ({ message, attemptType: eventAttemptType }) => {
@@ -623,9 +628,16 @@ const Quiz = ({ socket }) => {
                   variant="contained"
                   size="large"
                   onClick={handleAnswerSubmit}
-                  disabled={selectedAnswer === ''}
+                  disabled={selectedAnswer === '' || answerSubmitted}
                 >
-                  Submit Answer
+                  {answerSubmitted ? (
+                    <>
+                      <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Answer'
+                  )}
                 </StyledButton>
               ) : (
                 <StyledButton

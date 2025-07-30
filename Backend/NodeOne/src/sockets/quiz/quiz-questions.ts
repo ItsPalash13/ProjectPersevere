@@ -447,20 +447,6 @@ export const quizQuestionHandlers = (socket: Socket) => {
         : incorrectPhrases[Math.floor(Math.random() * incorrectPhrases.length)];
       
       const message = `${randomPhrase}`;
-
-      // Send result to client
-      socket.emit('answerResult', {
-        isCorrect,
-        correctAnswer: question.correct,
-        xpEarned: Number(xpEarned),
-        currentXp: session.attemptType === 'time_rush' ? 
-          session.timeRush.currentXp : 
-          session.precisionPath.currentXp,
-        totalQuestions: session.questionBank.length,
-        currentStreak: session.streak,
-        message: message
-      });
-
       // Check for level completion
       const currentXp = session.attemptType === 'time_rush' ? 
         session.timeRush.currentXp : 
@@ -468,6 +454,21 @@ export const quizQuestionHandlers = (socket: Socket) => {
       const requiredXp = session.attemptType === 'time_rush' ? 
         session.timeRush.requiredXp : 
         session.precisionPath.requiredXp;
+
+      // Send result to client
+      if (session.status === 0 && currentXp < requiredXp) {
+        socket.emit('answerResult', {
+          isCorrect,
+          correctAnswer: question.correct,
+          xpEarned: Number(xpEarned),
+          currentXp: session.attemptType === 'time_rush' ? 
+            session.timeRush.currentXp : 
+            session.precisionPath.currentXp,
+          totalQuestions: session.questionBank.length,
+          currentStreak: session.streak,
+          message: message
+        });
+      }
 
       // If level is completed (XP requirement met)
       if (session.status === 0 && currentXp >= requiredXp) {
@@ -517,6 +518,17 @@ export const quizQuestionHandlers = (socket: Socket) => {
             }
           }
         }
+        socket.emit('answerResult', {
+          isCorrect,
+          correctAnswer: question.correct,
+          xpEarned: Number(xpEarned),
+          currentXp: session.attemptType === 'time_rush' ? 
+            session.timeRush.currentXp : 
+            session.precisionPath.currentXp,
+          totalQuestions: session.questionBank.length,
+          currentStreak: session.streak,
+          message: message
+        });
 
         // Send final results to client for both modes
         socket.emit('quizFinished', { 
