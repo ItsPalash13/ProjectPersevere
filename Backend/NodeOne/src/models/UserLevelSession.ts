@@ -26,9 +26,10 @@ export interface IUserLevelSession extends Document {
   timeRush: {
     requiredXp: number;
     currentXp: number;
-    maxXp: number;
+    minTime: number;
     timeLimit: number;
     currentTime: number;
+    totalQuestions: number;
   };
 
   // Precision Path specific fields
@@ -120,7 +121,7 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
       type: Number,
       min: 0,
     },
-    maxXp: {
+    minTime: {
       type: Number,
       min: 0
     },
@@ -131,6 +132,10 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
     currentTime: {
       type: Number,
       min: 0,
+    },
+    totalQuestions: {
+      type: Number,
+      min: 0
     }
   },
 

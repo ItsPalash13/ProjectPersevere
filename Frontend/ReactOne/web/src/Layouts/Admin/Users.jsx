@@ -964,7 +964,7 @@ function UserChapterLevelsTab() {
               <Grid item xs={12}>
                 <Alert severity="info">
                   <Typography variant="body2">
-                    <strong>Level Settings:</strong> The MaxXP, MinTime, RequiredXP, and other settings will be automatically inherited from the selected level.
+                    <strong>Level Settings:</strong> The MinTime, RequiredXP, and other settings will be automatically inherited from the selected level.
                   </Typography>
                 </Alert>
               </Grid>
@@ -1108,9 +1108,10 @@ function UserLevelSessionsTab() {
                       <Typography variant="h6">Time Rush Progress</Typography>
                       <Typography>Required XP: {selectedSession.timeRush.requiredXp}</Typography>
                       <Typography>Current XP: {selectedSession.timeRush.currentXp}</Typography>
-                      <Typography>Max XP: {selectedSession.timeRush.maxXp}</Typography>
+                      <Typography>Min Time: {selectedSession.timeRush.minTime || 'Not set'}s</Typography>
                       <Typography>Time Limit: {selectedSession.timeRush.timeLimit}s</Typography>
                       <Typography>Current Time: {selectedSession.timeRush.currentTime}s</Typography>
+                      <Typography>Total Questions: {selectedSession.timeRush.totalQuestions}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>

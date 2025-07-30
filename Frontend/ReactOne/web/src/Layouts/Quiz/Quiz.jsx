@@ -357,6 +357,8 @@ const Quiz = ({ socket }) => {
       if (data.attemptType === 'time_rush' && data.timeRush) {
         setCurrentTime(data.timeRush.currentTime);
         setCurrentXp(data.timeRush.currentXp);
+        setCurrentQuestionIndex(data.timeRush.currentQuestionIndex);
+        setTotalQuestions(data.timeRush.totalQuestions);
       } else if (data.attemptType === 'precision_path' && data.precisionPath) {
         setCurrentTime(data.precisionPath.currentTime);
         setCurrentXp(data.precisionPath.currentXp);
@@ -571,8 +573,8 @@ const Quiz = ({ socket }) => {
                     size="small" 
                     sx={quizStyles.questionChip}
                   />
-                  {/* Show question number for precision_path */}
-                  {attemptType === 'precision_path' && totalQuestions > 0 && (
+                  {/* Show question number for both modes */}
+                  {totalQuestions > 0 && (
                     <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
                       Question {currentQuestionIndex + 1} of {totalQuestions}
                     </Typography>
@@ -680,6 +682,9 @@ const Quiz = ({ socket }) => {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               Your total Coins is now {userTotalCoins + currentXp}!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Time remaining: {formatTime(currentTime, true)}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Keep up the great work! 🚀

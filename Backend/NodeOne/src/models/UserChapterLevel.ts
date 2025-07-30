@@ -15,9 +15,10 @@ export interface IUserChapterLevel extends Document {
   // Time Rush specific fields (only present when attemptType is 'time_rush')
   timeRush?: {
     attempts?: number;
-    maxXp?: number | null;
+    minTime?: number | null;
     requiredXp?: number;
     timeLimit?: number;  // Time limit for Time Rush mode
+    totalQuestions?: number;
   };
 
   // Precision Path specific fields (only present when attemptType is 'precision_path')
@@ -83,15 +84,18 @@ export const UserChapterLevelSchema = new Schema<IUserChapterLevel>({
       type: Number,
       min: 0
     },
-    maxXp: {
-      type: Number,
-      min: 0
+    minTime: {
+      type: Number
     },
     requiredXp: {
       type: Number,
       min: 0
     },
     timeLimit: {
+      type: Number,
+      min: 0
+    },
+    totalQuestions: {
       type: Number,
       min: 0
     }
@@ -123,14 +127,19 @@ UserChapterLevelSchema.index({ userId: 1, chapterId: 1, levelId: 1, attemptType:
 
 // Pre-save middleware to update appropriate high score
 UserChapterLevelSchema.pre('save', function(next) {
-  if (this.attemptType === 'precision_path' && this.precisionPath) {
-    // Precision Path: Update min time if current time is faster
-    if (this.completedAt && this.lastAttemptedAt) {
-      const timeTaken = (this.completedAt.getTime() - this.lastAttemptedAt.getTime()) / 1000;
+  if (this.completedAt && this.lastAttemptedAt) {
+    const timeTaken = (this.completedAt.getTime() - this.lastAttemptedAt.getTime()) / 1000;
+    
+    if (this.attemptType === 'precision_path' && this.precisionPath) {
+      // Precision Path: Update min time if current time is faster
       const currentMinTime = this.precisionPath.minTime;
       if (currentMinTime === null || currentMinTime === undefined || timeTaken < currentMinTime) {
         this.precisionPath.minTime = timeTaken;
       }
+    } else if (this.attemptType === 'time_rush' && this.timeRush) {
+      // Time Rush: Update minTime (which stores maxTime remaining) if current time remaining is higher
+      // Note: This middleware is not used for Time Rush as the logic is handled in the API routes
+      // The minTime field stores the maximum time remaining for Time Rush
     }
   }
   next();

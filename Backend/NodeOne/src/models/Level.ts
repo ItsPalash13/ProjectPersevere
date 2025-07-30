@@ -14,6 +14,7 @@ export interface ILevel extends Document {
   timeRush?: {
     requiredXp: number;
     totalTime: number;
+    totalQuestions: number;
   };
 
   // Precision Path specific fields (only present when type is 'precision_path')
@@ -78,6 +79,10 @@ export const LevelSchema = new Schema<ILevel>({
         min: 0
       },
       totalTime: {
+        type: Number,
+        min: 0
+      },
+      totalQuestions: {
         type: Number,
         min: 0
       }

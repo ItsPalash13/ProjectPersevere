@@ -33,15 +33,9 @@ const Results = ({ quizResults, earnedBadges, formatTime }) => {
           <Typography variant="body1" color="text.secondary">
             Required: {data.requiredXp} XP
           </Typography>
-          {isTimeRush ? (
-            <Typography variant="body1" color="text.secondary">
-              Max Score: {data.maxXp} XP
-            </Typography>
-          ) : (
-            <Typography variant="body1" color="text.secondary">
-              Best Time: {formatTime(data.bestTime)}
-            </Typography>
-          )}
+                     <Typography variant="body1" color="text.secondary">
+             {isTimeRush ? 'Best Time Remaining: ' : 'Best Time: '}{formatTime(isTimeRush ? data.minTime : data.bestTime)}
+           </Typography>
         </Box>
 
         {/* Percentile Display */}
@@ -62,10 +56,7 @@ const Results = ({ quizResults, earnedBadges, formatTime }) => {
               {String(data.percentile)}th Percentile
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {isTimeRush 
-                ? `You scored better than ${String(data.percentile)}% of players on this level!`
-                : `You completed this level faster than ${String(data.percentile)}% of players!`
-              }
+              You completed this level faster than {String(data.percentile)}% of players!
             </Typography>
           </Box>
         )}

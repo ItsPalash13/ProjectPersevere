@@ -62,7 +62,9 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
           timeRush: {
             currentTime: session.timeRush.currentTime,
             currentXp: session.timeRush.currentXp,
-            timeLimit: session.timeRush.timeLimit
+            timeLimit: session.timeRush.timeLimit,
+            currentQuestionIndex: session.currentQuestionIndex,
+            totalQuestions: session.timeRush.totalQuestions
           }
         } : {
           precisionPath: {
@@ -125,7 +127,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
           timeRush: {
             currentXp: response.data.data.currentXp,
             requiredXp: response.data.data.requiredXp,
-            maxXp: response.data.data.maxXp,
+            minTime: response.data.data.minTime,
             timeTaken: response.data.data.timeTaken,
             percentile: response.data.data.percentile
           }
@@ -224,7 +226,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
           timeRush: {
             currentXp: response.data.data.currentXp,
             requiredXp: response.data.data.requiredXp,
-            maxXp: response.data.data.maxXp,
+            minTime: response.data.data.minTime,
             timeTaken: response.data.data.timeTaken,
             percentile: response.data.data.percentile
           }

@@ -160,17 +160,17 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
               </Grid>
             )}
 
-            {/* Time Rush: Best Score */}
-            {isTimeRush && progress?.maxXp !== null && progress?.maxXp !== undefined && (
+            {/* Time Rush: Best Time Remaining */}
+            {isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && progress?.minTime > 0 && (
               <Grid item xs={6} sm={4}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>🏆</Typography>
+                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⚡</Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {progress.maxXp}
+                      {formatTime(progress.minTime)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Best Score
+                      Best Time Remaining
                     </Typography>
                   </CardContent>
                 </Card>
@@ -194,14 +194,14 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
               </Grid>
             )}
 
-            {/* Precision Path: Total Questions */}
-            {!isTimeRush && level?.precisionPath?.totalQuestions && (
+            {/* Total Questions - Both Modes */}
+            {(isTimeRush ? level?.timeRush?.totalQuestions : level?.precisionPath?.totalQuestions) && (
               <Grid item xs={6} sm={4}>
                 <Card sx={{ height: '100%' }}>
                   <CardContent sx={{ p: 2, textAlign: 'center' }}>
                     <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>❓</Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {level.precisionPath.totalQuestions}
+                      {isTimeRush ? level.timeRush.totalQuestions : level.precisionPath.totalQuestions}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Questions

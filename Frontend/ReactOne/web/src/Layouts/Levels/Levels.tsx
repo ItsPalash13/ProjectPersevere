@@ -57,9 +57,11 @@ export interface Level {
   timeRush?: {
     requiredXp: number;
     totalTime: number;
+    totalQuestions: number;
   };
   precisionPath?: {
     requiredXp: number;
+    totalQuestions: number;
   };
   
   // Runtime mode for display (derived from type)
@@ -73,15 +75,17 @@ export interface Level {
   
   userProgress?: {
     timeRush?: {
-      maxXp: number;
+      minTime: number | null;
       attempts: number;
       requiredXp: number;
       timeLimit?: number;
+      totalQuestions: number;
     };
     precisionPath?: {
       minTime: number | null;
       attempts: number;
       requiredXp: number;
+      totalQuestions: number;
     };
     _id: string;
     userId: string;

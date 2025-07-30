@@ -243,11 +243,12 @@ export const quizQuestionHandlers = (socket: Socket) => {
 
       // Check if we need to replenish the question bank (at 40% threshold)
       // Only replenish question bank for time_rush mode
-      if (session.attemptType === 'time_rush' && session.currentQuestionIndex >= session.questionBank.length * 0.4) {
-          const newQuestions = await replenishQuestionBank(session, level);
-          session.questionBank.push(...newQuestions);
-          await session.save();
-      }
+      // Stopping this for now as it is not needed
+      //if (session.attemptType === 'time_rush' && session.currentQuestionIndex >= session.questionBank.length * 0.4) {
+      //    const newQuestions = await replenishQuestionBank(session, level);
+      //    session.questionBank.push(...newQuestions);
+      //    await session.save();
+      //}
       
       // Get current question from bank
       if (session.currentQuestionIndex >= session.questionBank.length) {
@@ -490,59 +491,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           { status: 1 }
         );
         console.log('Level completed', session._id);
-        if (session.attemptType === 'time_rush') {
-          // For Time Rush, notify client to show congrats
-          socket.emit('levelCompleted', { 
-            message: 'Level has been completed.',
-            attemptType: session.attemptType
-          });
-        } else {
-          // For Precision Path, end the quiz and record time
-          const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
-            userLevelSessionId,
-            userId: session.userId,
-            currentTime: currentTime
-          });
-
-          // Process badges and fetch earned badges
-          const userProfile = await UserProfile.findOne({ userId: session.userId });
-          let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
-          if (userProfile && userProfile.badges) {
-            const sessionBadges = userProfile.badges.filter(b => b.userLevelSessionId === userLevelSessionId);
-            for (const badge of sessionBadges) {
-              const badgeDoc = await Badge.findById(badge.badgeId);
-              if (badgeDoc) {
-                earnedBadges.push({ 
-                  badgeId: badge.badgeId.toString(), 
-                  level: badge.level, 
-                  badgeName: badgeDoc.badgeName,
-                  badgeImage: badgeDoc.badgelevel?.[badge.level]?.badgeImage || '',
-                  badgeDescription: badgeDoc.badgeDescription || ''
-                });
-              }
-            }
-          }
-
-          // Send final results to client
-          socket.emit('quizFinished', { 
-            message: response.data.message,
-            attemptType: session.attemptType,
-            precisionPath: {
-              currentXp: response.data.data.currentXp,
-              requiredXp: response.data.data.requiredXp,
-              timeTaken: response.data.data.timeTaken,
-              bestTime: response.data.data.bestTime
-            },
-            hasNextLevel: response.data.data.hasNextLevel,
-            nextLevelNumber: response.data.data.nextLevelNumber,
-            xpNeeded: response.data.data.xpNeeded,
-            earnedBadges,
-            isNewHighScore: response.data.data.isNewHighScore
-          });
-          socket.disconnect();
-        }
-      } else if (session.attemptType === 'precision_path' && session.currentQuestionIndex >= session.questionBank.length && currentXp < requiredXp) {
-        // For Precision Path: if this was the last question and level not completed, end the quiz
+        
+        // Call the end API to process final results for both modes
         const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
           userLevelSessionId,
           userId: session.userId,
@@ -568,17 +518,81 @@ export const quizQuestionHandlers = (socket: Socket) => {
           }
         }
 
-        // Send final results to client
+        // Send final results to client for both modes
         socket.emit('quizFinished', { 
           message: response.data.message,
           attemptType: session.attemptType,
-          precisionPath: {
-            currentXp: response.data.data.currentXp,
-            requiredXp: response.data.data.requiredXp,
-            timeTaken: response.data.data.timeTaken,
-            bestTime: response.data.data.bestTime,
-            percentile: response.data.data.percentile
-          },
+                     ...(session.attemptType === 'time_rush' ? {
+             timeRush: {
+               currentXp: response.data.data.currentXp,
+               requiredXp: response.data.data.requiredXp,
+               minTime: response.data.data.minTime,
+               timeTaken: response.data.data.timeTaken,
+               percentile: response.data.data.percentile
+             }
+           } : {
+            precisionPath: {
+              currentXp: response.data.data.currentXp,
+              requiredXp: response.data.data.requiredXp,
+              timeTaken: response.data.data.timeTaken,
+              bestTime: response.data.data.bestTime
+            }
+          }),
+          hasNextLevel: response.data.data.hasNextLevel,
+          nextLevelNumber: response.data.data.nextLevelNumber,
+          xpNeeded: response.data.data.xpNeeded,
+          earnedBadges,
+          isNewHighScore: response.data.data.isNewHighScore
+        });
+        socket.disconnect();
+      } else if (session.currentQuestionIndex >= session.questionBank.length && currentXp < requiredXp) {
+        // For both modes: if this was the last question and level not completed, end the quiz
+        const response = await axios.post(`${process.env.BACKEND_URL}/api/levels/end`, {
+          userLevelSessionId,
+          userId: session.userId,
+          currentTime: currentTime
+        });
+
+        // Process badges and fetch earned badges
+        const userProfile = await UserProfile.findOne({ userId: session.userId });
+        let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
+        if (userProfile && userProfile.badges) {
+          const sessionBadges = userProfile.badges.filter(b => b.userLevelSessionId === userLevelSessionId);
+          for (const badge of sessionBadges) {
+            const badgeDoc = await Badge.findById(badge.badgeId);
+            if (badgeDoc) {
+              earnedBadges.push({ 
+                badgeId: badge.badgeId.toString(), 
+                level: badge.level, 
+                badgeName: badgeDoc.badgeName,
+                badgeImage: badgeDoc.badgelevel?.[badge.level]?.badgeImage || '',
+                badgeDescription: badgeDoc.badgeDescription || ''
+              });
+            }
+          }
+        }
+
+        // Send final results to client for both modes
+        socket.emit('quizFinished', { 
+          message: response.data.message,
+          attemptType: session.attemptType,
+          ...(session.attemptType === 'time_rush' ? {
+            timeRush: {
+              currentXp: response.data.data.currentXp,
+              requiredXp: response.data.data.requiredXp,
+              minTime: response.data.data.minTime,
+              timeTaken: response.data.data.timeTaken,
+              percentile: response.data.data.percentile
+            }
+          } : {
+            precisionPath: {
+              currentXp: response.data.data.currentXp,
+              requiredXp: response.data.data.requiredXp,
+              timeTaken: response.data.data.timeTaken,
+              bestTime: response.data.data.bestTime,
+              percentile: response.data.data.percentile
+            }
+          }),
           hasNextLevel: response.data.data.hasNextLevel,
           nextLevelNumber: response.data.data.nextLevelNumber,
           xpNeeded: response.data.data.xpNeeded,

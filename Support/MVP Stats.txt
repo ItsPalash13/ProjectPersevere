@@ -9,7 +9,7 @@ Topic Mastery TierMap
 Improvement Rating
 .......................................
 Level-Level:-
-MaxXP histogram - Time Rush 
+Mintime histogram - Time Rush 
 MinTime histogram - Precision Path
 
 Topic-Level:-

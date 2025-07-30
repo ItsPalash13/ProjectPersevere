@@ -706,9 +706,10 @@ router.post('/chapter-levels', async (req, res) => {
     if (attemptType === 'time_rush' && level.timeRush) {
       userChapterLevelData.timeRush = {
         attempts: 0,
-        maxXp: level.timeRush.requiredXp, // Use requiredXp as maxXp
+        minTime: 0, // For Time Rush, this stores maxTime (best remaining time)
         requiredXp: level.timeRush.requiredXp,
-        timeLimit: level.timeRush.totalTime
+        timeLimit: level.timeRush.totalTime,
+        totalQuestions: level.timeRush.totalQuestions || 10
       };
     } else if (attemptType === 'precision_path' && level.precisionPath) {
       userChapterLevelData.precisionPath = {

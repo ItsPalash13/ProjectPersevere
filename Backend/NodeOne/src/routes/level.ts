@@ -29,6 +29,8 @@
         let numQuestions = 10;
         if (attemptType === 'precision_path') {
           numQuestions = level.precisionPath?.totalQuestions || 10;
+        } else if (attemptType === 'time_rush') {
+          numQuestions = level.timeRush?.totalQuestions || 10;
         }
 
         // Fetch topic IDs for the level's topic names
@@ -111,6 +113,8 @@
         let numQuestions = 10;
         if (attemptType === 'precision_path') {
           numQuestions = level.precisionPath?.totalQuestions || 10;
+        } else if (attemptType === 'time_rush') {
+          numQuestions = level.timeRush?.totalQuestions || 10;
         }
 
         
@@ -174,34 +178,34 @@
       }
     };
 
-    // Helper function to calculate percentile for Time Rush (maxXp)
-    const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxXp: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
+    // Helper function to calculate percentile for Time Rush (maxTime - best remaining time)
+    const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxTime: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
       try {
         // Get all completed Time Rush attempts for this level, excluding current user
-        const allScores = await UserChapterLevel.find({
+        const allTimes = await UserChapterLevel.find({
           chapterId,
           levelId,
           attemptType: 'time_rush',
           userId: { $ne: userId }, // Exclude current user
-          'timeRush.maxXp': { $ne: null, $exists: true }
-        }).select('timeRush.maxXp');
+          'timeRush.minTime': { $exists: true, $nin: [null, Infinity] }
+        }).select('timeRush.minTime');
 
-        if (allScores.length === 0) return { percentile: 100, participantCount: 0 }; // Only user who completed this level
+        if (allTimes.length === 0) return { percentile: 100, participantCount: 0 }; // Only user who completed this level
 
-        // Extract maxXp values and filter out null/undefined
-        const maxXpValues = allScores
-          .map(score => score.timeRush?.maxXp)
-          .filter(xp => xp !== null && xp !== undefined) as number[];
+        // Extract minTime values (which stores maxTime for Time Rush) and filter out null/undefined/Infinity
+        const maxTimeValues = allTimes
+          .map(time => time.timeRush?.minTime)
+          .filter(time => time !== null && time !== undefined && time !== Infinity) as number[];
 
-        if (maxXpValues.length === 0) return { percentile: 100, participantCount: 0 };
+        if (maxTimeValues.length === 0) return { percentile: 100, participantCount: 0 };
 
-        // Count how many users have lower maxXp than current user
-        const usersWithLowerXp = maxXpValues.filter(xp => xp < userMaxXp).length;
+        // Count how many users have lower maxTime (completed with less time remaining) than current user
+        const usersWithLowerTime = maxTimeValues.filter(time => time < userMaxTime).length;
         
-        // Calculate percentile (percentage of users with lower score)
-        const percentile = Math.round((usersWithLowerXp / maxXpValues.length) * 100);
+        // Calculate percentile (percentage of users with worse time)
+        const percentile = Math.round((usersWithLowerTime / maxTimeValues.length) * 100);
         
-        return { percentile, participantCount: maxXpValues.length };
+        return { percentile, participantCount: maxTimeValues.length };
       } catch (error) {
         console.error('Error calculating Time Rush percentile:', error);
         return { percentile: 0, participantCount: 0 }; // Return 0 on error
@@ -352,8 +356,9 @@
             attempts: 1,
             requiredXp: attemptType === 'time_rush' ? (level.timeRush?.requiredXp || 0) : (level.precisionPath?.requiredXp || 0),
             ...(attemptType === 'time_rush' ? {
-              maxXp: null,
-              timeLimit: level.timeRush?.totalTime || 0
+              minTime: 0, // For Time Rush, this stores maxTime (best remaining time)
+              timeLimit: level.timeRush?.totalTime || 0,
+              totalQuestions: level.timeRush?.totalQuestions || 10
             } : {
               minTime: null
             })
@@ -417,9 +422,10 @@
             timeRush: {
               requiredXp: level.timeRush?.requiredXp || 0,
               currentXp: 0,
-              maxXp: userChapterLevel?.timeRush?.maxXp || 0,
+              minTime: userChapterLevel?.timeRush?.minTime || 0, // For Time Rush, this stores maxTime
               timeLimit: level.timeRush?.totalTime || 0,
-              currentTime: level.timeRush?.totalTime || 0
+              currentTime: level.timeRush?.totalTime || 0,
+              totalQuestions: level.timeRush?.totalQuestions || 10
             }
           } : {
             precisionPath: {
@@ -555,11 +561,11 @@
           let percentile = null;
           let participantCount = null;
           if (rawProgress) {
-            if (level.type === 'time_rush' && rawProgress.timeRush?.maxXp) {
+            if (level.type === 'time_rush' && rawProgress.timeRush?.minTime && rawProgress.timeRush.minTime > 0) {
               const result = await calculateTimeRushPercentile(
                 chapterId,
                 level._id.toString(),
-                rawProgress.timeRush.maxXp,
+                rawProgress.timeRush.minTime, // This stores maxTime for Time Rush
                 userId
               );
               percentile = result.percentile;
@@ -686,13 +692,20 @@
         let newHighScore = false;
 
         if (session.attemptType === 'time_rush') {
-          // Time Rush: Check if current XP exceeds max XP
+          // Time Rush: Check if current time (remaining) is better than stored maxTime
+          const finalTime = currentTime || session.timeRush?.currentTime || 0;
+          const maxTime = userChapterLevel?.timeRush?.minTime || 0; // This field stores maxTime for Time Rush
           const currentXp = session.timeRush?.currentXp || 0;
-          const maxXp = userChapterLevel?.timeRush?.maxXp || 0;
           
-          if (currentXp > maxXp) {
+          if (finalTime > maxTime && currentXp >= (session.timeRush?.requiredXp || 0)) {
             newHighScore = true;
-            highScoreMessage = `New high score achieved: ${currentXp} XP!`;
+            let totalMilliseconds = Math.floor(finalTime * 1000); // convert to ms
+            let minutes = Math.floor(totalMilliseconds / 60000);
+            let seconds = Math.floor((totalMilliseconds % 60000) / 1000);
+            let milliseconds = totalMilliseconds % 1000;
+
+            let formatted = `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+            highScoreMessage = `New best time: ${formatted} remaining!`;
           }
 
           // Check if user has enough XP
@@ -728,7 +741,7 @@
                 $set: {
                   status: 'completed',
                   completedAt: new Date(),
-                  'timeRush.maxXp': Math.max(currentXp, maxXp),
+                  'timeRush.minTime': Math.max(finalTime, maxTime), // Store the maximum time remaining
                   progress: progress
                 }
               },
@@ -768,10 +781,11 @@
                     levelNumber: nextLevel.levelNumber,
                     // Set mode-specific fields based on next level's type
                     ...(nextLevel.type === 'time_rush' ? {
-                      'timeRush.maxXp': null,
+                      'timeRush.minTime': null,
                       'timeRush.attempts': 0,
                       'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
-                      'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0
+                      'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0,
+                      'timeRush.totalQuestions': nextLevel.timeRush?.totalQuestions || 10
                     } : {
                       'precisionPath.minTime': null,
                       'precisionPath.attempts': 0,
@@ -783,11 +797,11 @@
               );
             }
 
-            // Calculate percentile based on maxXp
+            // Calculate percentile based on maxTime
             const percentileResult = await calculateTimeRushPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
-              Math.max(currentXp, maxXp),
+              Math.max(finalTime, maxTime),
               userId
             );
             const percentile = percentileResult.percentile;
@@ -806,7 +820,8 @@
               data: {
                 currentXp,
                 requiredXp: session.timeRush?.requiredXp,
-                maxXp: Math.max(currentXp, maxXp),
+                minTime: Math.max(finalTime, maxTime), // Best time remaining
+                timeTaken: finalTime,
                 hasNextLevel: !!nextLevel,
                 nextLevelNumber: nextLevel?.levelNumber,
                 isNewHighScore: newHighScore,
@@ -821,7 +836,7 @@
             const currentProgress = userChapterLevel?.progress || 0;
             const progress = Math.max(calculatedProgress, currentProgress);
 
-            // Update maxXp and progress even if level not completed
+            // Update progress even if level not completed (don't update best time)
             await UserChapterLevel.findOneAndUpdate(
               {
                 userId,
@@ -831,28 +846,26 @@
               },
               {
                 $set: {
-                  'timeRush.maxXp': Math.max(currentXp, maxXp),
                   progress: progress
                 }
               },
               { upsert: true }
             );
 
-            // Calculate percentile based on maxXp
-            const percentileResult = await calculateTimeRushPercentile(
+            // Calculate percentile based on current best time (if available)
+            const percentile = maxTime > 0 ? (await calculateTimeRushPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
-              Math.max(currentXp, maxXp),
+              maxTime,
               userId
-            );
-            const percentile = percentileResult.percentile;
+            )).percentile : 0;
 
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
             // Delete the session
             await UserLevelSession.findByIdAndDelete(userLevelSessionId);
-
+            console.log("Check ",newHighScore);
             return res.status(200).json({
               success: true,
               message: highScoreMessage ? 
@@ -861,7 +874,8 @@
               data: {
                 currentXp,
                 requiredXp: session.timeRush?.requiredXp,
-                maxXp: Math.max(currentXp, maxXp),
+                minTime: maxTime, // Best time remaining
+                timeTaken: finalTime,
                 xpNeeded: (session.timeRush?.requiredXp || 0) - currentXp,
                 isNewHighScore: newHighScore,
                 percentile
@@ -962,7 +976,7 @@
                     levelNumber: nextLevel.levelNumber,
                     // Set mode-specific fields based on next level's type
                     ...(nextLevel.type === 'time_rush' ? {
-                      'timeRush.maxXp': null,
+                      'timeRush.minTime': null,
                       'timeRush.attempts': 0,
                       'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
                       'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0

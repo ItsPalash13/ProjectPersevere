@@ -134,6 +134,7 @@ export default function LevelsAdmin() {
     timeRush: {
       requiredXp: '',
       totalTime: '',
+      totalQuestions: '',
     },
     precisionPath: {
       requiredXp: '',
@@ -158,7 +159,7 @@ export default function LevelsAdmin() {
         chapterId: level.chapterId?._id || level.chapterId || '',
         unitId: level.unitId?._id || level.unitId || '',
         type: level.type || 'time_rush',
-        timeRush: level.timeRush || { requiredXp: '', totalTime: '' },
+        timeRush: level.timeRush || { requiredXp: '', totalTime: '', totalQuestions: '' },
         precisionPath: level.precisionPath || { requiredXp: '', totalQuestions: '' },
         difficultyParams: level.difficultyParams || { mean: 750, sd: 150, alpha: 5 },
       });
@@ -173,7 +174,7 @@ export default function LevelsAdmin() {
         chapterId: '',
         unitId: '',
         type: 'time_rush',
-        timeRush: { requiredXp: '', totalTime: '' },
+        timeRush: { requiredXp: '', totalTime: '', totalQuestions: '' },
         precisionPath: { requiredXp: '', totalQuestions: '' },
         difficultyParams: { mean: 750, sd: 150, alpha: 5 },
       });
@@ -203,6 +204,7 @@ export default function LevelsAdmin() {
         timeRush: formData.type === 'time_rush' ? {
           requiredXp: parseInt(formData.timeRush.requiredXp),
           totalTime: parseInt(formData.timeRush.totalTime),
+          totalQuestions: parseInt(formData.timeRush.totalQuestions),
         } : undefined,
         precisionPath: formData.type === 'precision_path' ? {
           requiredXp: parseInt(formData.precisionPath.requiredXp),
@@ -563,7 +565,7 @@ export default function LevelsAdmin() {
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Time Rush Settings</Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={6}>
+                      <Grid item xs={4}>
                         <TextField
                           fullWidth
                           label="Required XP"
@@ -575,7 +577,7 @@ export default function LevelsAdmin() {
                           })}
                         />
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item xs={4}>
                         <TextField
                           fullWidth
                           label="Total Time (seconds)"
@@ -584,6 +586,18 @@ export default function LevelsAdmin() {
                           onChange={(e) => setFormData({
                             ...formData,
                             timeRush: { ...formData.timeRush, totalTime: e.target.value }
+                          })}
+                        />
+                      </Grid>
+                      <Grid item xs={4}>
+                        <TextField
+                          fullWidth
+                          label="Total Questions"
+                          type="number"
+                          value={formData.timeRush.totalQuestions}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timeRush: { ...formData.timeRush, totalQuestions: e.target.value }
                           })}
                         />
                       </Grid>
@@ -734,6 +748,7 @@ export default function LevelsAdmin() {
                       <Typography variant="h6">Time Rush Settings</Typography>
                       <Typography>Required XP: {selectedLevel.timeRush.requiredXp}</Typography>
                       <Typography>Total Time: {selectedLevel.timeRush.totalTime} seconds</Typography>
+                      <Typography>Total Questions: {selectedLevel.timeRush.totalQuestions}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
