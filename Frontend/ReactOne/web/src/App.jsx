@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { authClient } from './lib/auth-client';
 import { useDispatch } from 'react-redux';
 import { setSession } from './features/auth/authSlice';
@@ -157,6 +157,12 @@ const serializeDates = (obj) => {
   return result;
 };
 
+// Quiz wrapper component to force remount on levelId change
+const QuizWrapper = ({ socket }) => {
+  const { levelId } = useParams();
+  return <Quiz key={levelId} socket={socket} />;
+};
+
 function AppContent() {
   const location = useLocation();
   const dispatch = useDispatch();
@@ -272,7 +278,7 @@ function AppContent() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/quiz/:levelId" element={<ProtectedRoute><Quiz socket={socket} /></ProtectedRoute>} />
+              <Route path="/quiz/:levelId" element={<ProtectedRoute><QuizWrapper socket={socket} /></ProtectedRoute>} />
               <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
               <Route path="/chapter/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />

@@ -2,15 +2,9 @@
 
 
 🎯 TODO Actual:-
-Thrusday
-Chapter wise leaderboard
-Chapter View more info like progress bar and highest level
+Friday
 Intro
 Improve Login Logout design 
-Improve  Quiz Results Card
-Load More Chapters (Show to Upcomming) (Also fix image height)
-
-Friday
 Deploy
 Add roles like admin and student
 Daily Streak better ui  
@@ -21,6 +15,7 @@ List Down MVP Features - Always
 
 
 🎯 TODO Stage:-
+Chapter wise leaderboard
 Rethink Design - Sound - Feel - Gamify
 Try again and Play Next Level Feature
 Scope of AI - Solutions after Quiz finished according to students reponse

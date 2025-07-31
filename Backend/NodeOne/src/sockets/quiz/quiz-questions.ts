@@ -547,11 +547,14 @@ export const quizQuestionHandlers = (socket: Socket) => {
               currentXp: response.data.data.currentXp,
               requiredXp: response.data.data.requiredXp,
               timeTaken: response.data.data.timeTaken,
-              bestTime: response.data.data.bestTime
+              bestTime: response.data.data.bestTime,  
+              percentile: response.data.data.percentile
             }
           }),
           hasNextLevel: response.data.data.hasNextLevel,
           nextLevelNumber: response.data.data.nextLevelNumber,
+          nextLevelId: response.data.data.nextLevelId,
+          nextLevelAttemptType: response.data.data.nextLevelAttemptType,
           xpNeeded: response.data.data.xpNeeded,
           earnedBadges,
           isNewHighScore: response.data.data.isNewHighScore
@@ -607,6 +610,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           }),
           hasNextLevel: response.data.data.hasNextLevel,
           nextLevelNumber: response.data.data.nextLevelNumber,
+          nextLevelId: response.data.data.nextLevelId,
+          nextLevelAttemptType: response.data.data.nextLevelAttemptType,
           xpNeeded: response.data.data.xpNeeded,
           earnedBadges,
           isNewHighScore: response.data.data.isNewHighScore

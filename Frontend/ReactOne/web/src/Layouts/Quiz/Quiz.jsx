@@ -44,10 +44,14 @@ import {
 } from '../../theme/quizTheme';
 import { authClient } from '../../lib/auth-client';
 import { setSession } from '../../features/auth/authSlice';
+import { setLevelSession } from '../../features/auth/levelSessionSlice';
+import { useStartLevelMutation } from '../../features/api/levelAPI';
 import SOUND_FILES from '../../assets/sound/soundFiles';
 import { StreakNotification } from './Achievements';
 import ConfettiFireworks from '../../components/magicui/ConfettiFireworks';
-import Results from './Results';
+import Results from './Results/Results';
+
+
 
 
 
@@ -116,12 +120,23 @@ const Quiz = ({ socket }) => {
   const [showHighScoreFireworks, setShowHighScoreFireworks] = useState(false);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   
+  // Next Level countdown states
+  const [showNextLevelCountdown, setShowNextLevelCountdown] = useState(false);
+  const [nextLevelCountdown, setNextLevelCountdown] = useState(3);
+  const [nextLevelId, setNextLevelId] = useState(null);
+  
+  // Flag to prevent duplicate question loading during level transition
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
   // Get user health and totalCoins from Redux store
   const userHealth = useSelector((state) => state?.auth?.user?.health || 0);
   const userTotalCoins = useSelector((state) => state?.auth?.user?.totalCoins || 0);
   
   // Get session data from auth client
   const { data: session, refetch: refetchSession } = authClient.useSession();
+  
+  // Level API mutation
+  const [startLevel] = useStartLevelMutation();
 
   const initializedRef = React.useRef(false);
   const socketInitializedRef = React.useRef(false);
@@ -165,6 +180,14 @@ const Quiz = ({ socket }) => {
     console.log('Quiz component mounted, refetching session...');
     refetchSession();
     
+    // Reset countdown state when component mounts
+    setShowNextLevelCountdown(false);
+    setNextLevelCountdown(3);
+    setNextLevelId(null);
+    
+    // Reset transition flag when component mounts
+    setIsTransitioning(false);
+    
     // Play countdown end sound when quiz starts
     const audio = new Audio(SOUND_FILES.COUNTDOWN_END);
     audio.play();
@@ -173,11 +196,11 @@ const Quiz = ({ socket }) => {
   const formatTime = (seconds, ongame = false) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
-    const tenths = Math.floor((seconds % 1) * 10);
+    const hundredths = Math.floor((seconds % 1) * 100);
     if (ongame) {
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${tenths}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
   };
 
   const handleEndQuiz = () => {
@@ -286,11 +309,11 @@ const Quiz = ({ socket }) => {
     }
 
     return () => {
-      if (!showResults && !quizFinished) {
+      if (!showResults && !quizFinished && !showNextLevelCountdown) {
         socket.disconnect();
       }
     };
-  }, [levelSession?._id, quizFinished, socket, showResults]);
+  }, [levelSession?._id, quizFinished, socket, showResults, showNextLevelCountdown]);
 
   useEffect(() => {
     if (quizFinished || isLoading || isTimerPaused) {
@@ -301,24 +324,34 @@ const Quiz = ({ socket }) => {
       return;
     }
 
+    // Store the start time for more accurate timing
+    const startTime = Date.now();
+    let lastUpdateTime = startTime;
+
     timerIntervalRef.current = setInterval(() => {
+      const now = Date.now();
+      const elapsed = (now - lastUpdateTime) / 1000; // Convert to seconds
+      lastUpdateTime = now;
+
       setCurrentTime(prev => {
         let newTime;
         
         if (attemptType === 'time_rush') {
-          newTime = prev - 0.1;
+          newTime = prev - elapsed;
           if (newTime <= 0) {
             socket.emit('sendTimesUp', { userLevelSessionId: levelSession._id });
             clearInterval(timerIntervalRef.current);
+            return 0;
           }
         } else {
           // Precision Path: increment time
-          newTime = prev + 0.1;
+          newTime = prev + elapsed;
         }
         
-        return Number(newTime.toFixed(1));
+        // Round to 2 decimal places for display
+        return Math.round(newTime * 100) / 100;
       });
-    }, 100);
+    }, 100); // Update every 100ms for smoother display
 
     return () => {
       if (timerIntervalRef.current) {
@@ -340,6 +373,13 @@ const Quiz = ({ socket }) => {
 
     socket.on('levelSession', (data) => {
       console.log("Received level session data:", data);
+      
+      // Skip processing if we're transitioning to next level
+      if (isTransitioning) {
+        console.log("Skipping levelSession processing during transition");
+        return;
+      }
+      
       setAttemptType(data.attemptType);
       setCurrentStreak(data.currentStreak || 0);
       
@@ -503,12 +543,111 @@ const Quiz = ({ socket }) => {
     audio.play();
   }, [answerResult]);
 
+  // Next Level countdown effect
+  useEffect(() => {
+    if (showNextLevelCountdown && nextLevelCountdown > 0) {
+      const timer = setTimeout(() => {
+        setNextLevelCountdown(prev => prev - 1);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else if (showNextLevelCountdown && nextLevelCountdown === 0) {
+
+      
+      // Navigate to next level when countdown reaches 0
+      if (nextLevelId) {
+        // Hide countdown overlay before navigation
+        setShowNextLevelCountdown(false);
+        // Reset transition flag before navigation
+        setIsTransitioning(false);
+        // Force component remount by using replace
+        navigate(`/quiz/${nextLevelId}`, { replace: true });
+      }
+    }
+  }, [showNextLevelCountdown, nextLevelCountdown, nextLevelId, navigate]);
+
+
+  
+
+  const handleNextLevel = async () => {
+    if (quizResults?.nextLevelId) {
+      try {
+        // Set transition flag to prevent duplicate question loading
+        setIsTransitioning(true);
+        
+        // Disconnect current socket and clean up
+        if (socket.connected) {
+          socket.disconnect();
+        }
+        
+        // Start the next level using the API
+        const result = await startLevel({ 
+          levelId: quizResults.nextLevelId, 
+          attemptType: quizResults.nextLevelAttemptType 
+        }).unwrap();
+        
+        setNextLevelCountdown(3);
+        setShowNextLevelCountdown(true);
+        
+        // Set the new level session
+        dispatch(setLevelSession(result.data.session));
+        setShowResults(false);
+        setNextLevelId(quizResults.nextLevelId);
+        
+        // Set the attempt type for the next level
+        setAttemptType(quizResults.nextLevelAttemptType);
+        
+        // Reset all quiz state for next level
+        setCurrentQuestion(null);
+        setSelectedAnswer('');
+        setShowAnswerDrawer(false);
+        // Reset answerResult after drawer closes with a small delay
+        setTimeout(() => {
+         setAnswerResult(null);
+        }, 300);
+        setIsLoading(true);
+        setCurrentTime(0);
+        setCurrentXp(0);
+        setQuizFinished(false);
+        setEarnedBadges([]);
+        setCurrentQuestionIndex(0);
+        setTotalQuestions(0);
+        setCurrentStreak(0);
+        setQuestionStartTime(null);
+        setAnswerSubmitted(false);
+        setShowCorrectAnswer(false);
+        setShowCongrats(false);
+        setShowError(false);
+        setErrorMessage('');
+        setQuizMessage('');
+        
+        // Reset socket initialization flags
+        initializedRef.current = false;
+        socketInitializedRef.current = false;
+        
+      } catch (error) {
+        console.error('Failed to start next level:', error);
+        // If starting next level fails, just navigate back to levels
+        setShowResults(false);
+        navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
+      }
+    }
+  };
+
+  const cancelNextLevelCountdown = () => {
+    setShowNextLevelCountdown(false);
+    setNextLevelCountdown(3);
+    setNextLevelId(null);
+    setShowResults(true);
+  };
+
   const renderResults = () => {
     return (
       <Results 
         quizResults={quizResults}
         earnedBadges={earnedBadges}
         formatTime={formatTime}
+        onNextLevel={handleNextLevel}
       />
     );
   };
@@ -552,7 +691,7 @@ const Quiz = ({ socket }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
           <TimeDisplay>
             <TimerIcon />
-            {attemptType === 'time_rush' ? 'Time Remaining: ' : 'Time: '}
+            {'Time: '} 
             {formatTime(currentTime, true)}
           </TimeDisplay>
         </Box>
@@ -568,7 +707,7 @@ const Quiz = ({ socket }) => {
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
               <CircularProgress />
             </Box>
-          ) : currentQuestion ? (
+          ) : currentQuestion && !showNextLevelCountdown ? (
           <>
             <QuestionCard>
               <CardContent sx={quizStyles.questionCardContent}>
@@ -739,9 +878,9 @@ const Quiz = ({ socket }) => {
           <DialogContent>
             {renderResults()}
           </DialogContent>
-          <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
             <StyledButton
-              variant="contained"
+              variant="outlined"
               onClick={() => {
                 setShowResults(false);
                 navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
@@ -749,6 +888,14 @@ const Quiz = ({ socket }) => {
             >
               Back to Levels
             </StyledButton>
+            {quizResults?.hasNextLevel && quizResults?.nextLevelId && (
+              <StyledButton
+                variant="contained"
+                onClick={handleNextLevel}
+              >
+                Next Level
+              </StyledButton>
+            )}
           </DialogActions>
         </DialogMigrate>
 
@@ -921,6 +1068,76 @@ const Quiz = ({ socket }) => {
           onClose={() => setShowStreakNotification(false)}
         />
         
+        {/* Next Level Countdown Overlay */}
+        {showNextLevelCountdown && (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 9999,
+              color: 'white'
+            }}
+          >
+            {/* Back Button */}
+            <IconButton
+              onClick={cancelNextLevelCountdown}
+              sx={{
+                position: 'absolute',
+                top: 20,
+                left: 20,
+                color: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                }
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+
+            {/* Countdown Display */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography 
+                variant="h1" 
+                sx={{ 
+                  fontSize: '8rem', 
+                  fontWeight: 'bold',
+                  color: 'white',
+                  textShadow: '0 0 20px rgba(255, 255, 255, 0.5)',
+                  animation: nextLevelCountdown > 0 ? 'pulse 1s ease-in-out' : 'none',
+                  '@keyframes pulse': {
+                    '0%': { transform: 'scale(1)' },
+                    '50%': { transform: 'scale(1.1)' },
+                    '100%': { transform: 'scale(1)' }
+                  },
+                  ml: "4.5vw"
+                }}
+              >
+                {nextLevelCountdown}
+              </Typography>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  mt: 2,
+                  color: 'white',
+                  opacity: 0.8,
+                  ml: "4.5vw"
+                }}
+              >
+                {nextLevelCountdown > 0 ? 'Get Ready!' : 'Starting Next Level...'}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
         {/* High Score Fireworks Component */}
         <ConfettiFireworks trigger={showHighScoreFireworks} />
       </QuizContainer>

@@ -142,6 +142,8 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         }),
         hasNextLevel: response.data.data.hasNextLevel,
         nextLevelNumber: response.data.data.nextLevelNumber,
+        nextLevelId: response.data.data.nextLevelId,
+        nextLevelAttemptType: response.data.data.nextLevelAttemptType,
         xpNeeded: response.data.data.xpNeeded,
         earnedBadges
       });
@@ -239,8 +241,10 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
             percentile: response.data.data.percentile
           }
         }),
-        hasNextLevel: response.data.data.hasNextLevel,
-        nextLevelNumber: response.data.data.nextLevelNumber,
+        hasNextLevel: false,
+        nextLevelNumber: null,
+        nextLevelId: null,
+        nextLevelAttemptType: null,
         xpNeeded: response.data.data.xpNeeded,
         earnedBadges,
         isNewHighScore: response.data.data.isNewHighScore

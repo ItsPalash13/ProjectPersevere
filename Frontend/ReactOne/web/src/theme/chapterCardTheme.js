@@ -35,7 +35,7 @@ export const chapterCardStyles = {
   },
   image: {
     height: '100%',
-    objectFit: 'contain',
+    objectFit: 'cover',
   },
   placeholderContainer: {
     height: 200,
@@ -50,10 +50,10 @@ export const chapterCardStyles = {
   },
   cardContent: {
     p: 1.5,
-    pb: 2,
+    pb: 0,
     backgroundColor: 'transparent',
     '&:last-child': {
-      pb: 2,
+      pb: 1,
     },
   },
   title: {

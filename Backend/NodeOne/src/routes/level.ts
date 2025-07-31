@@ -771,35 +771,42 @@
               { $set: { health: 6 } }
             );
 
-            // If next level exists, create UserChapterLevel for it with the correct attemptType
+            // If next level exists, check if UserChapterLevel already exists for it
             if (nextLevel && typeof nextLevel.levelNumber === 'number' && !isNaN(nextLevel.levelNumber)) {
-              await UserChapterLevel.findOneAndUpdate(
-                {
+              const existingNextLevel = await UserChapterLevel.findOne({
+                userId,
+                chapterId: session.chapterId,
+                levelId: nextLevel._id,
+                attemptType: nextLevel.type
+              });
+
+              // Only create if it doesn't exist
+              if (!existingNextLevel) {
+                await UserChapterLevel.create({
                   userId,
                   chapterId: session.chapterId,
                   levelId: nextLevel._id,
-                  attemptType: nextLevel.type
-                },
-                {
-                  $set: {
-                    status: 'not_started',
-                    levelNumber: nextLevel.levelNumber,
-                    // Set mode-specific fields based on next level's type
-                    ...(nextLevel.type === 'time_rush' ? {
-                      'timeRush.minTime': null,
-                      'timeRush.attempts': 0,
-                      'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
-                      'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0,
-                      'timeRush.totalQuestions': nextLevel.timeRush?.totalQuestions || 10
-                    } : {
-                      'precisionPath.minTime': null,
-                      'precisionPath.attempts': 0,
-                      'precisionPath.requiredXp': nextLevel.precisionPath?.requiredXp || 0
-                    })
-                  }
-                },
-                { upsert: true }
-              );
+                  attemptType: nextLevel.type,
+                  status: 'not_started',
+                  levelNumber: nextLevel.levelNumber,
+                  // Set mode-specific fields based on next level's type
+                  ...(nextLevel.type === 'time_rush' ? {
+                    timeRush: {
+                      minTime: null,
+                      attempts: 0,
+                      requiredXp: nextLevel.timeRush?.requiredXp || 0,
+                      timeLimit: nextLevel.timeRush?.totalTime || 0,
+                      totalQuestions: nextLevel.timeRush?.totalQuestions || 10
+                    }
+                  } : {
+                    precisionPath: {
+                      minTime: null,
+                      attempts: 0,
+                      requiredXp: nextLevel.precisionPath?.requiredXp || 0
+                    }
+                  })
+                });
+              }
             }
 
             // Calculate percentile based on maxTime
@@ -829,6 +836,8 @@
                 timeTaken: finalTime,
                 hasNextLevel: !!nextLevel,
                 nextLevelNumber: nextLevel?.levelNumber,
+                nextLevelId: nextLevel?._id,
+                nextLevelAttemptType: nextLevel?.type,
                 isNewHighScore: newHighScore,
                 percentile
               }
@@ -882,6 +891,10 @@
                 minTime: maxTime, // Best time remaining
                 timeTaken: finalTime,
                 xpNeeded: (session.timeRush?.requiredXp || 0) - currentXp,
+                hasNextLevel: false,
+                nextLevelNumber: null,
+                nextLevelId: null,
+                nextLevelAttemptType: null,
                 isNewHighScore: newHighScore,
                 percentile
               }
@@ -966,34 +979,41 @@
               { $set: { health: 6 } }
             );
 
-            // If next level exists, create UserChapterLevel for it with the correct attemptType
+            // If next level exists, check if UserChapterLevel already exists for it
             if (nextLevel && typeof nextLevel.levelNumber === 'number' && !isNaN(nextLevel.levelNumber)) {
-              await UserChapterLevel.findOneAndUpdate(
-                {
+              const existingNextLevel = await UserChapterLevel.findOne({
+                userId,
+                chapterId: session.chapterId,
+                levelId: nextLevel._id,
+                attemptType: nextLevel.type
+              });
+
+              // Only create if it doesn't exist
+              if (!existingNextLevel) {
+                await UserChapterLevel.create({
                   userId,
                   chapterId: session.chapterId,
                   levelId: nextLevel._id,
-                  attemptType: nextLevel.type
-                },
-                {
-                  $set: {
-                    status: 'not_started',
-                    levelNumber: nextLevel.levelNumber,
-                    // Set mode-specific fields based on next level's type
-                    ...(nextLevel.type === 'time_rush' ? {
-                      'timeRush.minTime': null,
-                      'timeRush.attempts': 0,
-                      'timeRush.requiredXp': nextLevel.timeRush?.requiredXp || 0,
-                      'timeRush.timeLimit': nextLevel.timeRush?.totalTime || 0
-                    } : {
-                      'precisionPath.minTime': null,
-                      'precisionPath.attempts': 0,
-                      'precisionPath.requiredXp': nextLevel.precisionPath?.requiredXp || 0
-                    })
-                  }
-                },
-                { upsert: true }
-              );
+                  attemptType: nextLevel.type,
+                  status: 'not_started',
+                  levelNumber: nextLevel.levelNumber,
+                  // Set mode-specific fields based on next level's type
+                  ...(nextLevel.type === 'time_rush' ? {
+                    timeRush: {
+                      minTime: null,
+                      attempts: 0,
+                      requiredXp: nextLevel.timeRush?.requiredXp || 0,
+                      timeLimit: nextLevel.timeRush?.totalTime || 0
+                    }
+                  } : {
+                    precisionPath: {
+                      minTime: null,
+                      attempts: 0,
+                      requiredXp: nextLevel.precisionPath?.requiredXp || 0
+                    }
+                  })
+                });
+              }
             }
 
             // Calculate percentile based on minTime
@@ -1023,6 +1043,8 @@
                 bestTime: Math.min(finalTime, minTime),
                 hasNextLevel: !!nextLevel,
                 nextLevelNumber: nextLevel?.levelNumber,
+                nextLevelId: nextLevel?._id,
+                nextLevelAttemptType: nextLevel?.type,
                 isNewHighScore: newHighScore,
                 percentile
               }
@@ -1075,6 +1097,10 @@
                 timeTaken: finalTime,
                 bestTime: minTime,
                 xpNeeded: (session.precisionPath?.requiredXp || 0) - currentXp,
+                hasNextLevel: false,
+                nextLevelNumber: null,
+                nextLevelId: null,
+                nextLevelAttemptType: null,
                 percentile
               }
             });

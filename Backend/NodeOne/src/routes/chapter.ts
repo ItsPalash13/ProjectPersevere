@@ -20,7 +20,8 @@ router.get('/', async (_req, res) => {
         return {
           ...chapter.toObject(),
           topics: topics.map(topic => topic.topic),
-          subject
+          subject,
+          isActive: chapter.status === true
         };
       })
     );
@@ -66,7 +67,8 @@ router.get('/subject/:slug', async (req, res) => {
         return {
           ...chapter.toObject(),
           topics: topics.map(topic => topic.topic),
-          subject
+          subject,
+          isActive: chapter.status === true
         };
       })
     );
