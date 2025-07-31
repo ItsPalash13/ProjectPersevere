@@ -2,7 +2,20 @@
 
 
 🎯 TODO Actual:-
-LeaderBoard
+Thrusday
+Chapter wise leaderboard
+Chapter View more info like progress bar and highest level
+Intro
+Improve Login Logout design 
+Improve  Quiz Results Card
+Load More Chapters (Show to Upcomming) (Also fix image height)
+
+Friday
+Deploy
+Add roles like admin and student
+Daily Streak better ui  
+Think How to deploy Performance
+
 List Down MVP Features - Always
 
 
@@ -10,7 +23,6 @@ List Down MVP Features - Always
 🎯 TODO Stage:-
 Rethink Design - Sound - Feel - Gamify
 Try again and Play Next Level Feature
-XP based level unlock
 Scope of AI - Solutions after Quiz finished according to students reponse
 Study UX Suggestions by GEMINI
 Study Marks App
@@ -25,3 +37,4 @@ Out of Scope:-
 Questions Based on Texonomy - Research 
 
 ✅ Done:-
+Fix Quiz Topics

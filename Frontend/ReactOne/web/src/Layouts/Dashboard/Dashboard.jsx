@@ -9,7 +9,7 @@ import { setSession } from '../../features/auth/authSlice';
 // Chapters by Subject Component
 const ChaptersBySubject = ({ darkMode }) => {
   const subjects = [
-    { name: 'JEE Mathematics', slug: 'math', icon: '' }
+    { name: 'Mathematics', slug: 'math', icon: '' }
   ];
 
   return (

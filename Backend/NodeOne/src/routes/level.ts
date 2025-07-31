@@ -120,8 +120,13 @@
         
         const questions = await Question.find({
           unitId: level.unitId,
-          'topics.id': { $in: level.topics }, // Must have AT LEAST ONE of the level's topics
-          $nor: [{ 'topics.id': { $elemMatch: { $nin: level.topics } } }] // Must NOT have any topics outside level scope
+          "topics": {
+            $not: {
+              $elemMatch: {
+                id: { $nin: level.topics }
+              }
+            }
+          }
         }).populate('topics.id').limit(numQuestions * 3); // Get more questions to filter from
 
 
