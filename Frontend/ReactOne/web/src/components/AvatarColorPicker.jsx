@@ -12,6 +12,7 @@ import {
   Avatar,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { colors } from '../theme/colors';
 
 // Predefined color options
 const colorOptions = [
@@ -92,7 +93,7 @@ const AvatarColorPicker = ({ open, onClose, onSelect, currentColor, currentAvata
               fontSize: 32,
               bgcolor: selectedColor,
               border: '3px solid',
-              borderColor: 'primary.main',
+              borderColor: colors.border.light.primary,
             }}
           >
             U
@@ -111,10 +112,10 @@ const AvatarColorPicker = ({ open, onClose, onSelect, currentColor, currentAvata
                   p: 1,
                   borderRadius: 2,
                   border: selectedColor === color.value ? '2px solid' : '2px solid transparent',
-                  borderColor: 'primary.main',
-                  bgcolor: selectedColor === color.value ? 'primary.light' : 'transparent',
+                  borderColor: selectedColor === color.value ? colors.text.light.primary : 'transparent',
+                  bgcolor: selectedColor === color.value ? colors.overlay.light.low : 'transparent',
                   '&:hover': {
-                    bgcolor: 'action.hover',
+                    bgcolor: colors.overlay.light.medium,
                   },
                   transition: 'all 0.2s ease-in-out',
                 }}
@@ -128,7 +129,7 @@ const AvatarColorPicker = ({ open, onClose, onSelect, currentColor, currentAvata
                     bgcolor: color.value,
                     mb: 1,
                     border: '2px solid',
-                    borderColor: selectedColor === color.value ? 'primary.main' : 'transparent',
+                    borderColor: selectedColor === color.value ? colors.text.light.primary : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -156,6 +157,18 @@ const AvatarColorPicker = ({ open, onClose, onSelect, currentColor, currentAvata
           onClick={handleConfirm} 
           variant="contained"
           disabled={!selectedColor}
+          sx={{
+            backgroundColor: colors.text.light.primary,
+            color: colors.text.light.inverse || '#FFFFFF',
+            '&:hover': {
+              backgroundColor: colors.text.light.primary,
+              opacity: 0.9
+            },
+            '&:disabled': {
+              backgroundColor: colors.text.light.disabled,
+              color: colors.text.light.hint
+            }
+          }}
         >
           Confirm Selection
         </Button>

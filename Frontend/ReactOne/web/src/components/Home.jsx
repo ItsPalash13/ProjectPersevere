@@ -1,27 +1,34 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/Home.css';
+import { Box, Typography } from '@mui/material';
+import { colors , themeColors} from '../theme/colors';
 
 const Home = () => {
   return (
-    <div className="home-container">
-      <nav className="navbar">
-        <div className="logo">ProjectX</div>
-        <div className="nav-links">
-          <Link to="/login" className="nav-link">Login</Link>
-          <Link to="/register" className="nav-link">Register</Link>
-        </div>
-      </nav>
-      
-      <main className="hero-section">
-        <h1>Welcome to ProjectX</h1>
-        <p>Your platform for seamless collaboration</p>
-        <div className="cta-buttons">
-          <Link to="/register" className="cta-button primary">Get Started</Link>
-          <Link to="/login" className="cta-button secondary">Sign In</Link>
-        </div>
-      </main>
-    </div>
+    <Box
+      sx={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: themeColors.background.main,
+        color: colors.text.light.primary,
+      }}
+    >
+      <Typography
+        variant="h1"
+        sx={{
+          fontSize: '4rem',
+          fontWeight: 700,
+          textAlign: 'center',
+          letterSpacing: 2,
+          color: themeColors.text.primary,
+          mb:15
+        }}
+      >
+        Welcome..!
+      </Typography>
+    </Box>
   );
 };
 

@@ -7,6 +7,7 @@ import { io } from 'socket.io-client';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
+import { colors } from './theme/colors';
 import Home from './components/Home';
 import Login from './Layouts/Auth/Login';
 import Register from './Layouts/Auth/Register';
@@ -57,29 +58,29 @@ const createAppTheme = (isDark) => createTheme({
   palette: {
     mode: isDark ? 'dark' : 'light',
     primary: {
-      main: isDark ? '#FBFBFA' : '#1F1F1F',
-      light: isDark ? '#FFFFFF' : '#666666',
-      dark: isDark ? '#CCCCCC' : '#000000',
-      contrastText: isDark ? '#1F1F1F' : '#FFFFFF',
+      main: isDark ? colors.text.dark.primary : colors.text.light.primary,
+      light: isDark ? colors.text.dark.primary : colors.text.light.primary,
+      dark: isDark ? colors.text.dark.primary : colors.text.light.primary,
+      contrastText: isDark ? colors.text.dark.inverse || '#FFFFFF' : colors.text.light.inverse || '#FFFFFF',
     },
     secondary: {
-      main: isDark ? '#CCCCCC' : '#666666',
-      light: isDark ? '#E5E5E5' : '#999999',
-      dark: isDark ? '#999999' : '#333333',
+      main: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
+      light: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
+      dark: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
     },
     background: {
-      default: isDark ? '#1F1F1F' : '#FFFFFF',
-      surface: isDark ? '#0A0A0A' : '#FFFFFF',
-      paper: isDark ? '#2A2A2A' : '#FBFBFA',
+      default: isDark ? colors.background.dark.primary : colors.background.light.primary,
+      surface: isDark ? colors.background.dark.surface : colors.background.light.surface,
+      paper: isDark ? colors.background.dark.paper : colors.background.light.paper,
     },
     text: {
-      primary: isDark ? '#FBFBFA' : '#1F1F1F',
-      secondary: isDark ? '#CCCCCC' : '#666666',
+      primary: isDark ? colors.text.dark.primary : colors.text.light.primary,
+      secondary: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
     },
-    divider: isDark ? '#404040' : '#E5E5E5',
+    divider: isDark ? colors.border.dark.primary : colors.border.light.primary,
     action: {
-      hover: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
-      selected: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+      hover: isDark ? colors.overlay.dark.low : colors.overlay.light.low,
+      selected: isDark ? colors.overlay.dark.medium : colors.overlay.light.medium,
     },
   },
   components: {
@@ -88,12 +89,12 @@ const createAppTheme = (isDark) => createTheme({
         root: {
           borderRadius: 12,
           boxShadow: isDark 
-            ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-            : '0 2px 8px rgba(0, 0, 0, 0.05)',
+            ? colors.shadow.dark.medium
+            : colors.shadow.light.low,
           border: isDark 
-            ? '1px solid #404040' 
-            : '1px solid #E5E5E5',
-          background: isDark ? '#2A2A2A' : '#FBFBFA',
+            ? `1px solid ${colors.border.dark.primary}` 
+            : `1px solid ${colors.border.light.primary}`,
+          background: isDark ? colors.ui.dark.cardBackground : colors.ui.light.cardBackground,
         },
       },
     },
@@ -107,18 +108,19 @@ const createAppTheme = (isDark) => createTheme({
           transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
         },
         contained: {
-          background: isDark ? '#404040' : '#E5E5E5',
-          color: isDark ? '#FBFBFA' : '#1F1F1F',
+          background: isDark ? colors.text.dark.primary : colors.text.light.primary,
+          color: isDark ? colors.text.dark.inverse || '#FFFFFF' : colors.text.light.inverse || '#FFFFFF',
           '&:hover': {
-            background: isDark ? '#555555' : '#DDDDDD',
+            background: isDark ? colors.text.dark.primary : colors.text.light.primary,
+            opacity: 0.9,
           },
         },
         outlined: {
-          borderColor: isDark ? '#555555' : '#CCCCCC',
-          color: isDark ? '#CCCCCC' : '#666666',
+          borderColor: isDark ? colors.border.dark.primary : colors.border.light.primary,
+          color: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
           '&:hover': {
-            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
-            borderColor: isDark ? '#666666' : '#999999',
+            backgroundColor: isDark ? colors.overlay.dark.low : colors.overlay.light.low,
+            borderColor: isDark ? colors.border.dark.accent : colors.border.light.accent,
           },
         },
       },
@@ -235,7 +237,7 @@ function AppContent() {
   }, [session, dispatch]);
 
   // Determine if we should show the navbar
-  const showNavbar = !['/login', '/register'].includes(location.pathname) && !location.pathname.startsWith('/quiz');
+  const showNavbar = !location.pathname.startsWith('/quiz');
   
   // Determine if we should show the sidebar
   const showSidebar = isAuthenticated && !['/login', '/register', '/onboarding'].includes(location.pathname) && !location.pathname.startsWith('/quiz');

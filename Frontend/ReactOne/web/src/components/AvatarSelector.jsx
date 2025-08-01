@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { avatarImages } from '../utils/avatarUtils';
+import { colors } from '../theme/colors';
 
 const AvatarSelector = ({ open, onClose, onSelect, currentAvatar }) => {
   const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar || '');
@@ -75,10 +76,10 @@ const AvatarSelector = ({ open, onClose, onSelect, currentAvatar }) => {
                   p: 1,
                   borderRadius: 2,
                   border: selectedAvatar === avatar.id ? '2px solid' : '2px solid transparent',
-                  borderColor: 'primary.main',
-                  bgcolor: selectedAvatar === avatar.id ? 'primary.light' : 'transparent',
+                  borderColor: selectedAvatar === avatar.id ? colors.text.light.primary : 'transparent',
+                  bgcolor: selectedAvatar === avatar.id ? colors.overlay.light.low : 'transparent',
                   '&:hover': {
-                    bgcolor: 'action.hover',
+                    bgcolor: colors.overlay.light.medium,
                   },
                   transition: 'all 0.2s ease-in-out',
                 }}
@@ -92,7 +93,7 @@ const AvatarSelector = ({ open, onClose, onSelect, currentAvatar }) => {
                     height: 60,
                     mb: 1,
                     border: '2px solid',
-                    borderColor: selectedAvatar === avatar.id ? 'primary.main' : 'transparent',
+                    borderColor: selectedAvatar === avatar.id ? colors.text.light.primary : 'transparent',
                   }}
                 />
                 <Typography variant="caption" textAlign="center">
@@ -112,6 +113,18 @@ const AvatarSelector = ({ open, onClose, onSelect, currentAvatar }) => {
           onClick={handleConfirm} 
           variant="contained"
           disabled={!selectedAvatar}
+          sx={{
+            backgroundColor: colors.text.light.primary,
+            color: colors.text.light.inverse || '#FFFFFF',
+            '&:hover': {
+              backgroundColor: colors.text.light.primary,
+              opacity: 0.9
+            },
+            '&:disabled': {
+              backgroundColor: colors.text.light.disabled,
+              color: colors.text.light.hint
+            }
+          }}
         >
           Confirm Selection
         </Button>

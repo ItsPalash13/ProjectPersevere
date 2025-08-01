@@ -338,6 +338,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
               >
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
+              {location.pathname === '/' && (
               <Button
                 onClick={handleLogin}
                 variant="contained"
@@ -347,6 +348,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
               >
                 Login
               </Button>
+              )}
             </>
           )}
         </Box>

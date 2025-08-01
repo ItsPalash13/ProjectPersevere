@@ -98,6 +98,7 @@ const Quiz = ({ socket }) => {
   const [isLoading, setIsLoading] = useState(true);
   const levelSession = useSelector((state) => state.levelSession.session);
   const [currentXp, setCurrentXp] = useState(0);
+  const [requiredXp, setRequiredXp] = useState(0);
   const [showCongrats, setShowCongrats] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [quizFinished, setQuizFinished] = useState(false);
@@ -401,11 +402,13 @@ const Quiz = ({ socket }) => {
       if (data.attemptType === 'time_rush' && data.timeRush) {
         setCurrentTime(data.timeRush.currentTime);
         setCurrentXp(data.timeRush.currentXp);
+        setRequiredXp(data.timeRush.requiredXp);
         setCurrentQuestionIndex(data.timeRush.currentQuestionIndex);
         setTotalQuestions(data.timeRush.totalQuestions);
       } else if (data.attemptType === 'precision_path' && data.precisionPath) {
         setCurrentTime(data.precisionPath.currentTime);
         setCurrentXp(data.precisionPath.currentXp);
+        setRequiredXp(data.precisionPath.requiredXp);
         setCurrentQuestionIndex(data.precisionPath.currentQuestionIndex);
         setTotalQuestions(data.precisionPath.totalQuestions);
       }
@@ -608,6 +611,7 @@ const Quiz = ({ socket }) => {
         setIsLoading(true);
         setCurrentTime(0);
         setCurrentXp(0);
+        setRequiredXp(0);
         setQuizFinished(false);
         setEarnedBadges([]);
         setCurrentQuestionIndex(0);
@@ -683,7 +687,7 @@ const Quiz = ({ socket }) => {
           <XpDisplay>
             <StarIcon />
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              {currentXp} XP
+              {currentXp} / {requiredXp} XP
             </Typography>
           </XpDisplay>
         </QuizHeader>

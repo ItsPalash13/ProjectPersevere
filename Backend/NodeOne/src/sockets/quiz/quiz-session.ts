@@ -62,6 +62,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
           timeRush: {
             currentTime: session.timeRush.currentTime,
             currentXp: session.timeRush.currentXp,
+            requiredXp: session.timeRush.requiredXp,
             timeLimit: session.timeRush.timeLimit,
             currentQuestionIndex: session.currentQuestionIndex,
             totalQuestions: session.timeRush.totalQuestions
@@ -70,6 +71,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
           precisionPath: {
             currentTime: session.precisionPath.currentTime,
             currentXp: session.precisionPath.currentXp,
+            requiredXp: session.precisionPath.requiredXp,
             totalQuestions: session.precisionPath.totalQuestions,
             currentQuestionIndex: session.currentQuestionIndex
           }

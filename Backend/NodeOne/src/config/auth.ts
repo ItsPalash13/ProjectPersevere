@@ -46,6 +46,12 @@ export const getAuth = async () => {
                         const newSession = ctx.context.newSession;
                         if (newSession) {
                             const { id, name, email } = newSession.user;
+                            
+                            // Get avatar data from the request body
+                            const requestBody = (ctx as any).body || {};
+                            const avatar = requestBody?.avatar || '';
+                            const avatarBgColor = requestBody?.avatarBgColor || 'blue';
+                            
                             await UserProfile.create({
                                 userId: id,
                                 username: name,
@@ -53,6 +59,9 @@ export const getAuth = async () => {
                                 email: email,
                                 dob: new Date(),
                                 bio: "",
+                                onboardingCompleted: false,
+                                avatar: avatar,
+                                avatarBgColor: avatarBgColor,
                             });
                             await Userts.create({
                                 userId: id,
