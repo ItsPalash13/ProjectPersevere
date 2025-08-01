@@ -39,6 +39,7 @@ function getQuestionMuForWinProb(
 }
 
 
+// @ts-ignore
 function getSkewNormalRandom(mu = 750, sigma = 150, alpha = 5) {
     function erf(x: number) {
       const sign = x >= 0 ? 1 : -1;
@@ -67,5 +68,6 @@ function getSkewNormalRandom(mu = 750, sigma = 150, alpha = 5) {
       }
     }
 }
+
 
 export { winProbability, getQuestionMuForWinProb, getSkewNormalRandom };

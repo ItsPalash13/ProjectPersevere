@@ -307,7 +307,7 @@
         }
 
         // Check if UserChapterUnit exists, create if not found
-        const userChapterUnit = await UserChapterUnit.findOneAndUpdate(
+        await UserChapterUnit.findOneAndUpdate(
           {
             userId,
             chapterId: level.chapterId,
@@ -674,7 +674,7 @@
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           
-          const updateResult = await UserLevelSessionTopicsLogs.updateMany(
+          await UserLevelSessionTopicsLogs.updateMany(
             { 
               userChapterLevelId: session.userChapterLevelId,
               userLevelSessionId: userLevelSessionId,
@@ -754,7 +754,7 @@
             );
             const currentMonth = new Date().toISOString().slice(0, 7).replace('-', '/'); // YYYY/MM
             // Update user's totalCoins and health when level is completed
-            const userProfile = await UserProfile.findOneAndUpdate(
+            await UserProfile.findOneAndUpdate(
               { userId },
               { 
                 $inc: { 

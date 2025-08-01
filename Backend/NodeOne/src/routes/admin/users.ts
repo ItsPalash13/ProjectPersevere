@@ -6,13 +6,14 @@ import { UserLevelSession } from '../../models/UserLevelSession';
 import { Chapter } from '../../models/Chapter';
 import { Unit } from '../../models/Units';
 import { Level } from '../../models/Level';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 // ==================== USER PROFILES ====================
 
 // GET all user profiles
-router.get('/profiles', async (req, res) => {
+router.get('/profiles', async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10, search } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -36,7 +37,7 @@ router.get('/profiles', async (req, res) => {
       UserProfile.countDocuments(filter)
     ]);
 
-    res.json({
+    return res.json({
       success: true,
       data: profiles,
       pagination: {
@@ -48,7 +49,7 @@ router.get('/profiles', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user profiles:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user profiles',
       error: error.message
@@ -57,7 +58,7 @@ router.get('/profiles', async (req, res) => {
 });
 
 // GET user profile by ID
-router.get('/profiles/:id', async (req, res) => {
+router.get('/profiles/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const profile = await UserProfile.findById(id);
@@ -69,13 +70,13 @@ router.get('/profiles/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: profile
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user profile',
       error: error.message
@@ -84,7 +85,7 @@ router.get('/profiles/:id', async (req, res) => {
 });
 
 // POST create user profile
-router.post('/profiles', async (req, res) => {
+router.post('/profiles', async (req: Request, res: Response) => {
   try {
     const { userId, username, email, fullName, bio, dob, health, totalCoins } = req.body;
 
@@ -121,14 +122,14 @@ router.post('/profiles', async (req, res) => {
 
     await profile.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User profile created successfully',
       data: profile
     });
   } catch (error) {
     console.error('Error creating user profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to create user profile',
       error: error.message
@@ -137,7 +138,7 @@ router.post('/profiles', async (req, res) => {
 });
 
 // PUT update user profile
-router.put('/profiles/:id', async (req, res) => {
+router.put('/profiles/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const {
@@ -195,14 +196,14 @@ router.put('/profiles/:id', async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    res.json({
+    return res.json({
       success: true,
       message: 'User profile updated successfully',
       data: updatedProfile
     });
   } catch (error) {
     console.error('Error updating user profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to update user profile',
       error: error.message
@@ -211,7 +212,7 @@ router.put('/profiles/:id', async (req, res) => {
 });
 
 // DELETE user profile
-router.delete('/profiles/:id', async (req, res) => {
+router.delete('/profiles/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const profile = await UserProfile.findById(id);
@@ -225,13 +226,13 @@ router.delete('/profiles/:id', async (req, res) => {
 
     await UserProfile.findByIdAndDelete(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'User profile deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting user profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to delete user profile',
       error: error.message
@@ -242,7 +243,7 @@ router.delete('/profiles/:id', async (req, res) => {
 // ==================== USER CHAPTER UNITS ====================
 
 // GET all user chapter units
-router.get('/chapter-units', async (req, res) => {
+router.get('/chapter-units', async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10, userId, chapterId, unitId, status } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -279,7 +280,7 @@ router.get('/chapter-units', async (req, res) => {
       })
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: userChapterUnitsWithProfiles,
       pagination: {
@@ -291,7 +292,7 @@ router.get('/chapter-units', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user chapter units:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user chapter units',
       error: error.message
@@ -300,7 +301,7 @@ router.get('/chapter-units', async (req, res) => {
 });
 
 // GET user chapter unit by ID
-router.get('/chapter-units/:id', async (req, res) => {
+router.get('/chapter-units/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userChapterUnit = await UserChapterUnit.findById(id)
@@ -333,13 +334,13 @@ router.get('/chapter-units/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: userChapterUnitWithProfile
     });
   } catch (error) {
     console.error('Error fetching user chapter unit:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user chapter unit',
       error: error.message
@@ -348,7 +349,7 @@ router.get('/chapter-units/:id', async (req, res) => {
 });
 
 // POST create user chapter unit
-router.post('/chapter-units', async (req, res) => {
+router.post('/chapter-units', async (req: Request, res: Response) => {
   try {
     const { userId, chapterId, unitId, status = 'not_started' } = req.body;
 
@@ -432,14 +433,14 @@ router.post('/chapter-units', async (req, res) => {
       } : null
     };
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User chapter unit created successfully',
       data: populatedUserChapterUnitWithProfile
     });
   } catch (error) {
     console.error('Error creating user chapter unit:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to create user chapter unit',
       error: error.message
@@ -448,7 +449,7 @@ router.post('/chapter-units', async (req, res) => {
 });
 
 // PUT update user chapter unit
-router.put('/chapter-units/:id', async (req, res) => {
+router.put('/chapter-units/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -495,14 +496,14 @@ router.put('/chapter-units/:id', async (req, res) => {
       } : null
     };
 
-    res.json({
+    return res.json({
       success: true,
       message: 'User chapter unit updated successfully',
       data: updatedUserChapterUnitWithProfile
     });
   } catch (error) {
     console.error('Error updating user chapter unit:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to update user chapter unit',
       error: error.message
@@ -511,7 +512,7 @@ router.put('/chapter-units/:id', async (req, res) => {
 });
 
 // DELETE user chapter unit
-router.delete('/chapter-units/:id', async (req, res) => {
+router.delete('/chapter-units/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userChapterUnit = await UserChapterUnit.findById(id);
@@ -525,13 +526,13 @@ router.delete('/chapter-units/:id', async (req, res) => {
 
     await UserChapterUnit.findByIdAndDelete(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'User chapter unit deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting user chapter unit:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to delete user chapter unit',
       error: error.message
@@ -542,7 +543,7 @@ router.delete('/chapter-units/:id', async (req, res) => {
 // ==================== USER CHAPTER LEVELS ====================
 
 // GET all user chapter levels
-router.get('/chapter-levels', async (req, res) => {
+router.get('/chapter-levels', async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10, userId, chapterId, levelId, attemptType, status } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -580,7 +581,7 @@ router.get('/chapter-levels', async (req, res) => {
       })
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: userChapterLevelsWithProfiles,
       pagination: {
@@ -592,7 +593,7 @@ router.get('/chapter-levels', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user chapter levels:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user chapter levels',
       error: error.message
@@ -601,7 +602,7 @@ router.get('/chapter-levels', async (req, res) => {
 });
 
 // GET user chapter level by ID
-router.get('/chapter-levels/:id', async (req, res) => {
+router.get('/chapter-levels/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userChapterLevel = await UserChapterLevel.findById(id)
@@ -615,13 +616,13 @@ router.get('/chapter-levels/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: userChapterLevel
     });
   } catch (error) {
     console.error('Error fetching user chapter level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user chapter level',
       error: error.message
@@ -630,7 +631,7 @@ router.get('/chapter-levels/:id', async (req, res) => {
 });
 
 // POST create user chapter level
-router.post('/chapter-levels', async (req, res) => {
+router.post('/chapter-levels', async (req: Request, res: Response) => {
   try {
     const {
       userId,
@@ -727,14 +728,14 @@ router.post('/chapter-levels', async (req, res) => {
       .populate('chapterId', 'name')
       .populate('levelId', 'name levelNumber');
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User chapter level created successfully',
       data: populatedUserChapterLevel
     });
   } catch (error) {
     console.error('Error creating user chapter level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to create user chapter level',
       error: error.message
@@ -743,7 +744,7 @@ router.post('/chapter-levels', async (req, res) => {
 });
 
 // PUT update user chapter level
-router.put('/chapter-levels/:id', async (req, res) => {
+router.put('/chapter-levels/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const {
@@ -787,14 +788,14 @@ router.put('/chapter-levels/:id', async (req, res) => {
     ).populate('chapterId', 'name')
      .populate('levelId', 'name levelNumber');
 
-    res.json({
+    return res.json({
       success: true,
       message: 'User chapter level updated successfully',
       data: updatedUserChapterLevel
     });
   } catch (error) {
     console.error('Error updating user chapter level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to update user chapter level',
       error: error.message
@@ -803,7 +804,7 @@ router.put('/chapter-levels/:id', async (req, res) => {
 });
 
 // DELETE user chapter level
-router.delete('/chapter-levels/:id', async (req, res) => {
+router.delete('/chapter-levels/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userChapterLevel = await UserChapterLevel.findById(id);
@@ -817,13 +818,13 @@ router.delete('/chapter-levels/:id', async (req, res) => {
 
     await UserChapterLevel.findByIdAndDelete(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'User chapter level deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting user chapter level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to delete user chapter level',
       error: error.message
@@ -834,7 +835,7 @@ router.delete('/chapter-levels/:id', async (req, res) => {
 // ==================== USER LEVEL SESSIONS (READ ONLY) ====================
 
 // GET all user level sessions
-router.get('/level-sessions', async (req, res) => {
+router.get('/level-sessions', async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10, userId, chapterId, levelId, attemptType, status } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -860,7 +861,7 @@ router.get('/level-sessions', async (req, res) => {
       UserLevelSession.countDocuments(filter)
     ]);
 
-    res.json({
+    return res.json({
       success: true,
       data: userLevelSessions,
       pagination: {
@@ -872,7 +873,7 @@ router.get('/level-sessions', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user level sessions:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user level sessions',
       error: error.message
@@ -881,7 +882,7 @@ router.get('/level-sessions', async (req, res) => {
 });
 
 // GET user level session by ID
-router.get('/level-sessions/:id', async (req, res) => {
+router.get('/level-sessions/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userLevelSession = await UserLevelSession.findById(id)
@@ -899,13 +900,13 @@ router.get('/level-sessions/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: userLevelSession
     });
   } catch (error) {
     console.error('Error fetching user level session:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch user level session',
       error: error.message

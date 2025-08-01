@@ -1,4 +1,3 @@
-import { User } from 'better-auth/types';
 import mongoose, { Schema, Document } from 'mongoose';
 
 // UserBadge subdocument schema and interface

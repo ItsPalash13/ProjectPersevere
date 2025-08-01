@@ -5,11 +5,12 @@ import { Chapter } from '../../models/Chapter';
 import { Topic } from '../../models/Topic';
 import { Unit } from '../../models/Units';
 import mongoose from 'mongoose';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 // Create question
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { ques, options, correct, chapterId, unitId, topics, xpCorrect, xpIncorrect, mu, sigma } = req.body;
 
@@ -68,16 +69,16 @@ router.post('/', async (req, res) => {
       await questionTs.save();
     }
 
-    res.status(201).json(savedQuestion);
+    return res.status(201).json(savedQuestion);
 
   } catch (error) {
     console.error('Error creating question:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Multi-add questions endpoint
-router.post('/multi-add', async (req, res) => {
+router.post('/multi-add', async (req: Request, res: Response) => {
   try {
     const { questions, chapterId, unitId, topicIds, xpCorrect, xpIncorrect } = req.body;
 
@@ -186,7 +187,7 @@ router.post('/multi-add', async (req, res) => {
       createdQuestionTs.push(savedQuestionTs);
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       message: `Successfully created ${createdQuestions.length} questions`,
       questions: createdQuestions,
       questionTs: createdQuestionTs
@@ -194,12 +195,12 @@ router.post('/multi-add', async (req, res) => {
 
   } catch (error) {
     console.error('Error in multi-add questions:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Get all questions
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const { chapterId, unitId, topicId } = req.query;
 
@@ -238,18 +239,18 @@ router.get('/', async (req, res) => {
       questionTs: questionTsMap[String(question._id)]
     }));
 
-    res.json({
+    return res.json({
       data: questionsWithTs
     });
 
   } catch (error) {
     console.error('Error fetching questions:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Get question by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const question = await Question.findById(req.params.id)
       .populate('chapterId', 'name')
@@ -260,16 +261,16 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Question not found' });
     }
 
-    res.json(question);
+    return res.json(question);
 
   } catch (error) {
     console.error('Error fetching question:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Update question
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { ques, options, correct, chapterId, unitId, topics, xpCorrect, xpIncorrect, mu, sigma } = req.body;
 
@@ -301,16 +302,16 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    res.json(question);
+    return res.json(question);
 
   } catch (error) {
     console.error('Error updating question:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Delete question
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const question = await Question.findById(req.params.id);
     if (!question) {
@@ -323,16 +324,16 @@ router.delete('/:id', async (req, res) => {
     // Delete question
     await Question.findByIdAndDelete(req.params.id);
 
-    res.json({ message: 'Question deleted successfully' });
+    return res.json({ message: 'Question deleted successfully' });
 
   } catch (error) {
     console.error('Error deleting question:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Get mu for all questions by topics
-router.post('/mu-by-topics', async (req, res) => {
+router.post('/mu-by-topics', async (req: Request, res: Response) => {
   try {
     const { topics } = req.body; // topics: array of topic IDs
     if (!topics || !Array.isArray(topics) || topics.length === 0) {
@@ -402,9 +403,9 @@ router.post('/mu-by-topics', async (req, res) => {
       mu: questionTsMap[String(question._id)] || null
     }));
 
-    res.json({ success: true, data: questionsWithMu });
+    return res.json({ success: true, data: questionsWithMu });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 

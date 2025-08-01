@@ -191,6 +191,7 @@ const replenishQuestionBankByUnit = async (session: any, level: any) => {
 };
 
 // Main function to replenish question bank based on environment variable
+// @ts-ignore
 const replenishQuestionBank = async (session: any, level: any) => {
   const questionFetchStrategy = process.env.QUESTION_FETCH || '0';
   
@@ -211,7 +212,6 @@ export const quizQuestionHandlers = (socket: Socket) => {
   // Generates a new question based on level difficulty
   socket.on('question', async ({ userLevelSessionId, userLevelId }) => {
     try {
-      const startTime = Date.now();
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
         throw new Error('Session not found');
@@ -258,9 +258,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
       if (!question) {
         throw new Error('Question not found');
       }
-      
-      const endTime = Date.now();
-      const timeTaken = endTime - startTime;
+
 
     } catch (error) {
       logger.error('Error in question:', error);

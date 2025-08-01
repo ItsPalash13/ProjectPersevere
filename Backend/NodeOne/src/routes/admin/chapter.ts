@@ -2,24 +2,24 @@ import express from 'express';
 import { Chapter } from '../../models/Chapter';
 import { Unit } from '../../models/Units';
 import { Topic } from '../../models/Topic';
-import { Subject } from '../../models/Subject';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 // Create a new chapter
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, description, gameName, status, subjectId, thumbnailUrl } = req.body;
     const chapter = new Chapter({ name, description, gameName, status, subjectId, thumbnailUrl });
     await chapter.save();
-    res.status(201).json({ success: true, data: chapter });
+    return res.status(201).json({ success: true, data: chapter });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    return res.status(400).json({ success: false, error: error.message });
   }
 });
 
 // Update a chapter
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description, gameName, status, subjectId, thumbnailUrl } = req.body;
@@ -29,14 +29,14 @@ router.put('/:id', async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!chapter) return res.status(404).json({ success: false, error: 'Chapter not found' });
-    res.status(200).json({ success: true, data: chapter });
+    return res.status(200).json({ success: true, data: chapter });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    return res.status(400).json({ success: false, error: error.message });
   }
 });
 
 // Get a chapter with all its units, topics, and subject
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const chapter = await Chapter.findById(id);
@@ -53,9 +53,9 @@ router.get('/:id', async (req, res) => {
     }));
     // Get chapter topics
     const topics = await Topic.find({ chapterId: id }).select('topic');
-    res.status(200).json({ success: true, data: { ...chapter.toObject(), units: unitsWithTopics, topics: topics.map(t => t.topic) } });
+    return res.status(200).json({ success: true, data: { ...chapter.toObject(), units: unitsWithTopics, topics: topics.map(t => t.topic) } });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 

@@ -1,11 +1,12 @@
 import express from 'express';
 import { UserProfile } from '../models/UserProfile';
 import authMiddleware from '../middleware/authMiddleware';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 // GET user info
-router.get('/info/:userId', authMiddleware, async (req, res) => {
+router.get('/info/:userId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const authUser = (req as any).user;
@@ -19,14 +20,14 @@ router.get('/info/:userId', authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
-    res.json({ success: true, data: user });
+    return res.json({ success: true, data: user });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // PATCH user info
-router.patch('/info/:userId', authMiddleware, async (req, res) => {
+router.patch('/info/:userId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const authUser = (req as any).user;
@@ -42,14 +43,14 @@ router.patch('/info/:userId', authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
-    res.json({ success: true, data: user });
+    return res.json({ success: true, data: user });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // GET user settings (dummy)
-router.get('/settings/:userId', authMiddleware, async (req, res) => {
+router.get('/settings/:userId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const authUser = (req as any).user;
@@ -57,14 +58,14 @@ router.get('/settings/:userId', authMiddleware, async (req, res) => {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
     // Dummy settings
-    res.json({ success: true, data: { darkMode: false, notifications: true } });
+    return res.json({ success: true, data: { darkMode: false, notifications: true } });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // PATCH user settings (dummy)
-router.patch('/settings/:userId', authMiddleware, async (req, res) => {
+router.patch('/settings/:userId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const authUser = (req as any).user;
@@ -72,14 +73,14 @@ router.patch('/settings/:userId', authMiddleware, async (req, res) => {
       return res.status(403).json({ success: false, error: 'Forbidden' });
     }
     // Accept and echo back settings for now
-    res.json({ success: true, data: req.body });
+    return res.json({ success: true, data: req.body });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
 // GET monthly leaderboard
-router.get('/monthly-leaderboard', async (req, res) => {
+router.get('/monthly-leaderboard', async (req: Request, res: Response ) => {
   try {
     const { month } = req.query;
     const currentMonth = month || new Date().toISOString().slice(0, 7).replace('-', '/');
@@ -134,14 +135,14 @@ router.get('/monthly-leaderboard', async (req, res) => {
       }
     ]);
 
-    res.json({ 
+    return res.json({ 
       success: true, 
       data: leaderboard,
       month: currentMonth
     });
   } catch (error) {
     console.error('Error fetching monthly leaderboard:', error);
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 

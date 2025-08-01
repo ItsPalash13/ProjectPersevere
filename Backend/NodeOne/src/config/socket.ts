@@ -1,9 +1,6 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { getAuthInstance } from './auth';
-import { logger } from '../utils/logger';
-import { UserLevelSession } from '../models/UserLevelSession';
-import mongoose from 'mongoose';
 import { initializeSocketHandlers } from '../sockets';
 
 export const initializeSocket = async (httpServer: HttpServer) => {

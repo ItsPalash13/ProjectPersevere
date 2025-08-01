@@ -26,13 +26,16 @@
     "ts-trueskill": "^5.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.17.43",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.1",
+    "globals": "^16.3.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.38.0"
   }
 }

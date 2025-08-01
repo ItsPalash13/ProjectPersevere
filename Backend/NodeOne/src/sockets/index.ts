@@ -1,9 +1,7 @@
 import { Server } from 'socket.io';
 import { quizSessionHandlers } from './quiz/quiz-session';
 import { quizQuestionHandlers } from './quiz/quiz-questions';
-import { UserLevelSession } from '../models/UserLevelSession';
 import { logger } from '../utils/logger';
-import mongoose from 'mongoose';
 
 export const initializeSocketHandlers = (io: Server) => {
   io.on('connection', (socket) => {

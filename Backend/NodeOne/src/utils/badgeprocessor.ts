@@ -1,7 +1,6 @@
 import { UserLevelSession } from '../models/UserLevelSession';
 import { UserProfile, UserProfileDocument } from '../models/UserProfile';
 import Badge from '../models/Badge';
-import mongoose from 'mongoose';
 
 interface UserProfileWithStreak extends UserProfileDocument {
   lastAttemptDate: Date | null;
@@ -132,7 +131,7 @@ export async function processBadgesAfterQuiz(userLevelSessionId: string) {
   const topicsCollectorBadge = allBadges.find(b => b.badgeslug === 'tc_g');
   if (topicsCollectorBadge) {
     console.log(`[BadgeProcessor] Processing Topics Collector badge for user ${userProfile.userId}`);
-    await processUniqueTopicsBadge(userProfile, topicsCollectorBadge, session, userLevelSessionId);
+    await processUniqueTopicsBadge(userProfile, topicsCollectorBadge, userLevelSessionId);
   }
 
   // TODO: Add logic for other badges (Questions Solved)
@@ -142,7 +141,7 @@ export async function processBadgesAfterQuiz(userLevelSessionId: string) {
 export async function processUniqueTopicsBadge(
   userProfile: UserProfileDocument,
   badge: any,
-  userLevelSession: any,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   userLevelSessionId: string
 ): Promise<boolean> {
   let updated = false;

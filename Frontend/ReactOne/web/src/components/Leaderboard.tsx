@@ -1,20 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Card,
-  CardContent,
   Typography,
   Avatar,
   Chip,
-  Grid,
   CircularProgress,
   Alert,
-  IconButton,
-  Tooltip,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel
 } from '@mui/material';
 import {
   EmojiEvents as TrophyIcon,

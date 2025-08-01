@@ -166,7 +166,7 @@ router.get('/chapter-topics/:chapterId', async (req: Request, res: Response) => 
 
 
 // API: Get day-wise accuracy for a given set of topics in a chapter for the current user
-router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
+router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { chapterId } = req.params;
@@ -239,7 +239,7 @@ router.get('/chapter-topicset-daily-accuracy/:chapterId', async (req, res) => {
 });
 
 // API: Get session-wise accuracy for a given set of topics in a chapter for the current user
-router.get('/chapter-topicset-session-accuracy/:chapterId', async (req, res) => {
+router.get('/chapter-topicset-session-accuracy/:chapterId', async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
     const { chapterId } = req.params;

@@ -3,11 +3,12 @@ import { Level } from '../../models/Level';
 import { Chapter } from '../../models/Chapter';
 import { Unit } from '../../models/Units';
 import { Topic } from '../../models/Topic';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 // GET all levels with populated chapter and unit data
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const { chapterId, unitId } = req.query;
     
@@ -29,13 +30,13 @@ router.get('/', async (req, res) => {
       .populate('topics', 'topic') // Populate topics with their names
       .sort({ levelNumber: 1 });
 
-    res.json({
+    return res.json({
       success: true,
       data: levels
     });
   } catch (error) {
     console.error('Error fetching levels:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch levels',
       error: error.message
@@ -44,7 +45,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET levels by chapter ID
-router.get('/by-chapter/:chapterId', async (req, res) => {
+router.get('/by-chapter/:chapterId', async (req: Request, res: Response) => {
   try {
     const { chapterId } = req.params;
 
@@ -63,13 +64,13 @@ router.get('/by-chapter/:chapterId', async (req, res) => {
       .populate('topics', 'topic') // Populate topics with their names
       .sort({ levelNumber: 1 });
 
-    res.json({
+    return res.json({
       success: true,
       data: levels
     });
   } catch (error) {
     console.error('Error fetching levels by chapter:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch levels by chapter',
       error: error.message
@@ -78,7 +79,7 @@ router.get('/by-chapter/:chapterId', async (req, res) => {
 });
 
 // POST create new level (time_rush or precision_path)
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const {
       name,
@@ -200,14 +201,14 @@ router.post('/', async (req, res) => {
       .populate('chapterId', 'name')
       .populate('unitId', 'name');
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Level created successfully',
       data: populatedLevel
     });
   } catch (error) {
     console.error('Error creating level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to create level',
       error: error.message
@@ -216,7 +217,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update level
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request, res: Response) => { 
   try {
     const { id } = req.params;
     const {
@@ -342,14 +343,14 @@ router.put('/:id', async (req, res) => {
       { new: true, runValidators: true }
     ).populate('chapterId', 'name').populate('unitId', 'name').populate('topics', 'topic');
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Level updated successfully',
       data: updatedLevel
     });
   } catch (error) {
     console.error('Error updating level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to update level',
       error: error.message
@@ -358,7 +359,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE level
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -372,13 +373,13 @@ router.delete('/:id', async (req, res) => {
 
     await Level.findByIdAndDelete(id);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Level deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to delete level',
       error: error.message
@@ -387,7 +388,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // GET level by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -403,13 +404,13 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: level
     });
   } catch (error) {
     console.error('Error fetching level:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch level',
       error: error.message

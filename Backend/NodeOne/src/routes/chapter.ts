@@ -2,11 +2,12 @@ import express from 'express';
 import { Chapter } from '../models/Chapter';
 import { Subject } from '../models/Subject';
 import { Topic } from '../models/Topic';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 // Get all chapters
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const chapters = await Chapter.find()
       .select('name description gameName status subjectId thumbnailUrl')
@@ -26,14 +27,14 @@ router.get('/', async (_req, res) => {
       })
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: chaptersWithTopics.length,
       data: chaptersWithTopics
     });
   } catch (error) {
     console.error('Error fetching chapters:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Server Error'
     });
@@ -41,7 +42,7 @@ router.get('/', async (_req, res) => {
 });
 
 // Get chapters by subject slug
-router.get('/subject/:slug', async (req, res) => {
+router.get('/subject/:slug', async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
 
@@ -73,7 +74,7 @@ router.get('/subject/:slug', async (req, res) => {
       })
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       subject: {
         name: subject.name,
@@ -85,7 +86,7 @@ router.get('/subject/:slug', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching chapters by subject slug:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Server Error'
     });

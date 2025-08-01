@@ -63,7 +63,7 @@ const startServer = async () => {
             res.json({ message: 'API is working' });
         });
 
-        // Error handling
+        // @ts-ignore
         app.use(errorHandler);
 
         const PORT = config.port || 3000;

@@ -2,14 +2,11 @@
 
 
 🎯 TODO Actual:-
-Friday
-Intro
-Improve Login Logout design 
-Add beta on top
+Friday 
 Deploy
 Add roles like admin and student
 Daily Streak better ui  
-Think How to deploy Performance
+Think How to deploy Performance or not
 
 List Down MVP Features - Always
 

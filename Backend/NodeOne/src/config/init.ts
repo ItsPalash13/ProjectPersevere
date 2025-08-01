@@ -1,8 +1,6 @@
 import { connectDB } from './database';
 import { getAuth } from './auth';
 import { logger } from '../utils/logger';
-import { connectRedis } from './redis';
-import redisClient from './redis';
 import { initializeSocket } from './socket';
 import { Express } from 'express';
 
