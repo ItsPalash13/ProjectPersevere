@@ -135,7 +135,8 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
           )}
         </Box>
         
-        {/* Search Bar - Only visible on dashboard */}
+        {/* Search Bar - Only visible on dashboard for now hidding search*/}
+        {/*
         {showSearchBar ? (
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', px: 2 }}>
             <Box component="form" onSubmit={handleSearchSubmit} sx={navbarStyles.searchBar}>
@@ -177,7 +178,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
         ) : (
           <Box sx={{ flexGrow: 1 }} />
         )}
-        
+        */}
         <Box sx={navbarStyles.rightSection}>
           {/* Authenticated User Menu */}
           {session ? (

@@ -5,6 +5,7 @@
 Friday
 Intro
 Improve Login Logout design 
+Add beta on top
 Deploy
 Add roles like admin and student
 Daily Streak better ui  

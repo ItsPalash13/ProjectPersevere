@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { authClient } from './lib/auth-client';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSession } from './features/auth/authSlice';
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
@@ -11,6 +11,7 @@ import Home from './components/Home';
 import Login from './Layouts/Auth/Login';
 import Register from './Layouts/Auth/Register';
 import Dashboard from './Layouts/Dashboard/Dashboard';
+import Onboarding from './Layouts/Onboarding/Onboarding';
 import Quiz from './Layouts/Quiz/Quiz';
 import Chapters from './Layouts/Chapters/Chapter';
 import Levels from './Layouts/Levels/Levels';
@@ -237,7 +238,7 @@ function AppContent() {
   const showNavbar = !['/login', '/register'].includes(location.pathname) && !location.pathname.startsWith('/quiz');
   
   // Determine if we should show the sidebar
-  const showSidebar = isAuthenticated && !['/login', '/register'].includes(location.pathname);
+  const showSidebar = isAuthenticated && !['/login', '/register', '/onboarding'].includes(location.pathname) && !location.pathname.startsWith('/quiz');
 
   return (
     <ThemeProvider theme={theme}>
@@ -273,11 +274,12 @@ function AppContent() {
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <OnboardingProtectedRoute>
                     <Dashboard darkMode={darkMode} onDarkModeToggle={handleDarkModeToggle} />
-                  </ProtectedRoute>
+                  </OnboardingProtectedRoute>
                 }
               />
+              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
               <Route path="/quiz/:levelId" element={<ProtectedRoute><QuizWrapper socket={socket} /></ProtectedRoute>} />
               <Route path="/chapters" element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
               <Route path="/chapter/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
@@ -313,5 +315,25 @@ function ProtectedRoute({ children }) {
 
   return children;
 }
+
+function OnboardingProtectedRoute({ children }) {
+  const { data: session, isLoading } = authClient.useSession();
+  const user = useSelector((state) => state.auth.user);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (session && user && !user.onboardingCompleted) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return children;
+}
+
 
 export default App;

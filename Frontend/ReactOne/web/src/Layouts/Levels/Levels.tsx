@@ -19,7 +19,8 @@ import {
 import { ProgressBar } from 'react-progressbar-fancy';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Favorite as HealthIcon, ArrowBackIos as ArrowLeftIcon, ArrowForwardIos as ArrowRightIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Favorite as HealthIcon, ArrowBackIos as ArrowLeftIcon, ArrowForwardIos as ArrowRightIcon, Help as HelpIcon } from '@mui/icons-material';
+import Joyride, { STATUS, Step } from 'react-joyride';
 // @ts-ignore
 import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
 // @ts-ignore
@@ -129,6 +130,85 @@ const Levels: React.FC = () => {
   });
   const [startLevel] = useStartLevelMutation();
   const [units, setUnits] = useState<any[]>([]);
+  const [runTour, setRunTour] = useState(false);
+  const [tourSteps] = useState<Step[]>([
+    {
+      target: '.precision-path-level',
+      content: (
+        <Box sx={{ textAlign: 'left', maxWidth: '300px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Chip
+              label="⚡ Precision Path"
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(138, 43, 226, 0.9)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
+              }}
+            />
+          </Box>
+          <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.5 }}>
+            You get a fixed number of questions. A stopwatch runs — your goal is to <strong>reach the XP target in the least time possible</strong>.
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.5 }}>
+            Accuracy matters. Speed rewards you more.
+          </Typography>
+          <Typography variant="body2" sx={{ fontStyle: 'italic', color: themeColors.text.primary }}>
+            🧠 Think before you tap — every second counts.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+      disableBeacon: true,
+    },
+    {
+      target: '.time-rush-level',
+      content: (
+        <Box sx={{ textAlign: 'left', maxWidth: '300px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Chip
+              label="⏱️ Time Rush"
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255, 165, 0, 0.9)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)'
+              }}
+            />
+          </Box>
+          <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.5 }}>
+            You get a fixed number of questions with a time limit. Try to solve all questions to hit the XP target before the timer ends.
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.5 }}>
+            Fast answers = more XP. Streaks give bonus XP too.
+          </Typography>
+          <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+            ⚡ Push your limits — beat the clock, beat your best.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+    },
+  ]);
+
+  const handleTourCallback = (data: any) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+    }
+  };
+
+  const startTour = () => {
+    setRunTour(true);
+  };
+
+  // Find first level of each type for tour
+  const firstPrecisionPathLevel = levels.find(level => level.type === 'precision_path');
+  const firstTimeRushLevel = levels.find(level => level.type === 'time_rush');
   
   // Get user health from Redux store
   const userHealth = useSelector(selectUserHealth) as number;
@@ -292,6 +372,87 @@ const Levels: React.FC = () => {
 
   return (
     <Box sx={levelsStyles.container}>
+      {/* Joyride Tour */}
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous={true}
+        showProgress={true}
+        showSkipButton={true}
+        callback={handleTourCallback}
+        styles={{
+          options: {
+            primaryColor: '#1976d2',
+            zIndex: 10000,
+            arrowColor: '#ffffff',
+            backgroundColor: '#ffffff',
+            textColor: '#333333',
+            overlayColor: 'rgba(0, 0, 0, 0.5)',
+          },
+          tooltip: {
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid #e0e0e0',
+            padding: '20px',
+            fontSize: '14px',
+            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+          },
+          tooltipTitle: {
+            fontSize: '18px',
+            fontWeight: 600,
+            color: '#1976d2',
+            marginBottom: '8px',
+          },
+          tooltipContent: {
+            fontSize: '14px',
+            lineHeight: 1.6,
+            color: '#333333',
+          },
+          buttonNext: {
+            backgroundColor: '#666666',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            border: 'none',
+            color: '#ffffff',
+          },
+          buttonBack: {
+            color: '#666666',
+            fontSize: '14px',
+            fontWeight: 500,
+            marginRight: '10px',
+          },
+          buttonSkip: {
+            color: '#999999',
+            fontSize: '14px',
+            fontWeight: 500,
+          },
+          buttonClose: {
+            display: 'none',
+          },
+        }}
+      />
+
+      {/* Tour Start Button */}
+      <IconButton
+        onClick={startTour}
+        sx={{
+          position: 'absolute',
+          top: 100,
+          right: 20,
+          zIndex: 1000,
+          backgroundColor: themeColors.background.main,
+          color: 'white',
+          '&:hover': {
+            backgroundColor: themeColors.background.main,
+          },
+        }}
+      >
+        <HelpIcon sx={{color: themeColors.text.primary}}/>
+      </IconButton>
+
       {/* Health Error Snackbar */}
       <Snackbar
         open={!!healthError}
@@ -537,13 +698,20 @@ const Levels: React.FC = () => {
                   alignItems: 'stretch',
                 }}>
                   {(levelsByUnit[unit._id] || []).map(level => (
-                    <LevelCard
-                      key={`${level._id}_${level.type}`}
-                      level={level}
-                      chapter={chapter}
-                      onLevelClick={handleLevelClick}
-                      onLevelDetails={level.status ? setSelectedLevelForDetails : () => {}}
-                    />
+                    <Box 
+                      key={`${level._id}_${level.type}`} 
+                      className={
+                        level._id === firstPrecisionPathLevel?._id ? 'precision-path-level' :
+                        level._id === firstTimeRushLevel?._id ? 'time-rush-level' : ''
+                      }
+                    >
+                      <LevelCard
+                        level={level}
+                        chapter={chapter}
+                        onLevelClick={handleLevelClick}
+                        onLevelDetails={level.status ? setSelectedLevelForDetails : () => {}}
+                      />
+                    </Box>
                   ))}
                   {(levelsByUnit[unit._id] || []).length === 0 && (
                     <Typography variant="body2" color="text.secondary">

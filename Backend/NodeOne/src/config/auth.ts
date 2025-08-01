@@ -29,7 +29,8 @@ export const getAuth = async () => {
                             totalCoins: userProfile.totalCoins,
                             dailyAttemptsStreak: userProfile.dailyAttemptsStreak,
                             avatar: userProfile.avatar,
-                            avatarBgColor: userProfile?.avatarBgColor || 'blue'
+                            avatarBgColor: userProfile?.avatarBgColor || 'blue',
+                            onboardingCompleted: userProfile.onboardingCompleted,
                           },
                           session
                         };

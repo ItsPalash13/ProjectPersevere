@@ -28,8 +28,7 @@ const ChapterCard = ({ chapter, onClick }) => {
     <StyledChapterCard 
       onClick={handleChapterClick}
       sx={{
-        opacity: isActive ? 1 : 0.5,
-        filter: isActive ? 'none' : 'grayscale(0.3)',
+
         cursor: isActive ? 'pointer' : 'not-allowed',
         position: 'relative',
         ...(isActive ? {} : {
@@ -47,7 +46,7 @@ const ChapterCard = ({ chapter, onClick }) => {
             alt={chapter.name}
             style={{
               ...chapterCardStyles.image,
-              filter: isActive ? 'none' : 'grayscale(0.5)'
+
             }}
           />
         </Box>
@@ -73,7 +72,8 @@ const ChapterCard = ({ chapter, onClick }) => {
                 color: 'text.secondary',
                 fontWeight: 500,
                 fontSize: '0.75rem',
-                mb:1.3
+                opacity: 0.5,
+                mb:1.4
               }}
             >
               Coming Soon

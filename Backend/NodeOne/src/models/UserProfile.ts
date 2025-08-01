@@ -35,6 +35,7 @@ interface UserProfileDocument extends Document {
   uniqueCorrectQuestions: string[];
   uniqueTopics: string[];
   monthlyXp: { [key: string]: number }; // YYYY/MM format keys with totalXp values
+  onboardingCompleted?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +51,7 @@ const UserProfileSchema: Schema = new Schema(
     dob: { type: Date }, // Added date of birth field
     avatar: { type: String }, // Added avatar field
     avatarBgColor: { type: String }, // Added avatar background color field
+    onboardingCompleted: { type: Boolean, default: false },
     uniqueCorrectQuestions: [{
       type: Schema.Types.ObjectId,
       ref: 'Question'

@@ -39,51 +39,26 @@ const navigationItems = [
 const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  // Calculate zoom percentage
-  // const zoomPercentage = Math.round(devicePixelRatio * 100);
-  // const isAt100PercentOrAbove = zoomPercentage >= 100;
-  // const isBelow100Percent = zoomPercentage < 100;
 
   const handleNavigation = (path) => {
     navigate(path);
-    // Close drawer if it's open (for 100% zoom and above behavior)
-    // if (drawerOpen) {
-    //   setDrawerOpen(false);
-    // }
-  };
-
-  const handleToggleClick = () => {
-    // if (isAt100PercentOrAbove) {
-    //   // At 100% zoom and above, toggle the backdrop drawer instead of normal sidebar
-    //   setDrawerOpen(!drawerOpen);
-    // } else {
-    //   // Below 100% zoom, use normal toggle behavior
-      onToggle();
-    // }
-  };
-
-  const handleDrawerClose = () => {
-    setDrawerOpen(false);
   };
 
   // Render sidebar content
-  const renderSidebarContent = (isDrawerMode = false) => (
+  const renderSidebarContent = () => (
     <>
       <DrawerHeader>
-        <Collapse in={/* isDrawerMode || */ open} orientation="horizontal">
-          <BrandText variant="h6">
-            ProjectX
-          </BrandText>
-        </Collapse>
-        <IconButton 
-          onClick={/* isDrawerMode ? handleDrawerClose : */ handleToggleClick}
-          size="small"
-          sx={sidebarStyles.toggleButton}
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            fontWeight: 700, 
+            fontSize: '0.7rem',
+            color: 'primary.main',
+            letterSpacing: '0.1em'
+          }}
         >
-          {(/* isDrawerMode || */ open) ? <ChevronLeftIcon fontSize="small" /> : <MenuIcon fontSize="small" />}
-        </IconButton>
+          BETA
+        </Typography>
       </DrawerHeader>
 
       <List sx={sidebarStyles.listContainer}>
@@ -92,7 +67,7 @@ const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
           return (
             <ListItem key={item.text} disablePadding sx={{ px: 0 }}>
               <Tooltip 
-                title={(/* isDrawerMode || */ open) ? '' : item.text} 
+                title={item.text} 
                 placement="right"
                 arrow
               >
@@ -104,109 +79,24 @@ const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
                   <ListItemIcon
                     sx={{
                       ...sidebarStyles.listItemIcon,
-                      mr: (/* isDrawerMode || */ open) ? 2 : 'auto',
+                      mr: 'auto',
                     }}
                   >
                     {item.icon}
                   </ListItemIcon>
-                  <Collapse in={/* isDrawerMode || */ open} orientation="horizontal">
-                    <ListItemText
-                      primary={item.text}
-                      primaryTypographyProps={{
-                        fontWeight: isSelected ? 600 : 400,
-                        fontSize: '0.875rem',
-                      }}
-                    />
-                  </Collapse>
                 </StyledListItemButton>
               </Tooltip>
             </ListItem>
           );
         })}
       </List>
-
-
     </>
   );
 
   return (
-    <>
-      {/* Normal sidebar behavior for below 100% zoom */}
-      {/* {!isAt100PercentOrAbove && ( */}
-        <StyledDrawer variant="permanent" open={open}>
-          {renderSidebarContent()}
-        </StyledDrawer>
-      {/* )} */}
-
-      {/* Collapsed sidebar with navigation icons for 100% zoom and above */}
-      {/* {isAt100PercentOrAbove && (
-        <StyledDrawer variant="permanent" open={false}>
-          <DrawerHeader>
-            <IconButton 
-              onClick={handleToggleClick}
-              size="small"
-              sx={sidebarStyles.toggleButton}
-            >
-              <MenuIcon fontSize="small" />
-            </IconButton>
-          </DrawerHeader>
-
-          <List sx={sidebarStyles.listContainer}>
-            {navigationItems.map((item) => {
-              const isSelected = location.pathname === item.path;
-              return (
-                <ListItem key={item.text} disablePadding sx={{ px: 0 }}>
-                  <Tooltip 
-                    title={item.text} 
-                    placement="right"
-                    arrow
-                  >
-                    <StyledListItemButton
-                      selected={isSelected}
-                      onClick={() => handleNavigation(item.path)}
-                      sx={{ width: '100%' }}
-                    >
-                      <ListItemIcon
-                        sx={{
-                          ...sidebarStyles.listItemIcon,
-                          mr: 'auto',
-                        }}
-                      >
-                        {item.icon}
-                      </ListItemIcon>
-                    </StyledListItemButton>
-                  </Tooltip>
-                </ListItem>
-              );
-            })}
-          </List>
-
-        </StyledDrawer>
-      )} */}
-
-      {/* Backdrop drawer for 100% zoom and above expanded view */}
-      {/* {isAt100PercentOrAbove && (
-        <>
-          <Backdrop
-            sx={{ 
-              color: '#fff', 
-              zIndex: (theme) => theme.zIndex.drawer - 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)'
-            }}
-            open={drawerOpen}
-            onClick={handleDrawerClose}
-          />
-          <Drawer
-            anchor="left"
-            open={drawerOpen}
-            onClose={handleDrawerClose}
-            sx={sidebarStyles.drawerPaper}
-          >
-            {renderSidebarContent(true)}
-          </Drawer>
-        </>
-      )} */}
-    </>
+    <StyledDrawer variant="permanent" open={false}>
+      {renderSidebarContent()}
+    </StyledDrawer>
   );
 };
 

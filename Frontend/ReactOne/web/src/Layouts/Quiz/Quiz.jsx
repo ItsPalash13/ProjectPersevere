@@ -1118,7 +1118,6 @@ const Quiz = ({ socket }) => {
                     '50%': { transform: 'scale(1.1)' },
                     '100%': { transform: 'scale(1)' }
                   },
-                  ml: "4.5vw"
                 }}
               >
                 {nextLevelCountdown}
@@ -1129,7 +1128,6 @@ const Quiz = ({ socket }) => {
                   mt: 2,
                   color: 'white',
                   opacity: 0.8,
-                  ml: "4.5vw"
                 }}
               >
                 {nextLevelCountdown > 0 ? 'Get Ready!' : 'Starting Next Level...'}
