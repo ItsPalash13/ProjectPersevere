@@ -16,11 +16,19 @@ import { TrueSkill } from 'ts-trueskill';
 // Load environment variables
 dotenv.config();
 
+// Debug environment variables
+console.log('Environment variables after dotenv:', {
+  NODE_ENV: process.env.NODE_ENV,
+  MONGODB_URI: process.env.MONGODB_URI ? 'SET' : 'NOT SET',
+  PORT: process.env.PORT,
+  FRONTEND_URL: process.env.FRONTEND_URL
+});
+
 const app = express();
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
 }));
 
@@ -63,11 +71,16 @@ const startServer = async () => {
             res.json({ message: 'API is working' });
         });
 
+        // Health check endpoint for Cloud Run
+        app.use('/health', (_req: Request, res: Response) => {
+            res.status(200).json({ status: 'healthy' });
+        });
+
         // @ts-ignore
         app.use(errorHandler);
 
         const PORT = config.port || 3000;
-        server.listen(PORT, () => {
+        server.listen(PORT, '0.0.0.0', () => {
             logger.info(`Server is running on port ${PORT}`);
             logger.info(`Environment: ${config.env}`);
         });

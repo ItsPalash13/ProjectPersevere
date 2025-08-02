@@ -1,21 +1,6 @@
 # Use Node.js 24 Alpine as base image for smaller size
 FROM node:24-alpine
 
-# Accept build arguments
-ARG NODE_ENV
-ARG BETTER_AUTH_SECRET
-ARG BETTER_AUTH_URL
-ARG FRONTEND_URL
-ARG BACKEND_URL
-ARG MONGODB_URI
-ARG TRUESKILL_MU
-ARG TRUESKILL_SIGMA
-ARG TRUESKILL_TAU
-ARG TRUESKILL_BETA
-ARG TRUESKILL_EPSILON
-ARG TRUESKILL_DRAW_PROBABILITY
-ARG QUESTION_FETCH
-
 # Create app user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
@@ -29,7 +14,7 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies) for build
 RUN npm ci && npm cache clean --force
 
-# Copy source code
+# Copy source code and .env file
 COPY . .
 
 # Build the application
