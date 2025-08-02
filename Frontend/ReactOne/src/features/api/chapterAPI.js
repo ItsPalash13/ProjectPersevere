@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const chapterApi = createApi({
   reducerPath: 'chapterApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: 'http://localhost:3000/api',
+    baseUrl: import.meta.env.VITE_BACKEND_URL+'/api',
     credentials: 'include'
   }),
   tagTypes: ['Chapter'],

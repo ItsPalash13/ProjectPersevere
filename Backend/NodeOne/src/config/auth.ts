@@ -13,6 +13,22 @@ export const getAuth = async () => {
             throw new Error('Database connection not established');
         }
         auth = betterAuth({
+            advanced: {
+                cookies: {
+                    sessionToken: {
+                      attributes: {
+                        sameSite: "none",
+                        secure: true,
+                        httpOnly: true
+                      }
+                    }
+                  },
+                defaultCookieAttributes: {
+                    sameSite: "none",
+                    secure: true,
+                    httpOnly: true
+                }
+            },
             database: mongodbAdapter(mongoose.connection.db),
             emailAndPassword: {    
                 enabled: true

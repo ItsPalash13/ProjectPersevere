@@ -1,8 +1,19 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { authClient } from '../../lib/auth-client';
 
+// Debug Vite environment variables
+console.log("Envs",import.meta.env);
+console.log('Vite Environment Variables:', {
+  VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
+  MODE: import.meta.env.MODE,
+  DEV: import.meta.env.DEV,
+  PROD: import.meta.env.PROD,
+  BASE_URL: import.meta.env.BASE_URL,
+  SSR: import.meta.env.SSR
+});
+
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: 'http://localhost:3000',
+  baseUrl: import.meta.env.VITE_BACKEND_URL,
   credentials: 'include', // Ensures cookies are sent with requests
   prepareHeaders: async (headers) => {
     // try {

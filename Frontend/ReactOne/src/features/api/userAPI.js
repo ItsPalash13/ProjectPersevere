@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const userApi = createApi({
   reducerPath: 'userApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: 'http://localhost:3000/api',
+    baseUrl: import.meta.env.VITE_BACKEND_URL+'/api',
     credentials: 'include'
   }),
   tagTypes: ['UserProfile'],
@@ -68,7 +68,6 @@ export const userApi = createApi({
     })
   })
 });
-
 export const {
   useGetUserInfoQuery,
   useUpdateUserInfoMutation,
@@ -76,3 +75,4 @@ export const {
   useUpdateUserSettingsMutation,
   useGetMonthlyLeaderboardQuery
 } = userApi;
+
