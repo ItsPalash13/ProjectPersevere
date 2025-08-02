@@ -1,10 +1,11 @@
 cd Services; .\nenv\bin\activate; python daily_aggregation.py
 
-cd Backend\nodeone
-.\nenv\Scripts\activate
+cd Backend\nodeone; .\nenv\Scripts\activate; 
 npm run dev
 
 cd Frontend\reactone
 .\nenv\Scripts\activate
 cd web
 npm run dev
+
+gcloud auth configure-docker asia-south2-docker.pkg.dev/projectx-467806/backend
