@@ -31,7 +31,7 @@ export default function Register() {
     email: '',
     password: '',
     avatar: '',
-    avatarBgColor: ''
+    avatarBgColor: '#2196F3'
   });
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');

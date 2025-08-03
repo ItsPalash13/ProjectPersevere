@@ -8,10 +8,12 @@ import adminLevelRoutes from './levels';
 import adminUserRoutes from './users';
 import adminBadgeRoutes from './badge';
 import { requireAdmin } from '../../middleware/rolesMiddleware';
+import authMiddleware from '../../middleware/authMiddleware';
 
 const router = express.Router();
 
 // Apply admin middleware to all admin routes
+router.use(authMiddleware)
 router.use(requireAdmin);
 
 router.use('/subjects', adminSubjectRoutes);

@@ -93,7 +93,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
     <Box sx={{ width: '100%', maxWidth: 400 }}>
       {/* Header */}
       <Box sx={{ textAlign: 'center', mb: 2 }}>
-        <Typography variant="h6" fontWeight={700} gutterBottom>
+        <Typography variant="h6" fontWeight={700} gutterBottom sx={{ color: 'text.primary' }}>
           Monthly Leaderboard
         </Typography>
         <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -102,16 +102,28 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
         <Chip
           icon={<TrendingIcon />}
           label={`Top ${data.length} Players`}
-          color="primary"
+          sx={{ 
+            mt: 1,
+            backgroundColor: theme => theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
+            color: 'white',
+            '&:hover': {
+              backgroundColor: theme => theme.palette.mode === 'dark' ? '#555' : '#2A2A2A',
+            }
+          }}
           size="small"
-          sx={{ mt: 1 }}
         />
       </Box>
 
       {/* Leaderboard */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {data.length === 0 ? (
-          <Card sx={{ p: 2, textAlign: 'center' }}>
+          <Card sx={{ 
+            p: 2, 
+            textAlign: 'center',
+            backgroundColor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}>
             <Typography variant="body2" color="text.secondary">
               No data available for this month
             </Typography>
@@ -137,8 +149,11 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                   p: 1.5,
                   borderRadius: 2,
                   boxShadow: rank <= 3 ? 3 : 1,
-                  border: rank <= 3 ? `1px solid ${getRankColor(rank)}` : 'none',
-                  background: rank <= 3 ? 'linear-gradient(135deg, rgba(255,215,0,0.05) 10%, rgba(255, 255, 255, 0.39) 100%)' : 'inherit',
+                  border: rank <= 3 ? `1px solid ${getRankColor(rank)}` : '1px solid',
+                  borderColor: rank <= 3 ? getRankColor(rank) : 'divider',
+                  background: rank <= 3 
+                    ? 'linear-gradient(135deg, rgba(255,215,0,0.05) 10%, rgba(255, 255, 255, 0.39) 100%)' 
+                    : 'background.paper',
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
                     transform: 'translateY(-1px)',
@@ -167,7 +182,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
                       height: 32,
                       fontSize: 12,
                       border: '1px solid',
-                      borderColor: 'primary.main',
+                      borderColor: theme => theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
                       bgcolor: getCurrentBgColor(),
                       boxShadow: 1,
                     }}
@@ -177,7 +192,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
 
                   {/* User Info */}
                   <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                    <Typography variant="body2" fontWeight={600} noWrap>
+                    <Typography variant="body2" fontWeight={600} noWrap sx={{ color: 'text.primary' }}>
                       {user.displayName}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" noWrap>
@@ -187,10 +202,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
 
                   {/* XP Stats */}
                   <Box sx={{ textAlign: 'right', minWidth: 60 }}>
-                    <Typography variant="body2" fontWeight={700} color="primary.main">
+                    <Typography variant="body2" fontWeight={700} sx={{ color: 'text.primary' }}>
                       {user.currentMonthXp.toLocaleString()}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 500 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                       XP
                     </Typography>
                   </Box>

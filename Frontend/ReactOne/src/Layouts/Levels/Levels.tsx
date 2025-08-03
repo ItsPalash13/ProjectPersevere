@@ -6,7 +6,6 @@ import {
   Backdrop,
   CircularProgress,
   IconButton,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -14,12 +13,12 @@ import {
   Snackbar,
   Chip,
   Tooltip,
-  LinearProgress
+
 } from '@mui/material';
 import { ProgressBar } from 'react-progressbar-fancy';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Favorite as HealthIcon, ArrowBackIos as ArrowLeftIcon, ArrowForwardIos as ArrowRightIcon, Help as HelpIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Help as HelpIcon } from '@mui/icons-material';
 import Joyride, { STATUS, Step } from 'react-joyride';
 // @ts-ignore
 import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
@@ -272,7 +271,7 @@ const Levels: React.FC = () => {
     }
   }, [chapterData]);
 
-  const handleLevelClick = async (levelId: string, mode: 'time_rush' | 'precision_path') => {
+  const handleLevelClick = async (levelId: string) => {
     try {
       // Clear any previous health errors
       setHealthError(null);
@@ -627,7 +626,7 @@ const Levels: React.FC = () => {
         {/* All Units Display */}
         {units.length > 0 && (
           <Box sx={{ mb: 4 }}>
-            {units.map((unit, unitIndex) => (
+            {units.map((unit) => (
               <Box key={unit._id} sx={{ mb: 4 }}>
                 {/* Unit Info */}
                 <Box

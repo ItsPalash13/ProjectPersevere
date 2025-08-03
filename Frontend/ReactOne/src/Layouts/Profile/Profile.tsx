@@ -98,7 +98,7 @@ const Profile: React.FC = () => {
     return userInfo?.avatarBgColor || getDefaultAvatarBgColor();
   };
 
-  // --- New: Stats for coins, health, streak ---
+  // --- Stats for coins, health, streak with specific colors ---
   const stats = [
     {
       label: 'Coins',
@@ -150,6 +150,9 @@ const Profile: React.FC = () => {
               position: 'relative',
               overflow: 'visible',
               height: 'fit-content',
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
             }}
           >
             {/* Avatar with glow and edit buttons */}
@@ -162,8 +165,8 @@ const Profile: React.FC = () => {
                     height: 120,
                     fontSize: 48,
                     border: '4px solid',
-                    borderColor: 'primary.main',
-                    boxShadow: '0 0 24px 4px #6C05FA44',
+                    borderColor: theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
+                    boxShadow: '0 0 24px 4px rgba(108, 5, 250, 0.2)',
                     bgcolor: getCurrentBgColor(),
                     transition: 'box-shadow 0.3s',
                   }}
@@ -178,9 +181,11 @@ const Profile: React.FC = () => {
                       position: 'absolute',
                       bottom: 8,
                       right: 8,
-                      bgcolor: 'secondary.main',
+                      backgroundColor: theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
                       color: 'white',
-                      '&:hover': { bgcolor: 'secondary.dark' },
+                      '&:hover': { 
+                        backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#2A2A2A' 
+                      },
                       boxShadow: 2,
                       zIndex: 2,
                     }}
@@ -196,9 +201,11 @@ const Profile: React.FC = () => {
                       position: 'absolute',
                       bottom: 8,
                       left: 8,
-                      bgcolor: 'secondary.main',
+                      backgroundColor: theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
                       color: 'white',
-                      '&:hover': { bgcolor: 'secondary.dark' },
+                      '&:hover': { 
+                        backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#2A2A2A' 
+                      },
                       boxShadow: 2,
                       zIndex: 2,
                     }}
@@ -208,7 +215,7 @@ const Profile: React.FC = () => {
                 </Tooltip>
               </Box>
               {/* Name and Email */}
-              <Typography variant="h4" fontWeight={700} gutterBottom align="center" sx={{ letterSpacing: 1 }}>
+              <Typography variant="h4" fontWeight={700} gutterBottom align="center" sx={{ letterSpacing: 1, color: 'text.primary' }}>
                 {userInfo?.fullName || 'User'}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -238,7 +245,7 @@ const Profile: React.FC = () => {
             </Box>
             {/* Profile Info Section */}
             <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ color: 'text.primary' }}>
                 Profile Info
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -261,6 +268,9 @@ const Profile: React.FC = () => {
               boxShadow: 6,
               p: { xs: 2, sm: 3 },
               height: 'fit-content',
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
             }}
           >
             <Leaderboard 
@@ -274,7 +284,7 @@ const Profile: React.FC = () => {
       </Grid>
       {/* Badges Section */}
       <Box sx={{ width: '100%', maxWidth: 900, mt: 4}}>
-        <Typography variant="h5" fontWeight={700} gutterBottom align="left" sx={{ mb: 2 }}>
+        <Typography variant="h5" fontWeight={700} gutterBottom align="left" sx={{ mb: 2, color: 'text.primary' }}>
           Badges
         </Typography>
         <Grid container spacing={3}>
@@ -309,6 +319,9 @@ const Profile: React.FC = () => {
                         boxShadow: 6,
                       },
                       minHeight: 180,
+                      backgroundColor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
                     }}
                   >
                     <img
@@ -316,7 +329,7 @@ const Profile: React.FC = () => {
                       alt={badgeDef.badgeName}
                       style={{ width: 72, height: 72, objectFit: 'contain', borderRadius: 12, marginBottom: 8, background: '#f5f5f5' }}
                     />
-                    <Typography variant="subtitle1" fontWeight={600} align="center">
+                    <Typography variant="subtitle1" fontWeight={600} align="center" sx={{ color: 'text.primary' }}>
                       {badgeDef.badgeName}
                     </Typography>
                     <Typography variant="caption" color="primary" align="center" sx={{ mt: 0.5 }}>

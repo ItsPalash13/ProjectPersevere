@@ -37,6 +37,17 @@ export const getAuth = async () => {
                 customSession(async ({ user, session }) => {
                     if (user?.id) {
                       const userProfile = await UserProfile.findOne({ userId: user.id });
+                      if (userProfile?.lastAttemptDate && userProfile.health < 6) {
+                        const lastAttemptDate = new Date(userProfile.lastAttemptDate);
+                        const currentDate = new Date();
+                        const timeDifference = currentDate.getTime() - lastAttemptDate.getTime();
+                        // Reset health to 6 if 6 hours have passed since last attempt
+                        const hoursDifference = timeDifference / (1000 * 60 * 60);
+                        if (hoursDifference >= 4) {
+                          userProfile.health = 6;
+                          await userProfile.save();
+                        }
+                      }
                       if (userProfile) {
                         return {
                           user: {

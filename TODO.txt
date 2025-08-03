@@ -2,12 +2,6 @@
 
 
 🎯 TODO Actual:-
-Friday 
-Deploy
-Add roles like admin and student
-Daily Streak better ui  
-Think How to deploy Performance or not
-
 List Down MVP Features - Always
 
 

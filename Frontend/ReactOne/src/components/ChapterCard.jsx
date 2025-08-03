@@ -27,9 +27,10 @@ const ChapterCard = ({ chapter, onClick }) => {
   return (
     <StyledChapterCard 
       onClick={handleChapterClick}
+      isActive={isActive}
       sx={{
 
-        cursor: isActive ? 'pointer' : 'not-allowed',
+        cursor: isActive ? 'pointer' : 'default',
         position: 'relative',
         ...(isActive ? {} : {
           '&:hover': {

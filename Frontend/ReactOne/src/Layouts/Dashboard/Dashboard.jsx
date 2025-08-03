@@ -10,7 +10,9 @@ import { useTheme } from '@mui/material/styles';
 // Chapters by Subject Component
 const ChaptersBySubject = ({ darkMode }) => {
   const subjects = [
-    { name: 'Mathematics', slug: 'math', icon: '' }
+    { name: 'Mathematics', slug: 'math', icon: '' },
+    { name: 'Physics', slug: 'phy', icon: '' },
+    { name: 'Chemistry', slug: 'chem', icon: '' }
   ];
 
   return (

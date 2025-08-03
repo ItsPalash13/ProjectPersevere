@@ -16,6 +16,87 @@
     import { processBadgesAfterQuiz } from '../utils/badgeprocessor';
     import { getShortLevelFeedback } from '../utils/gpt';
 
+    // Function to initialize first level for a user in a chapter
+    const initializeFirstLevel = async (userId: string, chapterId: string): Promise<void> => {
+      try {
+        // Find the first level of this chapter (lowest levelNumber)
+        const firstLevel = await Level.findOne({ 
+          chapterId: new mongoose.Types.ObjectId(chapterId) 
+        })
+        .sort({ levelNumber: 1 })
+        .select('_id levelNumber unitId type timeRush precisionPath');
+
+        if (!firstLevel) {
+          console.log(`No levels found for chapter ${chapterId}`);
+          return;
+        }
+
+        // Check if UserChapterUnit exists for this user/chapter/unit
+        const existingUserChapterUnit = await UserChapterUnit.findOne({
+          userId: new mongoose.Types.ObjectId(userId),
+          chapterId: new mongoose.Types.ObjectId(chapterId),
+          unitId: firstLevel.unitId
+        });
+
+        // Create UserChapterUnit if it doesn't exist
+        if (!existingUserChapterUnit) {
+          await UserChapterUnit.create({
+            userId: new mongoose.Types.ObjectId(userId),
+            chapterId: new mongoose.Types.ObjectId(chapterId),
+            unitId: firstLevel.unitId,
+            status: 'not_started'
+          });
+          console.log(`Created UserChapterUnit for user ${userId}, chapter ${chapterId}, unit ${firstLevel.unitId}`);
+        }
+
+        // Check if UserChapterLevel exists for this user/chapter/level/type
+        const existingUserChapterLevel = await UserChapterLevel.findOne({
+          userId: new mongoose.Types.ObjectId(userId),
+          chapterId: new mongoose.Types.ObjectId(chapterId),
+          levelId: firstLevel._id,
+          attemptType: firstLevel.type
+        });
+
+        // Create UserChapterLevel if it doesn't exist
+        if (!existingUserChapterLevel) {
+          const userChapterLevelData: any = {
+            userId: new mongoose.Types.ObjectId(userId),
+            chapterId: new mongoose.Types.ObjectId(chapterId),
+            levelId: firstLevel._id,
+            levelNumber: firstLevel.levelNumber,
+            status: 'not_started',
+            attemptType: firstLevel.type,
+            lastAttemptedAt: new Date(),
+            progress: 0
+          };
+
+          // Add type-specific fields based on level type
+          if (firstLevel.type === 'time_rush' && firstLevel.timeRush) {
+            userChapterLevelData.timeRush = {
+              attempts: 0,
+              minTime: 0, // For Time Rush, this stores maxTime (best remaining time)
+              requiredXp: firstLevel.timeRush.requiredXp,
+              timeLimit: firstLevel.timeRush.totalTime,
+              totalQuestions: firstLevel.timeRush.totalQuestions
+            };
+          } else if (firstLevel.type === 'precision_path' && firstLevel.precisionPath) {
+            userChapterLevelData.precisionPath = {
+              attempts: 0,
+              minTime: null,
+              requiredXp: firstLevel.precisionPath.requiredXp,
+              totalQuestions: firstLevel.precisionPath.totalQuestions
+            };
+          }
+
+          await UserChapterLevel.create(userChapterLevelData);
+          console.log(`Created UserChapterLevel for user ${userId}, chapter ${chapterId}, level ${firstLevel._id}, type ${firstLevel.type}`);
+        }
+      } catch (error) {
+        console.error('Error initializing first level:', error);
+        // Don't throw error, just log it to avoid breaking the main flow
+      }
+    };
+
     // Function to create question bank based on level and attempt type using MU (difficulty)
     const createQuestionBankByMu = async (level: any, attemptType: string): Promise<any[]> => {
       try {
@@ -480,6 +561,9 @@
         const { chapterId } = req.params;
         const userId = req.user.id;
         
+        // Initialize first level for the user if it's their first time accessing this chapter
+        await initializeFirstLevel(userId, chapterId);
+
         // Fetch chapter
         const chapter = await Chapter.findById(chapterId)
           .select('name description gameName status thumbnailUrl');

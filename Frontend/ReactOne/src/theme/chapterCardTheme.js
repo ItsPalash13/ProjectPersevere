@@ -2,7 +2,7 @@ import { styled } from '@mui/material/styles';
 import { Box } from '@mui/material';
 import { colors, getThemeColor, getThemeGradient, themeColors } from './colors.js';
 
-export const StyledChapterCard = styled(Box)(({ theme }) => ({
+export const StyledChapterCard = styled(Box)(({ theme , isActive}) => ({
   width: 320,
   height: '100%',
   cursor: 'pointer',
@@ -15,9 +15,14 @@ export const StyledChapterCard = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   '&:hover': {
-    background: theme.palette.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.03)'
-      : 'rgba(0, 0, 0, 0.03)',
+    ...(isActive ? {
+      background: theme.palette.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.03)'
+        : 'rgba(0, 0, 0, 0.03)',
+    } : {
+      background: 'transparent',
+      boxShadow: 'none'
+    })
   },
 }));
 
