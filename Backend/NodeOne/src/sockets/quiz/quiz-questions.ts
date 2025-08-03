@@ -555,7 +555,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           nextLevelAttemptType: response.data.data.nextLevelAttemptType,
           xpNeeded: response.data.data.xpNeeded,
           earnedBadges,
-          isNewHighScore: response.data.data.isNewHighScore
+          isNewHighScore: response.data.data.isNewHighScore,
+          aiFeedback: response.data.data.aiFeedback
         });
         socket.disconnect();
       } else if (session.currentQuestionIndex >= session.questionBank.length && currentXp < requiredXp) {
@@ -612,7 +613,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           nextLevelAttemptType: response.data.data.nextLevelAttemptType,
           xpNeeded: response.data.data.xpNeeded,
           earnedBadges,
-          isNewHighScore: response.data.data.isNewHighScore
+          isNewHighScore: response.data.data.isNewHighScore,
+          aiFeedback: response.data.data.aiFeedback
         });
         socket.disconnect();
       }

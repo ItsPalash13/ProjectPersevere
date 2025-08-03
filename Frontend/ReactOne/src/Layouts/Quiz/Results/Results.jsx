@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -9,10 +9,13 @@ import {
   CardContent,
   Divider
 } from '@mui/material';
-import { Star as StarIcon, EmojiEvents as TrophyIcon, TrendingUp as TrendingIcon } from '@mui/icons-material';
+import { Star as StarIcon, EmojiEvents as TrophyIcon, TrendingUp as TrendingIcon, AutoAwesome as AutoAwesomeIcon } from '@mui/icons-material';
 import { quizStyles } from '../../../theme/quizTheme';
 
 const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
+  const [displayedFeedback, setDisplayedFeedback] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   if (!quizResults) return null;
 
   const isTimeRush = quizResults.attemptType === 'time_rush';
@@ -20,6 +23,27 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
   const progressPercent = Math.min((data.currentXp / data.requiredXp) * 100, 100);
   const isLevelCompleted = data.currentXp >= data.requiredXp;
   const hasNextLevel = quizResults.hasNextLevel && quizResults.nextLevelId;
+  const aiFeedback = quizResults.aiFeedback;
+
+  // Typing animation effect
+  useEffect(() => {
+    if (aiFeedback && currentIndex < aiFeedback.length) {
+      const timer = setTimeout(() => {
+        setDisplayedFeedback(aiFeedback.substring(0, currentIndex + 1));
+        setCurrentIndex(currentIndex + 1);
+      },20); // Adjust speed here (50ms = fast, 100ms = medium, 150ms = slow)
+
+      return () => clearTimeout(timer);
+    }
+  }, [aiFeedback, currentIndex]);
+
+  // Reset typing animation when aiFeedback changes
+  useEffect(() => {
+    if (aiFeedback) {
+      setDisplayedFeedback('');
+      setCurrentIndex(0);
+    }
+  }, [aiFeedback]);
 
   return (
     <Box sx={{ 
@@ -28,7 +52,14 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
       display: 'flex',
       flexDirection: 'column',
       gap: 1,
-      p: 0
+      p: 0,
+      '& .blink': {
+        animation: 'blink 1s infinite',
+      },
+      '@keyframes blink': {
+        '0%, 50%': { opacity: 1 },
+        '51%, 100%': { opacity: 0 },
+      }
     }}>
       {/* Header Section - XP and Percentile */}
       <Box sx={{ 
@@ -88,159 +119,153 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
         )}
       </Box>
 
-      {/* Main Content Grid */}
-      <Grid container spacing={1} sx={{ flex: 1, minHeight: 0 }}>
-        {/* Left Column - Progress and Status */}
-        <Grid item xs={12} md={earnedBadges && earnedBadges.length > 0 ? 6 : 12}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1, p: 2 }}>
-              {/* Progress Section */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Progress
-                  </Typography>
-                  <Typography variant="body2" fontWeight="bold">
-                    {progressPercent.toFixed(1)}%
-                  </Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={progressPercent}
-                  sx={{ 
-                    height: 6, 
-                    borderRadius: 3,
-                    backgroundColor: theme => theme.palette.mode === 'dark' ? '#3a3a5c' : '#e5e7eb',
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                      background: isLevelCompleted ? '#4caf50' : '#f59e0b',
-                    }
-                  }}
-                />
-              </Box>
-
-              <Divider sx={{ my: 1 }} />
-
-              {/* Status Message */}
-              <Box sx={{ 
-                p: 1.5, 
-                borderRadius: 2, 
-                background: isLevelCompleted 
-                  ? 'rgba(76, 175, 80, 0.1)' 
-                  : 'rgba(245, 158, 11, 0.1)',
-                border: `1px solid ${isLevelCompleted ? 'rgba(76, 175, 80, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-                textAlign: 'center',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center'
+      {/* AI Feedback Section */}
+      {aiFeedback && (
+        <Card sx={{ 
+          mb: 1,
+          backgroundColor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        }}>
+          <CardContent sx={{ p: 2, textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <AutoAwesomeIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
+              <Typography variant="body1" sx={{ 
+                fontWeight: 'bold',
+                fontStyle: 'italic',
+                lineHeight: 1.4,
+                color: 'text.primary',
+                minHeight: '1.4em',
+                position: 'relative'
               }}>
-                <Typography variant="h6" sx={{ 
-                  fontWeight: 'bold', 
-                  color: isLevelCompleted ? '#2e7d32' : '#f59e0b',
-                  mb: 0.5,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 1
-                }}>
-                  {isLevelCompleted ? "🎉 Level Completed!" : "💪 Keep Going!"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.3 }}>
-                  {quizResults.message}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+                {displayedFeedback}
+                {currentIndex < aiFeedback.length && (
+                  <span className="blink" style={{ marginLeft: '2px' }}>
+                    |
+                  </span>
+                )}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
-                 {/* Right Column - Badges (only show if badges exist) */}
-         {earnedBadges && earnedBadges.length > 0 && (
-           <Grid item xs={12} md={6}>
-             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-               <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1, p: 2 }}>
-                 {/* Earned Badges Display */}
-                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                   <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 1,
-                     mb: 0.5
-                   }}>
-                     <TrophyIcon sx={{ color: '#f57c00', fontSize: '1rem' }} />
-                     <Typography variant="body2" sx={{ 
-                       fontWeight: 'bold', 
-                       color: '#f57c00'
-                     }}>
-                       New Badges Earned!
-                     </Typography>
-                   </Box>
-                   
-                   <Box sx={{ 
-                     display: 'flex', 
-                     flexWrap: 'wrap', 
-                     gap: 0.5, 
-                     justifyContent: 'center',
-                     flex: 1,
-                     overflow: 'auto'
-                   }}>
-                     {earnedBadges.map((badge, index) => (
-                       <Box key={index} sx={{
-                         display: 'flex',
-                         flexDirection: 'column',
-                         alignItems: 'center',
-                         gap: 0.25,
-                         backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                         borderRadius: 1,
-                         padding: '4px 6px',
-                         border: '1px solid rgba(255, 193, 7, 0.3)',
-                         minWidth: 70,
-                         maxWidth: 80
-                       }}>
-                         {badge.badgeImage && (
-                           <img 
-                             src={badge.badgeImage} 
-                             alt={badge.badgeName} 
-                             style={{ 
-                               width: 24, 
-                               height: 24, 
-                               objectFit: 'contain'
-                             }} 
-                           />
-                         )}
-                         <Typography variant="caption" sx={{ 
-                           fontWeight: 'bold', 
-                           color: '#f57c00',
-                           textAlign: 'center',
-                           lineHeight: 1.1,
-                           fontSize: '0.6rem'
-                         }}>
-                           {badge.badgeName}
-                         </Typography>
-                         <Box sx={{ 
-                           backgroundColor: '#f57c00', 
-                           color: 'white', 
-                           borderRadius: '50%', 
-                           width: 14, 
-                           height: 14, 
-                           display: 'flex', 
-                           alignItems: 'center', 
-                           justifyContent: 'center',
-                           fontSize: '0.5rem',
-                           fontWeight: 'bold'
-                         }}>
-                           {badge.level + 1}
-                         </Box>
-                       </Box>
-                     ))}
-                   </Box>
-                 </Box>
-               </CardContent>
-             </Card>
-           </Grid>
-         )}
-      </Grid>
+      {/* Progress Section - Full Width */}
+      <Card sx={{ 
+        mb: 1,
+        backgroundColor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+      }}>
+        <CardContent sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={progressPercent}
+              sx={{ 
+                flex: 1,
+                height: 8, 
+                borderRadius: 4,
+                backgroundColor: theme => theme.palette.mode === 'dark' ? '#3a3a5c' : '#e5e7eb',
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 4,
+                  background: isLevelCompleted ? '#4caf50' : '#f59e0b',
+                }
+              }}
+            />
+            <Typography variant="body2" fontWeight="bold" sx={{ minWidth: 'fit-content' }}>
+              {progressPercent.toFixed(1)}%
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Badges Section - Full Width */}
+      {earnedBadges && earnedBadges.length > 0 && (
+        <Card sx={{
+          backgroundColor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+        }}>
+          <CardContent sx={{ p: 2 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: 1,
+              mb: 1
+            }}>
+              <TrophyIcon sx={{ color: '#f57c00', fontSize: '1rem' }} />
+              <Typography variant="body2" sx={{ 
+                fontWeight: 'bold', 
+                color: '#f57c00'
+              }}>
+                New Badges Earned!
+              </Typography>
+            </Box>
+            
+            <Box sx={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: 1, 
+              justifyContent: 'center'
+            }}>
+              {earnedBadges.map((badge, index) => (
+                <Box key={index} sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.25,
+                  backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                  borderRadius: 1,
+                  padding: '8px 12px',
+                  border: '1px solid rgba(255, 193, 7, 0.3)',
+                  minWidth: 80,
+                  maxWidth: 100
+                }}>
+                  {badge.badgeImage && (
+                    <img 
+                      src={badge.badgeImage} 
+                      alt={badge.badgeName} 
+                      style={{ 
+                        width: 32, 
+                        height: 32, 
+                        objectFit: 'contain'
+                      }} 
+                    />
+                  )}
+                  <Typography variant="caption" sx={{ 
+                    fontWeight: 'bold', 
+                    color: '#f57c00',
+                    textAlign: 'center',
+                    lineHeight: 1.1,
+                    fontSize: '0.7rem'
+                  }}>
+                    {badge.badgeName}
+                  </Typography>
+                  <Box sx={{ 
+                    backgroundColor: '#f57c00', 
+                    color: 'white', 
+                    borderRadius: '50%', 
+                    width: 16, 
+                    height: 16, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontSize: '0.6rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {badge.level + 1}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
     </Box>
   );
 };

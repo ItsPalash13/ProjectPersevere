@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import SubjectAdmin from './Subject';
 import ChapterAdmin from './Chapter';
 import TopicsAdmin from './Topics';
@@ -30,10 +31,53 @@ function TabPanel(props) {
 
 export default function Admin() {
   const [tab, setTab] = useState(0);
+  const theme = useTheme();
   const handleChange = (_e, newValue) => setTab(newValue);
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
+    <Box sx={{ 
+      width: '100%', 
+      p: 2,
+      '& .MuiButton-root': {
+        backgroundColor: theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
+        color: theme.palette.mode === 'dark' ? 'white' : 'white',
+        border: `1px solid ${theme.palette.mode === 'dark' ? '#666' : '#1F1F1F'}`,
+        '&:hover': {
+          backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#2A2A2A',
+          borderColor: theme.palette.mode === 'dark' ? '#888' : '#2A2A2A',
+        },
+        '&:disabled': {
+          backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#E0E0E0',
+          color: theme.palette.mode === 'dark' ? '#666' : '#999',
+          borderColor: theme.palette.mode === 'dark' ? '#555' : '#CCC',
+        },
+        '&.MuiButton-contained': {
+          backgroundColor: theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
+          color: theme.palette.mode === 'dark' ? 'white' : 'white',
+          '&:hover': {
+            backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#2A2A2A',
+          },
+          '&:disabled': {
+            backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#E0E0E0',
+            color: theme.palette.mode === 'dark' ? '#666' : '#999',
+          }
+        },
+        '&.MuiButton-outlined': {
+          backgroundColor: 'transparent',
+          color: theme.palette.mode === 'dark' ? 'white' : '#1F1F1F',
+          borderColor: theme.palette.mode === 'dark' ? '#666' : '#1F1F1F',
+          '&:hover': {
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(31,31,31,0.1)',
+            borderColor: theme.palette.mode === 'dark' ? '#888' : '#2A2A2A',
+          },
+          '&:disabled': {
+            backgroundColor: 'transparent',
+            color: theme.palette.mode === 'dark' ? '#666' : '#999',
+            borderColor: theme.palette.mode === 'dark' ? '#555' : '#CCC',
+          }
+        }
+      }
+    }}>
       <Typography variant="h4" sx={{ mb: 2 }}>Admin Panel</Typography>
       <Tabs value={tab} onChange={handleChange} aria-label="admin tabs">
         <Tab label="Subjects" id="admin-tab-0" aria-controls="admin-tabpanel-0" />

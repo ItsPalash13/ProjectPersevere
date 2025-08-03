@@ -7,6 +7,7 @@ import countdownSound from './countdown.mp3';
 import countdownEndSound from './countdown_end.mp3';
 import levelWonSound from './level_won.mp3';
 import achievementSound from './achievement1.mp3';
+import levelLostSound from './level_lost.mp3';
 
 
 
@@ -18,6 +19,7 @@ const SOUND_FILES = {
   COUNTDOWN_END: countdownEndSound,
   LEVEL_WON: levelWonSound,
   ACHIEVEMENT: achievementSound,
+  LEVEL_LOST: levelLostSound,
 };
 
 export default SOUND_FILES; 

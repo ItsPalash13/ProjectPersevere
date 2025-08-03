@@ -21,6 +21,7 @@ import Sidebar from './components/Sidebar';
 import './App.css';
 import Admin from './Layouts/Admin/Admin';
 import Profile from './Layouts/Profile/Profile';
+import TempResults from './Layouts/Temp/TempResults';
 
 // Create socket instance outside component
 export const socket = io(import.meta.env.VITE_BACKEND_URL, {
@@ -106,22 +107,6 @@ const createAppTheme = (isDark) => createTheme({
           fontWeight: 600,
           boxShadow: 'none',
           transition: 'background-color 0.2s ease-in-out, color 0.2s ease-in-out',
-        },
-        contained: {
-          background: isDark ? colors.text.dark.primary : colors.text.light.primary,
-          color: isDark ? colors.text.dark.inverse || '#FFFFFF' : colors.text.light.inverse || '#FFFFFF',
-          '&:hover': {
-            background: isDark ? colors.text.dark.primary : colors.text.light.primary,
-            opacity: 0.9,
-          },
-        },
-        outlined: {
-          borderColor: isDark ? colors.border.dark.primary : colors.border.light.primary,
-          color: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
-          '&:hover': {
-            backgroundColor: isDark ? colors.overlay.dark.low : colors.overlay.light.low,
-            borderColor: isDark ? colors.border.dark.accent : colors.border.light.accent,
-          },
         },
       },
     },
@@ -287,6 +272,7 @@ function AppContent() {
               <Route path="/chapter/:chapterId" element={<ProtectedRoute><Levels /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/temp/result" element={<TempResults />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>

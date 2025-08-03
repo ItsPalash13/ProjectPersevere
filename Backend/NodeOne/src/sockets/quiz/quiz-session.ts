@@ -147,7 +147,8 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         nextLevelId: response.data.data.nextLevelId,
         nextLevelAttemptType: response.data.data.nextLevelAttemptType,
         xpNeeded: response.data.data.xpNeeded,
-        earnedBadges
+        earnedBadges,
+        aiFeedback: response.data.data.aiFeedback
       });
       socket.disconnect();
 
@@ -249,6 +250,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         nextLevelAttemptType: null,
         xpNeeded: response.data.data.xpNeeded,
         earnedBadges,
+        aiFeedback: response.data.data.aiFeedback,
         isNewHighScore: response.data.data.isNewHighScore
       });
 

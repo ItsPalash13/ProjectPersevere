@@ -342,6 +342,7 @@ const Quiz = ({ socket }) => {
           if (newTime <= 0) {
             socket.emit('sendTimesUp', { userLevelSessionId: levelSession._id });
             clearInterval(timerIntervalRef.current);
+            setAnswerSubmitted(true);
             return 0;
           }
         } else {
@@ -494,6 +495,9 @@ const Quiz = ({ socket }) => {
       
       if (isLevelCompleted) {
         const audio = new Audio(SOUND_FILES.LEVEL_WON);
+        audio.play();
+      }else{
+        const audio = new Audio(SOUND_FILES.LEVEL_LOST);
         audio.play();
       }
       
@@ -694,9 +698,20 @@ const Quiz = ({ socket }) => {
 
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
           <TimeDisplay>
-            <TimerIcon />
-            {'Time: '} 
-            {formatTime(currentTime, true)}
+
+            {answerSubmitted ? (
+              <>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={16} sx={{ color: 'inherit' }} />
+              </Box>
+              </>
+            ) : (
+              <>
+              <TimerIcon />
+              {'Time: '} 
+              {formatTime(currentTime, true)}
+              </>
+            )}
           </TimeDisplay>
         </Box>
 
@@ -732,7 +747,18 @@ const Quiz = ({ socket }) => {
                 {Array.isArray(currentQuestion?.topics) && currentQuestion.topics.length > 0 && (
                   <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                     {currentQuestion.topics.map((topic, idx) => (
-                      <Chip key={idx} label={topic} size="small" color="primary" />
+                      <Chip 
+                        key={idx} 
+                        label={topic} 
+                        size="small" 
+                        sx={{
+                          backgroundColor: theme => theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
+                          color: theme => theme.palette.mode === 'dark' ? 'white' : 'white',
+                          '&:hover': {
+                            backgroundColor: theme => theme.palette.mode === 'dark' ? '#555' : '#2A2A2A',
+                          }
+                        }}
+                      />
                     ))}
                   </Box>
                 )}
@@ -772,10 +798,17 @@ const Quiz = ({ socket }) => {
                   size="large"
                   onClick={handleAnswerSubmit}
                   disabled={selectedAnswer === '' || answerSubmitted}
+                  sx={{
+                    backgroundColor: theme => theme.palette.mode === 'dark' ? '#444' : '#1F1F1F',
+                    color: theme => theme.palette.mode === 'dark' ? 'white' : 'white',
+                    '&:hover': {
+                      backgroundColor: theme => theme.palette.mode === 'dark' ? '#555' : '#2A2A2A',
+                    }
+                  }}
                 >
                   {answerSubmitted ? (
                     <>
-                      <CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />
+                      <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
                       Submitting...
                     </>
                   ) : (
@@ -788,6 +821,20 @@ const Quiz = ({ socket }) => {
                   size="large"
                   onClick={handleNextQuestion}
                   disabled={isLoading}
+                  sx={{
+                    backgroundColor: theme => theme.palette.mode === 'dark' ? '#1F1F1F' : '#FFFFFF',
+                    color: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F',
+                    border: theme => `1px solid ${theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F'}`,
+                    '&:hover': {
+                      backgroundColor: theme => theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5',
+                      borderColor: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F',
+                    },
+                    '&:disabled': {
+                      backgroundColor: theme => theme.palette.mode === 'dark' ? '#333333' : '#E0E0E0',
+                      color: theme => theme.palette.mode === 'dark' ? '#666666' : '#999999',
+                      borderColor: theme => theme.palette.mode === 'dark' ? '#666666' : '#999999',
+                    }
+                  }}
                 >
                   Next Question
                 </StyledButton>
@@ -806,6 +853,13 @@ const Quiz = ({ socket }) => {
               bottom: 32,
               right: 32,
               zIndex: 1000,
+              backgroundColor: theme => theme.palette.mode === 'dark' ? '#1F1F1F' : '#FFFFFF',
+              color: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F',
+              border: theme => `1px solid ${theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F'}`,
+              '&:hover': {
+                backgroundColor: theme => theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5',
+                borderColor: theme => theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F',
+              }
             }}
             title={showCorrectAnswer ? `Answer: ${currentQuestion.correctAnswer}` : "Show correct answer"}
           >

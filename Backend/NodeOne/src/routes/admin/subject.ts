@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 const router = express.Router();
 
 // Get all subjects
-router.get('/', async (res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const subjects = await Subject.find().sort({ createdAt: -1 });
     return res.status(200).json({ success: true, count: subjects.length, data: subjects });

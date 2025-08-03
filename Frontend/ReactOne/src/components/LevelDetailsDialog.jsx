@@ -41,6 +41,7 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
       fullWidth
       PaperProps={{
         sx: {
+          backgroundColor: theme.palette.mode === 'dark' ? '#0A0A0A' : "background.paper",
           borderRadius: 3,
           maxHeight: '90vh'
         }
@@ -125,114 +126,185 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
           )}
 
           {/* Metrics Grid */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            {/* Target XP */}
-            {(isTimeRush ? level?.timeRush?.requiredXp : level?.precisionPath?.requiredXp) && (
-              <Grid item xs={6} sm={4}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>🎯</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {isTimeRush ? level.timeRush.requiredXp : level.precisionPath.requiredXp}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Target XP
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-
-            {/* Time Rush: Total Time */}
-            {isTimeRush && level?.timeRush?.totalTime && (
-              <Grid item xs={6} sm={4}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⏱️</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {formatTime(level.timeRush.totalTime)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Total Time
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-
-            {/* Time Rush: Best Time Remaining */}
-            {isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && progress?.minTime > 0 && (
-              <Grid item xs={6} sm={4}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⚡</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {formatTime(progress.minTime)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Best Time Remaining
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-
-            {/* Precision Path: Min Time */}
-            {!isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && (
-              <Grid item xs={6} sm={4}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⚡</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {formatTime(progress.minTime)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Best Time
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-
-            {/* Total Questions - Both Modes */}
-            {(isTimeRush ? level?.timeRush?.totalQuestions : level?.precisionPath?.totalQuestions) && (
-              <Grid item xs={6} sm={4}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>❓</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {isTimeRush ? level.timeRush.totalQuestions : level.precisionPath.totalQuestions}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Questions
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-
-            {/* Percentile */}
-            {level?.percentile !== undefined && level?.percentile !== null && (
-              <Grid item xs={6} sm={4}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>📊</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                      {level.percentile === 100 ? 'Top 100%' : `Top ${100 - level.percentile}%`}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Percentile
-                    </Typography>
-                    {level.participantCount !== undefined && level.participantCount !== null && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                        {level.participantCount} participants
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: 'text.primary' }}>
+              Level Metrics
+            </Typography>
+            <Grid container spacing={1.5}>
+              {/* Target XP */}
+              {(isTimeRush ? level?.timeRush?.requiredXp : level?.precisionPath?.requiredXp) && (
+                <Grid item size={{xs:12,sm:3}}>
+                  <Card sx={{ 
+                    height: '100%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? "#444" : 'divider',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    }
+                  }}>
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>🎯</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25 }}>
+                        {isTimeRush ? level.timeRush.requiredXp : level.precisionPath.requiredXp}
                       </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
-          </Grid>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        Target XP
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Time Rush: Total Time */}
+              {isTimeRush && level?.timeRush?.totalTime && (
+                <Grid item size={{xs:12,sm:3}}>
+                  <Card sx={{ 
+                    height: '100%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? "#444" : 'divider',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    }
+                  }}>
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⏱️</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25 }}>
+                        {formatTime(level.timeRush.totalTime)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        Total Time
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Time Rush: Best Time Remaining */}
+              {isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && progress?.minTime > 0 && (
+                <Grid item size={{xs:12,sm:3}}>
+                  <Card sx={{ 
+                    height: '100%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? "#444" : 'divider',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    }
+                  }}>
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⚡</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25 }}>
+                        {formatTime(progress.minTime)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        Best Time Remaining
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Precision Path: Min Time */}
+              {!isTimeRush && progress?.minTime !== null && progress?.minTime !== undefined && (
+                <Grid item size={{xs:12,sm:3}}>
+                  <Card sx={{ 
+                    height: '100%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? "#444" : 'divider',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    }
+                  }}>
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>⚡</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25 }}>
+                        {formatTime(progress.minTime)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        Best Time
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Total Questions - Both Modes */}
+              {(isTimeRush ? level?.timeRush?.totalQuestions : level?.precisionPath?.totalQuestions) && (
+                <Grid item size={{xs:12,sm:3}}>
+                  <Card sx={{ 
+                    height: '100%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? "#444" : 'divider',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    }
+                  }}>
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>❓</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25 }}>
+                        {isTimeRush ? level.timeRush.totalQuestions : level.precisionPath.totalQuestions}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        Questions
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Percentile */}
+              {level?.percentile !== undefined && level?.percentile !== null && (
+                <Grid item size={{xs:12,sm:3}}>
+                  <Card sx={{ 
+                    height: '100%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: theme.palette.mode === 'dark' ? "#444" : 'divider',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    }
+                  }}>
+                    <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>📊</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25, color: 'primary.main' }}>
+                        {level.percentile === 100 ? 'Top 100%' : `Top ${100 - level.percentile}%`}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        Percentile
+                      </Typography>
+                      {level.participantCount !== undefined && level.participantCount !== null && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, opacity: 0.7 }}>
+                          {level.participantCount} participants
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
+          </Box>
 
           <Divider sx={{ my: 2 }} />
 
@@ -248,7 +320,12 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
                 py: 1.5,
                 borderRadius: 2,
                 fontWeight: 600,
-                fontSize: '1.1rem'
+                fontSize: '1.1rem',
+                backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'primary.main',
+                color: theme.palette.mode === 'dark' ? 'white' : 'white',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? '#555' : 'primary.dark',
+                }
               }}
             >
               {level?.status ? 'Start Level' : '🔒 Locked'}

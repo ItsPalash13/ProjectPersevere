@@ -14,6 +14,7 @@
     import { getSkewNormalRandom } from '../utils/math';
     import { Topic } from '../models/Topic';
     import { processBadgesAfterQuiz } from '../utils/badgeprocessor';
+    import { getShortLevelFeedback } from '../utils/gpt';
 
     // Function to create question bank based on level and attempt type using MU (difficulty)
     const createQuestionBankByMu = async (level: any, attemptType: string): Promise<any[]> => {
@@ -818,6 +819,36 @@
             );
             const percentile = percentileResult.percentile;
 
+            // Get level details for GPT feedback
+            const level = await Level.findById(session.levelId);
+            const levelTopics = level?.topics || [];
+            const topicNames = await Topic.find({ _id: { $in: levelTopics } }).select('topic');
+            const topicNamesList = topicNames.map(t => t.topic);
+            
+            // Get user's first name
+            const userProfile = await UserProfile.findOne({ userId });
+            const fullName = userProfile?.fullName || 'Student';
+            const firstName = fullName.split(' ')[0] || 'Student';
+            
+            // Generate personalized feedback
+            let aiFeedback = "Great job completing this level!";
+            try {
+              aiFeedback = await getShortLevelFeedback({
+                levelName: level?.name || 'Level',
+                levelTopics: topicNamesList,
+                studentXP: currentXp,
+                requiredXP: session.timeRush?.requiredXp || 0,
+                accuracy: Math.round((session.questionsAnswered?.correct?.length || 0) / (session.questionBank.length || 1) * 100),
+                timeTaken: `${Math.floor(finalTime / 60)}:${(finalTime % 60).toFixed(1)}`,
+                levelResult: 'completed',
+                nextLevel: nextLevel ? `Level ${nextLevel.levelNumber}` : 'No next level',
+                firstName: firstName,
+                newHighScore: newHighScore
+              });
+            } catch (error) {
+              console.error('Error generating AI feedback:', error);
+            }
+
             // Now process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
@@ -839,7 +870,8 @@
                 nextLevelId: nextLevel?._id,
                 nextLevelAttemptType: nextLevel?.type,
                 isNewHighScore: newHighScore,
-                percentile
+                percentile,
+                aiFeedback
               }
             });
           } else {
@@ -874,6 +906,36 @@
               userId
             )).percentile : 0;
 
+            // Get level details for GPT feedback
+            const level = await Level.findById(session.levelId);
+            const levelTopics = level?.topics || [];
+            const topicNames = await Topic.find({ _id: { $in: levelTopics } }).select('topic');
+            const topicNamesList = topicNames.map(t => t.topic);
+            
+            // Get user's first name
+            const userProfile = await UserProfile.findOne({ userId });
+            const fullName = userProfile?.fullName || 'Student';
+            const firstName = fullName.split(' ')[0] || 'Student';
+            
+            // Generate personalized feedback for incomplete level
+            let aiFeedback = "Keep trying! You're getting closer to completing this level.";
+            try {
+              aiFeedback = await getShortLevelFeedback({
+                levelName: level?.name || 'Level',
+                levelTopics: topicNamesList,
+                studentXP: currentXp,
+                requiredXP: session.timeRush?.requiredXp || 0,
+                accuracy: Math.round((session.questionsAnswered?.correct?.length || 0) / (session.questionBank.length || 1) * 100),
+                timeTaken: `${Math.floor(finalTime / 60)}:${(finalTime % 60).toFixed(1)}`,
+                levelResult: 'incomplete',
+                nextLevel: 'Retry this level',
+                firstName: firstName,
+                newHighScore: newHighScore
+              });
+            } catch (error) {
+              console.error('Error generating AI feedback:', error);
+            }
+
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
@@ -896,7 +958,8 @@
                 nextLevelId: null,
                 nextLevelAttemptType: null,
                 isNewHighScore: newHighScore,
-                percentile
+                percentile,
+                aiFeedback
               }
             });
           }
@@ -1025,6 +1088,36 @@
             );
             const percentile = percentileResult.percentile;
 
+            // Get level details for GPT feedback
+            const level = await Level.findById(session.levelId);
+            const levelTopics = level?.topics || [];
+            const topicNames = await Topic.find({ _id: { $in: levelTopics } }).select('topic');
+            const topicNamesList = topicNames.map(t => t.topic);
+            
+            // Get user's first name
+            const userProfile = await UserProfile.findOne({ userId });
+            const fullName = userProfile?.fullName || 'Student';
+            const firstName = fullName.split(' ')[0] || 'Student';
+            
+            // Generate personalized feedback
+            let aiFeedback = "Great job completing this level!";
+            try {
+              aiFeedback = await getShortLevelFeedback({
+                levelName: level?.name || 'Level',
+                levelTopics: topicNamesList,
+                studentXP: currentXp,
+                requiredXP: session.precisionPath?.requiredXp || 0,
+                accuracy: Math.round((session.questionsAnswered?.correct?.length || 0) / (session.questionBank.length || 1) * 100),
+                timeTaken: `${Math.floor(finalTime / 60)}:${(finalTime % 60).toFixed(1)}`,
+                levelResult: 'completed',
+                nextLevel: nextLevel ? `Level ${nextLevel.levelNumber}` : 'No next level',
+                firstName: firstName,
+                newHighScore: newHighScore
+              });
+            } catch (error) {
+              console.error('Error generating AI feedback:', error);
+            }
+
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
@@ -1046,7 +1139,8 @@
                 nextLevelId: nextLevel?._id,
                 nextLevelAttemptType: nextLevel?.type,
                 isNewHighScore: newHighScore,
-                percentile
+                percentile,
+                aiFeedback
               }
             });
           } else {
@@ -1082,6 +1176,36 @@
               userId
             )).percentile : 0;
 
+            // Get level details for GPT feedback
+            const level = await Level.findById(session.levelId);
+            const levelTopics = level?.topics || [];
+            const topicNames = await Topic.find({ _id: { $in: levelTopics } }).select('topic');
+            const topicNamesList = topicNames.map(t => t.topic);
+            
+            // Get user's first name
+            const userProfile = await UserProfile.findOne({ userId });
+            const fullName = userProfile?.fullName || 'Student';
+            const firstName = fullName.split(' ')[0] || 'Student';
+            
+            // Generate personalized feedback for incomplete level
+            let aiFeedback = "Keep trying! You're getting closer to completing this level.";
+            try {
+              aiFeedback = await getShortLevelFeedback({
+                levelName: level?.name || 'Level',
+                levelTopics: topicNamesList,
+                studentXP: currentXp,
+                requiredXP: session.precisionPath?.requiredXp || 0,
+                accuracy: Math.round((session.questionsAnswered?.correct?.length || 0) / (session.questionBank.length || 1) * 100),
+                timeTaken: `${Math.floor(finalTime / 60)}:${(finalTime % 60).toFixed(1)}`,
+                levelResult: 'incomplete',
+                nextLevel: 'Retry this level',
+                firstName: firstName,
+                newHighScore: newHighScore
+              });
+            } catch (error) {
+              console.error('Error generating AI feedback:', error);
+            }
+
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
@@ -1101,7 +1225,8 @@
                 nextLevelNumber: null,
                 nextLevelId: null,
                 nextLevelAttemptType: null,
-                percentile
+                percentile,
+                aiFeedback
               }
             });
           }

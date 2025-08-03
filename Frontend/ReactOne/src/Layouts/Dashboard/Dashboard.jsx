@@ -5,6 +5,7 @@ import SubjectSection from '../Subjects/SubjectSection';
 import { dashboardStyles } from '../../theme/dashboardTheme';
 import { authClient } from '../../lib/auth-client';
 import { setSession } from '../../features/auth/authSlice';
+import { useTheme } from '@mui/material/styles';
 
 // Chapters by Subject Component
 const ChaptersBySubject = ({ darkMode }) => {
@@ -81,6 +82,8 @@ const Dashboard = ({ darkMode, onDarkModeToggle }) => {
     'Chemical Kinetics'
   ];
 
+  const theme = useTheme();
+
   return (
     <Box sx={dashboardStyles.container}>
       {/* JEE Topic Tags */}
@@ -109,16 +112,22 @@ const Dashboard = ({ darkMode, onDarkModeToggle }) => {
                 clickable
                 onClick={() => setSelectedTopic(topic)}
                 sx={{
-                  backgroundColor: isSelected ? 'primary.main' : 'background.paper',
-                  color: isSelected ? 'primary.contrastText' : 'text.secondary',
+                  backgroundColor: isSelected 
+                    ? (theme.palette.mode === 'dark' ? '#1F1F1F' : '#FFFFFF')
+                    : 'background.paper',
+                  color: isSelected 
+                    ? (theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F')
+                    : 'text.secondary',
                   borderRadius: '10px',
                   fontSize: '0.85rem',
                   fontWeight: isSelected ? 600 : 500,
                   flexShrink: 0, // Prevent chips from shrinking
                   cursor: 'pointer',
                   '&:hover': {
-                    backgroundColor: isSelected ? 'primary.dark' : 'action.hover',
-                    borderColor: isSelected ? 'transparent' : 'primary.main',
+                    backgroundColor: isSelected 
+                      ? (theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5')
+                      : (theme.palette.mode === 'dark' ? '#2A2A2A' : '#F5F5F5'),
+                    borderColor: isSelected ? 'transparent' : (theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F'),
                   },
                   transition: 'all 0.2s ease',
                 }}
