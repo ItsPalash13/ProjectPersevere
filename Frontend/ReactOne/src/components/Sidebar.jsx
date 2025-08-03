@@ -30,18 +30,31 @@ import {
   BrandText, 
   sidebarStyles 
 } from '../theme/sidebarTheme';
-
-const navigationItems = [
-  { text: 'Dashboard', icon: <HomeIcon fontSize="small" />, path: '/dashboard' },
-  { text: 'Admin', icon: <SettingsIcon fontSize="small" />, path: '/admin' },
-];
+import { useSelector } from 'react-redux';
 
 const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Get user role from Redux store
+  const userRole = useSelector((state) => state?.auth?.user?.role || 'student');
 
   const handleNavigation = (path) => {
     navigate(path);
+  };
+
+  // Filter navigation items based on user role
+  const getNavigationItems = () => {
+    const baseItems = [
+      { text: 'Dashboard', icon: <HomeIcon fontSize="small" />, path: '/dashboard' },
+    ];
+
+    // Only show Admin link for admin users
+    if (userRole === 'admin') {
+      baseItems.push({ text: 'Admin', icon: <SettingsIcon fontSize="small" />, path: '/admin' });
+    }
+
+    return baseItems;
   };
 
   // Render sidebar content
@@ -62,7 +75,7 @@ const Sidebar = ({ open, onToggle, devicePixelRatio }) => {
       </DrawerHeader>
 
       <List sx={sidebarStyles.listContainer}>
-        {navigationItems.map((item) => {
+        {getNavigationItems().map((item) => {
           const isSelected = location.pathname === item.path;
           return (
             <ListItem key={item.text} disablePadding sx={{ px: 0 }}>

@@ -5,10 +5,12 @@ import { Request, Response } from 'express';
 const router = express.Router();
 
 // Get all subjects
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    const subjects = await Subject.find().sort({ createdAt: -1 });
-    return res.status(200).json({ success: true, count: subjects.length, data: subjects });
+  router.get('/', async (req: Request, res: Response) => {
+    try {
+    const { page = 1, limit = 10 } = req.query;
+    const subjects = await Subject.find().sort({ createdAt: -1 }).skip((Number(page) - 1) * Number(limit)).limit(Number(limit));
+    const totalCount = await Subject.countDocuments();
+    return res.status(200).json({ success: true, count: totalCount, data: subjects });
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Server Error' });
   }

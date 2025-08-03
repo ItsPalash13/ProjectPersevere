@@ -20,6 +20,7 @@ interface UserProfileDocument extends Document {
   userId: string;
   username: string;
   email: string;
+  role: string;
   fullName?: string;
   health: number;
   totalCoins: number;
@@ -45,6 +46,7 @@ const UserProfileSchema: Schema = new Schema(
     userId: { type: String, required: true, unique: true, index: true },
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
+    role: { type: String, default: 'student' },
     fullName: { type: String },
     bio: { type: String },
     dob: { type: Date }, // Added date of birth field

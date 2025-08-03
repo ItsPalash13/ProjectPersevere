@@ -47,6 +47,7 @@ export const getAuth = async () => {
                             avatar: userProfile.avatar,
                             avatarBgColor: userProfile?.avatarBgColor || 'blue',
                             onboardingCompleted: userProfile.onboardingCompleted,
+                            role: userProfile.role
                           },
                           session
                         };
@@ -78,6 +79,7 @@ export const getAuth = async () => {
                                 onboardingCompleted: false,
                                 avatar: avatar,
                                 avatarBgColor: avatarBgColor,
+                                role: 'student'
                             });
                             await Userts.create({
                                 userId: id,
