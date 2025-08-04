@@ -243,20 +243,7 @@ const Profile: React.FC = () => {
                 ))}
               </Box>
             </Box>
-            {/* Profile Info Section */}
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ color: 'text.primary' }}>
-                Profile Info
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Bio:</strong> {userInfo?.bio || 'No bio set.'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Date of Birth:</strong> {userInfo?.dob ? new Date(userInfo.dob).toLocaleDateString() : 'N/A'}
-                </Typography>
-              </Box>
-            </Box>
+
           </Card>
         </Grid>
 

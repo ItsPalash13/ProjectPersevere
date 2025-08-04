@@ -30,7 +30,7 @@ export const socket = io(import.meta.env.VITE_BACKEND_URL, {
 });
 
 // Screen size constants
-const MIN_SCREEN_WIDTH = 1024; // Minimum width for desktop (1024px = tablet landscape and above)
+const MIN_SCREEN_WIDTH = 124; // Minimum width for desktop (1024px = tablet landscape and above)
 
 // localStorage keys
 const STORAGE_KEYS = {

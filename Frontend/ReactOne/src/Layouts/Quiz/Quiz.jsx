@@ -573,9 +573,6 @@ const Quiz = ({ socket }) => {
     }
   }, [showNextLevelCountdown, nextLevelCountdown, nextLevelId, navigate]);
 
-
-  
-
   const handleNextLevel = async () => {
     if (quizResults?.nextLevelId) {
       try {
@@ -863,7 +860,7 @@ const Quiz = ({ socket }) => {
             }}
             title={showCorrectAnswer ? `Answer: ${currentQuestion.correctAnswer}` : "Show correct answer"}
           >
-            {showCorrectAnswer ? currentQuestion.correctAnswer : <HelpIcon />}
+            {showCorrectAnswer ? currentQuestion.correctAnswer+1 : <HelpIcon />}
           </FloatingButton>
         )}
 
@@ -1075,6 +1072,14 @@ const Quiz = ({ socket }) => {
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
               },
+              '&.MuiButton-contained': {
+                background: 'white',
+                color: answerResult?.isCorrect ? '#2e7d32' : '#d32f2f',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  transform: 'translateY(-2px)',
+                },
+              },
             }}
           >
             Next Question
@@ -1201,3 +1206,4 @@ const Quiz = ({ socket }) => {
 };
 
 export default Quiz;
+

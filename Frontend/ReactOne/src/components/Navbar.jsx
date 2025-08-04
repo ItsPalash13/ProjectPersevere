@@ -339,15 +339,25 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
               {location.pathname === '/' && (
-              <Button
-                onClick={handleLogin}
-                variant="contained"
-                startIcon={<LoginIcon />}
-                size="small"
-                sx={navbarStyles.loginButton}
-              >
-                Login
-              </Button>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <Button
+                    onClick={() => navigate('/register')}
+                    variant="outlined"
+                    size="small"
+                    sx={navbarStyles.registerButton}
+                  >
+                    Sign Up
+                  </Button>
+                  <Button
+                    onClick={handleLogin}
+                    variant="contained"
+                    startIcon={<LoginIcon />}
+                    size="small"
+                    sx={navbarStyles.loginButton}
+                  >
+                    Login
+                  </Button>
+                </Box>
               )}
             </>
           )}

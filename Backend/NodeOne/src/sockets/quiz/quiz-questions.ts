@@ -453,20 +453,6 @@ export const quizQuestionHandlers = (socket: Socket) => {
         session.timeRush.requiredXp : 
         session.precisionPath.requiredXp;
 
-      // Send result to client
-      if (session.status === 0 && currentXp < requiredXp) {
-        socket.emit('answerResult', {
-          isCorrect,
-          correctAnswer: question.correct,
-          xpEarned: Number(xpEarned),
-          currentXp: session.attemptType === 'time_rush' ? 
-            session.timeRush.currentXp : 
-            session.precisionPath.currentXp,
-          totalQuestions: session.questionBank.length,
-          currentStreak: session.streak,
-          message: message
-        });
-      }
 
       // If level is completed (XP requirement met)
       if (session.status === 0 && currentXp >= requiredXp) {
@@ -566,7 +552,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
           userId: session.userId,
           currentTime: currentTime
         });
-
+        
         // Process badges and fetch earned badges
         const userProfile = await UserProfile.findOne({ userId: session.userId });
         let earnedBadges: Array<{ badgeId: string, level: number, badgeName: string, badgeImage: string, badgeDescription: string }> = [];
@@ -585,6 +571,18 @@ export const quizQuestionHandlers = (socket: Socket) => {
             }
           }
         }
+
+        socket.emit('answerResult', {
+          isCorrect,
+          correctAnswer: question.correct,
+          xpEarned: Number(xpEarned),
+          currentXp: session.attemptType === 'time_rush' ? 
+            session.timeRush.currentXp : 
+            session.precisionPath.currentXp,
+          totalQuestions: session.questionBank.length,
+          currentStreak: session.streak,
+          message: message
+        });
 
         // Send final results to client for both modes
         socket.emit('quizFinished', { 
@@ -617,6 +615,18 @@ export const quizQuestionHandlers = (socket: Socket) => {
           aiFeedback: response.data.data.aiFeedback
         });
         socket.disconnect();
+      } else{
+        socket.emit('answerResult', {
+          isCorrect,
+          correctAnswer: question.correct,
+          xpEarned: Number(xpEarned),
+          currentXp: session.attemptType === 'time_rush' ? 
+            session.timeRush.currentXp : 
+            session.precisionPath.currentXp,
+          totalQuestions: session.questionBank.length,
+          currentStreak: session.streak,
+          message: message
+        });
       }
 
     } catch (error) {
