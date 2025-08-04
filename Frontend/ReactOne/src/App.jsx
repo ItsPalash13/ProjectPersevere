@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box } from '@mui/material';
+import { Box, Typography, Container, Paper } from '@mui/material';
 import { colors } from './theme/colors';
 import Home from './components/Home';
 import Login from './Layouts/Auth/Login';
@@ -28,6 +28,9 @@ export const socket = io(import.meta.env.VITE_BACKEND_URL, {
   withCredentials: true,
   autoConnect: false // Prevent auto-connection
 });
+
+// Screen size constants
+const MIN_SCREEN_WIDTH = 1024; // Minimum width for desktop (1024px = tablet landscape and above)
 
 // localStorage keys
 const STORAGE_KEYS = {
@@ -53,6 +56,54 @@ const setStorageValue = (key, value) => {
     console.warn(`Error setting localStorage key "${key}":`, error);
   }
 };
+
+// Desktop only message component
+const DesktopOnlyMessage = ({ isDark }) => (
+  <Container maxWidth="md" sx={{ py: 8 }}>
+    <Paper 
+      elevation={3} 
+      sx={{ 
+        p: 4, 
+        textAlign: 'center',
+        backgroundColor: isDark ? colors.background.dark.paper : colors.background.light.paper,
+        border: isDark 
+          ? `1px solid ${colors.border.dark.primary}` 
+          : `1px solid ${colors.border.light.primary}`,
+      }}
+    >
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        gutterBottom
+        sx={{ 
+          color: isDark ? colors.text.dark.primary : colors.text.light.primary,
+          fontWeight: 700,
+          mb: 2
+        }}
+      >
+        Desktop Only
+      </Typography>
+      <Typography 
+        variant="body1" 
+        sx={{ 
+          color: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
+          mb: 3
+        }}
+      >
+        This application is designed for desktop use only. Please access it from a computer with a screen width of at least {MIN_SCREEN_WIDTH}px.
+      </Typography>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          color: isDark ? colors.text.dark.secondary : colors.text.light.secondary,
+          opacity: 0.8
+        }}
+      >
+        Current screen width: {window.innerWidth}px
+      </Typography>
+    </Paper>
+  </Container>
+);
 
 // Create theme function
 const createAppTheme = (isDark) => createTheme({
@@ -161,12 +212,14 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(() => 
     getStorageValue(STORAGE_KEYS.SIDEBAR_OPEN, true)
   );
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   
   // Device pixel ratio state for zoom level tracking
   // const [devicePixelRatio, setDevicePixelRatio] = useState(window.devicePixelRatio);
 
   const theme = createAppTheme(darkMode);
   const isAuthenticated = !!session?.session;
+  const isDesktop = screenWidth >= MIN_SCREEN_WIDTH;
 
   const handleDarkModeToggle = () => {
     const newDarkMode = !darkMode;
@@ -206,6 +259,16 @@ function AppContent() {
   //   };
   // }, [sidebarOpen]);
 
+  // Track screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     console.log('Session data from auth client:', session); // Debug log
     if (session?.session && session?.user) {
@@ -226,6 +289,25 @@ function AppContent() {
   
   // Determine if we should show the sidebar
   const showSidebar = isAuthenticated && !['/login', '/register', '/onboarding'].includes(location.pathname) && !location.pathname.startsWith('/quiz');
+
+  // Show desktop-only message if screen is too small
+  if (!isDesktop) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline enableColorScheme />
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          minHeight: '100vh', 
+          backgroundColor: theme.palette.background.surface,
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <DesktopOnlyMessage isDark={darkMode} />
+        </Box>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>

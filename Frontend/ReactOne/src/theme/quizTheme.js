@@ -127,19 +127,19 @@ export const StyledButton = styled(Button)(({ theme }) => ({
   boxShadow: 'none',
   transition: 'all 0.2s ease-in-out',
   '&.MuiButton-contained': {
-    background: getThemeColor(colors.app.light.border, colors.app.dark.border),
-    color: getThemeColor(colors.text.light.primary, colors.text.dark.primary),
+    background: theme.palette.mode === 'dark' ? '#1F1F1F' : '#1F1F1F',
+    color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#FFFFFF',
     '&:hover': {
-      background: getThemeColor(colors.app.light.accent, colors.app.dark.accent),
+      background: theme.palette.mode === 'dark' ? '#2A2A2A' : '#2A2A2A',
       transform: 'translateY(-2px)',
     },
   },
   '&.MuiButton-outlined': {
-    borderColor: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
-    color: getThemeColor(colors.text.light.secondary, colors.text.dark.secondary),
+
+    color: theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F',
     '&:hover': {
-      backgroundColor: getThemeColor(colors.overlay.light.medium, colors.overlay.dark.medium),
-      borderColor: getThemeColor(colors.border.light.accent, colors.border.dark.accent),
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(31, 31, 31, 0.1)',
+      borderColor: theme.palette.mode === 'dark' ? '#FFFFFF' : '#1F1F1F',
     },
   },
 }));

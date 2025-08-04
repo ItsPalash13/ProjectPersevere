@@ -1,6 +1,35 @@
 import React from 'react';
-import { Box, Typography, Paper, Alert, List, ListItem, ListItemText } from '@mui/material';
+import { Box, Typography, Paper, Alert, List, ListItem, ListItemText, Button } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import Results from '../Quiz/Results/Results';
+import { colors } from '../../theme/colors';
+
+// Styled Button Component
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  padding: theme.spacing(1.5, 4),
+  fontSize: '1rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  boxShadow: 'none',
+  transition: 'all 0.2s ease-in-out',
+  '&.MuiButton-contained': {
+    background: colors.app.light.border,
+    color: colors.text.light.primary,
+    '&:hover': {
+      background: colors.app.light.accent,
+      transform: 'translateY(-2px)',
+    },
+  },
+  '&.MuiButton-outlined': {
+    borderColor: colors.border.light.accent,
+    color: colors.text.light.secondary,
+    '&:hover': {
+      backgroundColor: colors.overlay.light.medium,
+      borderColor: colors.border.light.accent,
+    },
+  },
+}));
 
 const TempResults = () => {
   // Mock data for testing Results component
@@ -130,6 +159,40 @@ const TempResults = () => {
             </ListItem>
           </List>
         </Alert>
+
+        {/* Styled Button Examples */}
+        <Paper elevation={2} sx={{ p: 3, mt: 2 }}>
+          <Typography variant="h6" gutterBottom align="center">
+            Styled Button Examples
+          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 2, 
+            alignItems: 'center' 
+          }}>
+            <StyledButton 
+              variant="contained" 
+              onClick={() => alert('Contained button clicked!')}
+            >
+              Contained Button
+            </StyledButton>
+            
+            <StyledButton 
+              variant="outlined" 
+              onClick={() => alert('Outlined button clicked!')}
+            >
+              Outlined Button
+            </StyledButton>
+            
+            <StyledButton 
+              variant="text" 
+              onClick={() => alert('Text button clicked!')}
+            >
+              Text Button
+            </StyledButton>
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );
