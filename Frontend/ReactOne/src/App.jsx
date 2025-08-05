@@ -291,7 +291,7 @@ function AppContent() {
   const showSidebar = isAuthenticated && !['/login', '/register', '/onboarding'].includes(location.pathname) && !location.pathname.startsWith('/quiz');
 
   // Show desktop-only message if screen is too small
-  if (!isDesktop) {
+  if (!isDesktop && import.meta.env.MODE !== 'development') {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline enableColorScheme />

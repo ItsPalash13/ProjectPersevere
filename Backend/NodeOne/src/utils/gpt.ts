@@ -101,6 +101,10 @@ ${newHighScore ? 'If it\'s a new high score, make sure to celebrate that achieve
 `;
 
   console.log("userPrompt", userPrompt);
+
+  if(process.env.NODE_ENV === 'development') {
+    return "This is a test prompt";
+  }
   
   return await createAIChatCompletion({
     messages: [

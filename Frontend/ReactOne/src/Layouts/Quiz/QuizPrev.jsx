@@ -17,8 +17,7 @@ import {
   DialogActions,
   LinearProgress,
   Chip,
-  Drawer,
-  Tooltip
+  Drawer
 } from '@mui/material';
 import { 
   ArrowBack as ArrowBackIcon, 
@@ -126,7 +125,6 @@ const Quiz = ({ socket }) => {
   const [showNextLevelCountdown, setShowNextLevelCountdown] = useState(false);
   const [nextLevelCountdown, setNextLevelCountdown] = useState(3);
   const [nextLevelId, setNextLevelId] = useState(null);
-  const [isTryAgain, setIsTryAgain] = useState(false);
   
   // Flag to prevent duplicate question loading during level transition
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -187,11 +185,13 @@ const Quiz = ({ socket }) => {
     setShowNextLevelCountdown(false);
     setNextLevelCountdown(3);
     setNextLevelId(null);
-    setIsTryAgain(false);
     
     // Reset transition flag when component mounts
     setIsTransitioning(false);
     
+    // Play countdown end sound when quiz starts
+    const audio = new Audio(SOUND_FILES.COUNTDOWN_END);
+    audio.play();
   }, [refetchSession]);
 
   const formatTime = (seconds, ongame = false) => {
@@ -317,7 +317,7 @@ const Quiz = ({ socket }) => {
   }, [levelSession?._id, quizFinished, socket, showResults, showNextLevelCountdown]);
 
   useEffect(() => {
-    if (quizFinished || isLoading || isTimerPaused || showNextLevelCountdown) {
+    if (quizFinished || isLoading || isTimerPaused) {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -328,6 +328,7 @@ const Quiz = ({ socket }) => {
     // Store the start time for more accurate timing
     const startTime = Date.now();
     let lastUpdateTime = startTime;
+
     timerIntervalRef.current = setInterval(() => {
       const now = Date.now();
       const elapsed = (now - lastUpdateTime) / 1000; // Convert to seconds
@@ -360,7 +361,7 @@ const Quiz = ({ socket }) => {
         timerIntervalRef.current = null;
       }
     };
-  }, [quizFinished, isLoading, isTimerPaused, showNextLevelCountdown, levelSession?._id, socket, attemptType]);
+  }, [quizFinished, isLoading, isTimerPaused, levelSession?._id, socket, attemptType]);
 
   useEffect(() => {
     if (!levelSession?._id || quizFinished || socketInitializedRef.current) {
@@ -558,26 +559,16 @@ const Quiz = ({ socket }) => {
       
       return () => clearTimeout(timer);
     } else if (showNextLevelCountdown && nextLevelCountdown === 0) {
+
       
+      // Navigate to next level when countdown reaches 0
       if (nextLevelId) {
-        // Play countdown end sound
-        const audio = new Audio(SOUND_FILES.COUNTDOWN_END);
-        audio.play();
-        
         // Hide countdown overlay before navigation
         setShowNextLevelCountdown(false);
-        
-        if (isTryAgain) {
-          // For try again, don't navigate, just reset states
-          setIsTryAgain(false);
-          setIsTransitioning(false);
-          setNextLevelId(null);
-        } else {
-          // For next level, navigate to the new level
-          setIsTransitioning(false);
-          console.log("Forcing");
-          navigate(`/quiz/${nextLevelId}`, { replace: true });
-        }
+        // Reset transition flag before navigation
+        setIsTransitioning(false);
+        // Force component remount by using replace
+        navigate(`/quiz/${nextLevelId}`, { replace: true });
       }
     }
   }, [showNextLevelCountdown, nextLevelCountdown, nextLevelId, navigate]);
@@ -648,80 +639,10 @@ const Quiz = ({ socket }) => {
     }
   };
 
-  const handleTryAgain = async () => {
-    try {
-      // Set transition flag to prevent duplicate question loading
-      setIsTransitioning(true);
-      
-      // Disconnect current socket and clean up
-      if (socket.connected) {
-        socket.disconnect();
-      }
-      
-      // Start the current level again using the API
-      const result = await startLevel({ 
-        levelId: levelId, 
-        attemptType: attemptType 
-      }).unwrap();
-      
-      // Reset transition flag immediately after API success for try again
-      setIsTransitioning(false);
-      
-      setNextLevelCountdown(3);
-      setShowNextLevelCountdown(true);
-      
-      // Set the new level session
-      dispatch(setLevelSession(result.data.session));
-      setShowResults(false);
-      setNextLevelId(levelId);
-      setIsTryAgain(true);
-      
-      // Set the attempt type for the current level retry
-      setAttemptType(attemptType);
-      
-      // Reset all quiz state for retry
-      setCurrentQuestion(null);
-      setSelectedAnswer('');
-      setShowAnswerDrawer(false);
-      // Reset answerResult after drawer closes with a small delay
-      setTimeout(() => {
-       setAnswerResult(null);
-      }, 300);
-      setIsLoading(true);
-      setCurrentTime(0);
-      setCurrentXp(0);
-      setRequiredXp(0);
-      setQuizFinished(false);
-      setEarnedBadges([]);
-      setCurrentQuestionIndex(0);
-      setTotalQuestions(0);
-      setCurrentStreak(0);
-      setQuestionStartTime(null);
-      setAnswerSubmitted(false);
-      setShowCorrectAnswer(false);
-      setShowCongrats(false);
-      setShowError(false);
-      setErrorMessage('');
-      setQuizMessage('');
-      setIsTimerPaused(false);
-      
-      // Reset socket initialization flags
-      initializedRef.current = false;
-      socketInitializedRef.current = false;
-      
-    } catch (error) {
-      console.error('Failed to retry level:', error);
-      // If retrying fails, just navigate back to levels
-      setShowResults(false);
-      navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
-    }
-  };
-
   const cancelNextLevelCountdown = () => {
     setShowNextLevelCountdown(false);
     setNextLevelCountdown(3);
     setNextLevelId(null);
-    setIsTryAgain(false);
     setShowResults(true);
   };
 
@@ -1006,21 +927,6 @@ const Quiz = ({ socket }) => {
             sx: quizStyles.resultsDialogPaper
           }}
         >
-          <Tooltip title="Back to Levels" placement="right">
-            <IconButton
-              onClick={() => {
-                setShowResults(false);
-                navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
-              }}
-              sx={{
-                position: 'absolute',
-                left: 8,
-                top: 8,
-              }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-          </Tooltip>
           <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
             Quiz Results
           </DialogTitle>
@@ -1030,9 +936,12 @@ const Quiz = ({ socket }) => {
           <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
             <StyledButton
               variant="outlined"
-              onClick={handleTryAgain}
+              onClick={() => {
+                setShowResults(false);
+                navigate(`/chapter/${levelSession?.chapterId}`, { replace: true });
+              }}
             >
-              Try Again
+              Back to Levels
             </StyledButton>
             {quizResults?.hasNextLevel && quizResults?.nextLevelId && (
               <StyledButton
@@ -1041,7 +950,7 @@ const Quiz = ({ socket }) => {
               >
                 Next Level
               </StyledButton>
-            )}            
+            )}
           </DialogActions>
         </DialogMigrate>
 

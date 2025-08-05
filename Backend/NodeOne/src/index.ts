@@ -16,13 +16,6 @@ import { TrueSkill } from 'ts-trueskill';
 // Load environment variables
 dotenv.config();
 
-// Debug environment variables
-console.log('Environment variables after dotenv:', {
-  NODE_ENV: process.env.NODE_ENV,
-  MONGODB_URI: process.env.MONGODB_URI ? 'SET' : 'NOT SET',
-  PORT: process.env.PORT,
-  FRONTEND_URL: process.env.FRONTEND_URL
-});
 
 const app = express();
 
