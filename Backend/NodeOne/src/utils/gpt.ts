@@ -4,9 +4,66 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-const openai = new OpenAI({
-  apiKey: process.env.GPT4 // Ensure this is set in your environment
-});
+// Centralized AI client configuration
+function createAIClient() {
+  const provider = process.env.AI_PROVIDER?.toLowerCase() || 'openai';
+  
+  if (provider === 'openrouter') {
+    return new OpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: process.env.OPENROUTER_API_KEY,
+      defaultHeaders: {
+        "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "http://localhost:3000",
+        "X-Title": process.env.OPENROUTER_SITE_NAME || "ProjectX",
+      },
+    });
+  } else {
+    // Default to OpenAI
+    return new OpenAI({
+      apiKey: process.env.GPT4
+    });
+  }
+}
+
+// Get the appropriate model name based on provider
+function getModelName(provider: string, defaultModel: string = "gpt-4"): string {
+  if (provider === 'openrouter') {
+    return "deepseek/deepseek-r1:free"; // OpenRouter model
+  }
+  return defaultModel;
+}
+
+// Centralized AI completion function
+async function createAIChatCompletion(params: {
+  messages: Array<{ role: string; content: string }>;
+  model?: string;
+  temperature?: number;
+  max_tokens?: number;
+  systemMessage?: string;
+}): Promise<string> {
+  const provider = process.env.AI_PROVIDER?.toLowerCase() || 'openai';
+  const client = createAIClient();
+  const model = getModelName(provider, params.model);
+  
+  // Prepare messages
+  const messages = params.systemMessage 
+    ? [{ role: "system", content: params.systemMessage }, ...params.messages]
+    : params.messages;
+
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      messages: messages as any,
+      temperature: params.temperature || 0.6,
+      max_tokens: params.max_tokens || 150,
+    });
+    console.log("response", response.choices[0]?.message);
+    return response.choices[0]?.message?.content?.trim() || "";
+  } catch (error) {
+    console.error('AI completion error:', error);
+    throw error;
+  }
+}
 
 interface LevelFeedbackParams {
   levelName: string;
@@ -42,18 +99,17 @@ ${levelResult === 'completed' ?
 }
 ${newHighScore ? 'If it\'s a new high score, make sure to celebrate that achievement!' : ''}
 `;
-  console.log("userPrompt",userPrompt);
-  const response = await openai.chat.completions.create({
-    model: "gpt-4",
+
+  console.log("userPrompt", userPrompt);
+  
+  return await createAIChatCompletion({
     messages: [
-      { role: "system", content: "You are a concise and encouraging AI tutor." },
       { role: "user", content: userPrompt }
     ],
+    systemMessage: "You are a concise and encouraging AI tutor.",
     temperature: 0.6,
     max_tokens: 60 // Max ~30 words
   });
-
-  return response.choices[0]?.message?.content?.trim() || "Great job! Keep up the excellent work!";
 }
 
-export { getShortLevelFeedback };
+export { getShortLevelFeedback, createAIChatCompletion, createAIClient };
