@@ -51,6 +51,7 @@ import SOUND_FILES from '../../assets/sound/soundFiles';
 import { StreakNotification } from './Achievements';
 import ConfettiFireworks from '../../components/magicui/ConfettiFireworks';
 import Results from './Results/Results';
+import AIFeedback from '../../components/AI Feedback/AIFeedback';
 
 
 
@@ -121,6 +122,8 @@ const Quiz = ({ socket }) => {
   const [streakData, setStreakData] = useState(null);
   const [showHighScoreFireworks, setShowHighScoreFireworks] = useState(false);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [showAIFeedback, setShowAIFeedback] = useState(false);
+  const [aiFeedback, setAIFeedback] = useState('');
   
   // Next Level countdown states
   const [showNextLevelCountdown, setShowNextLevelCountdown] = useState(false);
@@ -477,6 +480,13 @@ const Quiz = ({ socket }) => {
       setQuizResults(data);
       setEarnedBadges(data.earnedBadges || []);
       
+      // Handle AI feedback
+      if (data.aiFeedback) {
+        console.log("AI feedback:", data.aiFeedback);
+        setAIFeedback(data.aiFeedback);
+        setShowAIFeedback(true);
+      }
+      
       // Trigger fireworks for new high scores
       if (data.isNewHighScore) {
         // Delay fireworks to appear after dialog is shown
@@ -635,6 +645,10 @@ const Quiz = ({ socket }) => {
         setErrorMessage('');
         setQuizMessage('');
         
+        // Hide AI feedback
+        setShowAIFeedback(false);
+        setAIFeedback('');
+        
         // Reset socket initialization flags
         initializedRef.current = false;
         socketInitializedRef.current = false;
@@ -704,6 +718,10 @@ const Quiz = ({ socket }) => {
       setErrorMessage('');
       setQuizMessage('');
       setIsTimerPaused(false);
+      
+      // Hide AI feedback
+      setShowAIFeedback(false);
+      setAIFeedback('');
       
       // Reset socket initialization flags
       initializedRef.current = false;
@@ -1024,7 +1042,7 @@ const Quiz = ({ socket }) => {
           <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
             Quiz Results
           </DialogTitle>
-          <DialogContent>
+          <DialogContent sx={{height:400}}>
             {renderResults()}
           </DialogContent>
           <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
@@ -1292,6 +1310,13 @@ const Quiz = ({ socket }) => {
 
         {/* High Score Fireworks Component */}
         <ConfettiFireworks trigger={showHighScoreFireworks} />
+        
+        {/* AI Feedback Component */}
+        <AIFeedback 
+          feedback={aiFeedback}
+          isVisible={showAIFeedback}
+          onClose={() => setShowAIFeedback(false)}
+        />
       </QuizContainer>
   );
 };

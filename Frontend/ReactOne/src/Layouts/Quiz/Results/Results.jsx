@@ -9,13 +9,11 @@ import {
   CardContent,
   Divider
 } from '@mui/material';
-import { Star as StarIcon, EmojiEvents as TrophyIcon, TrendingUp as TrendingIcon, AutoAwesome as AutoAwesomeIcon } from '@mui/icons-material';
+import { Star as StarIcon, EmojiEvents as TrophyIcon, TrendingUp as TrendingIcon, Timer as TimerIcon } from '@mui/icons-material';
 import { quizStyles } from '../../../theme/quizTheme';
+import QuizLeaderboard from '../../../components/Leaderboard/QuizLeaderboard';
 
 const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
-  const [displayedFeedback, setDisplayedFeedback] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-
   if (!quizResults) return null;
 
   const isTimeRush = quizResults.attemptType === 'time_rush';
@@ -23,27 +21,6 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
   const progressPercent = Math.min((data.currentXp / data.requiredXp) * 100, 100);
   const isLevelCompleted = data.currentXp >= data.requiredXp;
   const hasNextLevel = quizResults.hasNextLevel && quizResults.nextLevelId;
-  const aiFeedback = quizResults.aiFeedback;
-
-  // Typing animation effect
-  useEffect(() => {
-    if (aiFeedback && currentIndex < aiFeedback.length) {
-      const timer = setTimeout(() => {
-        setDisplayedFeedback(aiFeedback.substring(0, currentIndex + 1));
-        setCurrentIndex(currentIndex + 1);
-      },20); // Adjust speed here (50ms = fast, 100ms = medium, 150ms = slow)
-
-      return () => clearTimeout(timer);
-    }
-  }, [aiFeedback, currentIndex]);
-
-  // Reset typing animation when aiFeedback changes
-  useEffect(() => {
-    if (aiFeedback) {
-      setDisplayedFeedback('');
-      setCurrentIndex(0);
-    }
-  }, [aiFeedback]);
 
   return (
     <Box sx={{ 
@@ -92,66 +69,47 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
           </Box>
         </Box>
 
-        {/* Percentile Display */}
-        {data.percentile !== undefined && (
+        {/* Time Taken Display */}
+        {data.timeTaken !== undefined && (
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
             gap: 1,
             p: 1.5,
             borderRadius: 2,
-            background: 'linear-gradient(135deg, #2e7d32 0%, #388e3c 100%)',
+            background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
             color: 'white',
-            boxShadow: '0 4px 16px rgba(46, 125, 50, 0.3)',
+            boxShadow: '0 4px 16px rgba(25, 118, 210, 0.3)',
             flex: 1,
             maxWidth: '45%'
           }}>
-            <TrendingIcon sx={{ fontSize: '1.2rem' }} />
+            <TimerIcon sx={{ fontSize: '1.2rem' }} />
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {String(data.percentile)}
+                {formatTime ? formatTime(data.timeTaken) : `${Math.floor(data.timeTaken / 60)}:${(data.timeTaken % 60).toString().padStart(2, '0')}`}
               </Typography>
               <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                PERCENTILE
+                TIME TAKEN
               </Typography>
             </Box>
           </Box>
         )}
       </Box>
 
-      {/* AI Feedback Section */}
-      {aiFeedback && (
-        <Card sx={{ 
-          mb: 1,
-          backgroundColor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-        }}>
-          <CardContent sx={{ p: 2, textAlign: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <AutoAwesomeIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
-              <Typography variant="body1" sx={{ 
-                fontWeight: 'bold',
-                fontStyle: 'italic',
-                lineHeight: 1.4,
-                color: 'text.primary',
-                minHeight: '1.4em',
-                position: 'relative'
-              }}>
-                {displayedFeedback}
-                {currentIndex < aiFeedback.length && (
-                  <span className="blink" style={{ marginLeft: '2px' }}>
-                    |
-                  </span>
-                )}
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
+      {/* Leaderboard Section */}
+      {data.leaderboard && data.leaderboard.length > 0 && (
+        <QuizLeaderboard 
+          leaderboardData={data.leaderboard}
+          currentUserRank={data.rank}
+          attemptType={quizResults.attemptType}
+          formatTime={formatTime}
+          userPercentile={data.percentile}
+        />
       )}
 
-      {/* Progress Section - Full Width */}
+
+
+      {/* Progress Section - Full Width 
       <Card sx={{ 
         mb: 1,
         backgroundColor: 'background.paper',
@@ -181,6 +139,7 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
           </Box>
         </CardContent>
       </Card>
+      */}
 
       {/* Badges Section - Full Width */}
       {earnedBadges && earnedBadges.length > 0 && (

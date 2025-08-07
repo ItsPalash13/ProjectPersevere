@@ -131,7 +131,9 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
             requiredXp: response.data.data.requiredXp,
             minTime: response.data.data.minTime,
             timeTaken: response.data.data.timeTaken,
-            percentile: response.data.data.percentile
+            percentile: response.data.data.percentile,
+            rank: response.data.data.rank,
+            leaderboard: response.data.data.leaderboard
           }
         } : {
           precisionPath: {
@@ -139,7 +141,9 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
             requiredXp: response.data.data.requiredXp,
             timeTaken: response.data.data.timeTaken,
             bestTime: response.data.data.bestTime,
-            percentile: response.data.data.percentile
+            percentile: response.data.data.percentile,
+            rank: response.data.data.rank,
+            leaderboard: response.data.data.leaderboard
           }
         }),
         hasNextLevel: response.data.data.hasNextLevel,
@@ -233,7 +237,9 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
             requiredXp: response.data.data.requiredXp,
             minTime: response.data.data.minTime,
             timeTaken: response.data.data.timeTaken,
-            percentile: response.data.data.percentile
+            percentile: response.data.data.percentile,
+            rank: response.data.data.rank,
+            leaderboard: response.data.data.leaderboard
           }
         } : {
           precisionPath: {
@@ -241,7 +247,9 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
             requiredXp: response.data.data.requiredXp,
             timeTaken: response.data.data.timeTaken,
             bestTime: response.data.data.bestTime,
-            percentile: response.data.data.percentile
+            percentile: response.data.data.percentile,
+            rank: response.data.data.rank,
+            leaderboard: response.data.data.leaderboard
           }
         }),
         hasNextLevel: false,

@@ -289,7 +289,7 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
                     <CardContent sx={{ p: 1.5, textAlign: 'center' }}>
                       <Typography sx={{ fontSize: '1.5rem', mb: 0.5 }}>📊</Typography>
                       <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.25, color: 'primary.main' }}>
-                        {level.percentile === 100 ? 'Top 99.99%' : `Top ${100 - level.percentile}%`}
+                        {level.percentile === 100 ? 'Top 100%' : `Top ${100 - level.percentile}%`}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
                         Percentile

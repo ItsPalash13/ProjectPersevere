@@ -265,71 +265,136 @@
       }
     };
 
-    // Helper function to calculate percentile for Time Rush (maxTime - best remaining time)
-    const calculateTimeRushPercentile = async (chapterId: string, levelId: string, userMaxTime: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
+    // Combined helper function to calculate percentile for both Time Rush and Precision Path
+    const calculateLevelPercentile = async (
+      chapterId: string, 
+      levelId: string, 
+      userTime: number, 
+      userId: string, 
+      attemptType: 'time_rush' | 'precision_path'
+    ): Promise<{ 
+      percentile: number, 
+      participantCount: number, 
+      rank: number, 
+      leaderboard: Array<{
+        userId: string,
+        fullName: string | null,
+        avatar: string | null,
+        avatarBgColor: string | null,
+        time: number,
+        rank: number
+      }> | null
+    }> => {
       try {
-        // Get all completed Time Rush attempts for this level, excluding current user
-        const allTimes = await UserChapterLevel.find({
+        // Configure query based on attempt type
+        const fieldPath = attemptType === 'time_rush' ? 'timeRush.minTime' : 'precisionPath.minTime';
+        const selectField = attemptType === 'time_rush' ? 'timeRush.minTime userId' : 'precisionPath.minTime userId';
+        
+        // Get all completed attempts for this level, including current user
+        const allAttempts = await UserChapterLevel.find({
           chapterId,
           levelId,
-          attemptType: 'time_rush',
-          userId: { $ne: userId }, // Exclude current user
-          'timeRush.minTime': { $exists: true, $nin: [null, Infinity] }
-        }).select('timeRush.minTime');
+          attemptType,
+          [fieldPath]: { $exists: true, $nin: [null, Infinity] }
+        }).select(selectField);
 
-        if (allTimes.length === 0) return { percentile: 100, participantCount: 0 }; // Only user who completed this level
+        if (allAttempts.length === 0) {
+          return { 
+            percentile: 100, 
+            participantCount: 0, 
+            rank: 1, 
+            leaderboard: null 
+          };
+        }
 
-        // Extract minTime values (which stores maxTime for Time Rush) and filter out null/undefined/Infinity
-        const maxTimeValues = allTimes
-          .map(time => time.timeRush?.minTime)
-          .filter(time => time !== null && time !== undefined && time !== Infinity) as number[];
+        // Extract and prepare ranking data
+        const rankingData = allAttempts
+          .map(attempt => ({
+            userId: attempt.userId,
+            time: attemptType === 'time_rush' ? attempt.timeRush?.minTime : attempt.precisionPath?.minTime
+          }))
+          .filter(data => data.time !== null && data.time !== undefined && data.time !== Infinity)
+          .sort((a, b) => {
+            // Sort based on attempt type: Time Rush (higher is better), Precision Path (lower is better)
+            const aTime = a.time!;
+            const bTime = b.time!;
+            return attemptType === 'time_rush' ? bTime - aTime : aTime - bTime;
+          });
 
-        if (maxTimeValues.length === 0) return { percentile: 100, participantCount: 0 };
+        if (rankingData.length === 0) {
+          return { 
+            percentile: 100, 
+            participantCount: 0, 
+            rank: 1, 
+            leaderboard: null 
+          };
+        }
 
-        // Count how many users have lower maxTime (completed with less time remaining) than current user
-        const usersWithLowerTime = maxTimeValues.filter(time => time < userMaxTime).length;
+        // Find user's rank
+        const userRank = rankingData.findIndex(data => data.userId.toString() === userId) + 1;
         
-        // Calculate percentile (percentage of users with worse time)
-        const percentile = Math.round((usersWithLowerTime / maxTimeValues.length) * 100);
+        // Calculate percentile (excluding current user from comparison)
+        const otherUsersData = rankingData.filter(data => data.userId.toString() !== userId);
+        let usersWithWorsePerformance: number;
         
-        return { percentile, participantCount: maxTimeValues.length };
+        if (attemptType === 'time_rush') {
+          // For Time Rush: count users with lower maxTime (completed with less time remaining) - worse performance
+          usersWithWorsePerformance = otherUsersData.filter(data => data.time! < userTime).length;
+        } else {
+          // For Precision Path: count users with higher minTime (slower) - worse performance
+          usersWithWorsePerformance = otherUsersData.filter(data => data.time! > userTime).length;
+        }
+        
+        const percentile = otherUsersData.length > 0 ? 
+          Math.round((usersWithWorsePerformance / otherUsersData.length) * 100) : 100;
+
+        // Generate leaderboard if user is in top 5
+        let leaderboard = null;
+        if (userRank <= 5) {
+          // Get top 5 users' profile data
+          const top5UserIds = rankingData.slice(0, 5).map(data => data.userId.toString());
+          const userProfiles = await UserProfile.find({ 
+            userId: { $in: top5UserIds } 
+          }).select('userId fullName avatar avatarBgColor');
+
+          // Create profile lookup map
+          const profileMap = new Map();
+          userProfiles.forEach(profile => {
+            profileMap.set(profile.userId, {
+              fullName: profile.fullName || null,
+              avatar: profile.avatar || null,
+              avatarBgColor: profile.avatarBgColor || null
+            });
+          });
+
+          // Build leaderboard array
+          leaderboard = rankingData.slice(0, 5).map((data, index) => {
+            const profile = profileMap.get(data.userId.toString()) || {};
+            return {
+              userId: data.userId.toString(),
+              fullName: profile.fullName || null,
+              avatar: profile.avatar || null,
+              avatarBgColor: profile.avatarBgColor || null,
+              time: data.time!,
+              rank: index + 1
+            };
+          });
+        }
+        
+        return { 
+          percentile, 
+          participantCount: otherUsersData.length, 
+          rank: userRank || (rankingData.length + 1), 
+          leaderboard 
+        };
       } catch (error) {
-        console.error('Error calculating Time Rush percentile:', error);
-        return { percentile: 0, participantCount: 0 }; // Return 0 on error
-      }
-    };
-
-    // Helper function to calculate percentile for Precision Path (minTime)
-    const calculatePrecisionPathPercentile = async (chapterId: string, levelId: string, userMinTime: number, userId: string): Promise<{ percentile: number, participantCount: number }> => {
-      try {
-        // Get all completed Precision Path attempts for this level, excluding current user
-        const allTimes = await UserChapterLevel.find({
-          chapterId,
-          levelId,
-          attemptType: 'precision_path',
-          userId: { $ne: userId }, // Exclude current user
-          'precisionPath.minTime': { $exists: true, $nin: [null, Infinity] }
-        }).select('precisionPath.minTime');
-
-        if (allTimes.length === 0) return { percentile: 100, participantCount: 0 }; // Only user who completed this level
-
-        // Extract minTime values and filter out null/undefined/Infinity
-        const minTimeValues = allTimes
-          .map(time => time.precisionPath?.minTime)
-          .filter(time => time !== null && time !== undefined && time !== Infinity) as number[];
-
-        if (minTimeValues.length === 0) return { percentile: 100, participantCount: 0 };
-
-        // Count how many users have higher minTime (slower) than current user
-        const usersWithHigherTime = minTimeValues.filter(time => time > userMinTime).length;
-        
-        // Calculate percentile (percentage of users with slower time)
-        const percentile = Math.round((usersWithHigherTime / minTimeValues.length) * 100);
-        
-        return { percentile, participantCount: minTimeValues.length };
-      } catch (error) {
-        console.error('Error calculating Precision Path percentile:', error);
-        return { percentile: 0, participantCount: 0 }; // Return 0 on error
+        console.error(`Error calculating ${attemptType} percentile:`, error);
+        return { 
+          percentile: 0, 
+          participantCount: 0, 
+          rank: 0, 
+          leaderboard: null 
+        };
       }
     };
 
@@ -650,25 +715,33 @@
           // Calculate percentile for this level
           let percentile = null;
           let participantCount = null;
+          let rank = null;
+          let leaderboard = null;
           if (rawProgress) {
             if (level.type === 'time_rush' && rawProgress.timeRush?.minTime && rawProgress.timeRush.minTime > 0) {
-              const result = await calculateTimeRushPercentile(
+              const result = await calculateLevelPercentile(
                 chapterId,
                 level._id.toString(),
                 rawProgress.timeRush.minTime, // This stores maxTime for Time Rush
-                userId
+                userId,
+                'time_rush'
               );
               percentile = result.percentile;
               participantCount = result.participantCount;
+              rank = result.rank;
+              leaderboard = result.leaderboard;
             } else if (level.type === 'precision_path' && rawProgress.precisionPath?.minTime && rawProgress.precisionPath.minTime !== Infinity) {
-              const result = await calculatePrecisionPathPercentile(
+              const result = await calculateLevelPercentile(
                 chapterId,
                 level._id.toString(),
                 rawProgress.precisionPath.minTime,
-                userId
+                userId,
+                'precision_path'
               );
               percentile = result.percentile;
               participantCount = result.participantCount;
+              rank = result.rank;
+              leaderboard = result.leaderboard;
             }
           }
           
@@ -683,7 +756,9 @@
               locked,
               progress: rawProgress?.progress || 0, // Include progress field from UserChapterLevel
               percentile: percentile, // Include percentile ranking
-              participantCount: participantCount // Include participant count
+              participantCount: participantCount, // Include participant count
+              rank: rank, // Include user's rank
+              leaderboard: leaderboard // Include top 5 leaderboard if user is in top 5
             };
         }));
 
@@ -895,13 +970,16 @@
             }
 
             // Calculate percentile based on maxTime
-            const percentileResult = await calculateTimeRushPercentile(
+            const percentileResult = await calculateLevelPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               Math.max(finalTime, maxTime),
-              userId
+              userId,
+              'time_rush'
             );
             const percentile = percentileResult.percentile;
+            const rank = percentileResult.rank;
+            const leaderboard = percentileResult.leaderboard;
 
             // Get level details for GPT feedback
             const level = await Level.findById(session.levelId);
@@ -955,6 +1033,8 @@
                 nextLevelAttemptType: nextLevel?.type,
                 isNewHighScore: newHighScore,
                 percentile,
+                rank,
+                leaderboard,
                 aiFeedback
               }
             });
@@ -983,12 +1063,16 @@
             );
 
             // Calculate percentile based on current best time (if available)
-            const percentile = maxTime > 0 ? (await calculateTimeRushPercentile(
+            const percentileData = maxTime > 0 ? await calculateLevelPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               maxTime,
-              userId
-            )).percentile : 0;
+              userId,
+              'time_rush'
+            ) : { percentile: 0, rank: 0, leaderboard: null };
+            const percentile = percentileData.percentile;
+            const rank = percentileData.rank;
+            const leaderboard = percentileData.leaderboard;
 
             // Get level details for GPT feedback
             const level = await Level.findById(session.levelId);
@@ -1043,6 +1127,8 @@
                 nextLevelAttemptType: null,
                 isNewHighScore: newHighScore,
                 percentile,
+                rank,
+                leaderboard,
                 aiFeedback
               }
             });
@@ -1164,13 +1250,16 @@
             }
 
             // Calculate percentile based on minTime
-            const percentileResult = await calculatePrecisionPathPercentile(
+            const percentileResult = await calculateLevelPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               Math.min(finalTime, minTime),
-              userId
+              userId,
+              'precision_path'
             );
             const percentile = percentileResult.percentile;
+            const rank = percentileResult.rank;
+            const leaderboard = percentileResult.leaderboard;
 
             // Get level details for GPT feedback
             const level = await Level.findById(session.levelId);
@@ -1224,6 +1313,8 @@
                 nextLevelAttemptType: nextLevel?.type,
                 isNewHighScore: newHighScore,
                 percentile,
+                rank,
+                leaderboard,
                 aiFeedback
               }
             });
@@ -1253,12 +1344,16 @@
 
             // Level not completed - don't update best time
             // Calculate percentile based on current best time (if available)
-            const percentile = minTime !== Infinity ? (await calculatePrecisionPathPercentile(
+            const percentileData = minTime !== Infinity ? await calculateLevelPercentile(
               session.chapterId.toString(),
               session.levelId.toString(),
               minTime,
-              userId
-            )).percentile : 0;
+              userId,
+              'precision_path'
+            ) : { percentile: 0, rank: 0, leaderboard: null };
+            const percentile = percentileData.percentile;
+            const rank = percentileData.rank;
+            const leaderboard = percentileData.leaderboard;
 
             // Get level details for GPT feedback
             const level = await Level.findById(session.levelId);
@@ -1310,6 +1405,8 @@
                 nextLevelId: null,
                 nextLevelAttemptType: null,
                 percentile,
+                rank,
+                leaderboard,
                 aiFeedback
               }
             });

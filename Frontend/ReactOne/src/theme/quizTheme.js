@@ -471,7 +471,7 @@ export const quizStyles = {
     borderRadius: 3,
     padding: 3,
     textAlign: 'center',
-    maxWidth: '400px',
+    maxWidth: '470px',
     width: '100%',
   },
 }; 
