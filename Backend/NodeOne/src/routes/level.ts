@@ -749,6 +749,8 @@
           const locked = !hasProgress;
                       return {
               ...level,
+              // Expose raw activation status separately so frontend can show "Coming Soon"
+              isActive: level.status,
               userProgress: cleanProgress,
               isStarted: hasProgress,
               status: level.status && hasProgress, // keep status logic for backward compat

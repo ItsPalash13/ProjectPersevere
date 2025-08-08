@@ -15,6 +15,16 @@ export interface IUserLevelSession extends Document {
     incorrect: mongoose.Types.ObjectId[];
   };
 
+  // Question details history captured during the session
+  questionsHistory: Array<{
+    question: string;
+    options: string[];
+    userOptionChoice: number;
+    correctOption: number;
+    topics?: string[];
+    solution?: string;
+  }>;
+
   // Question Bank fields
   questionBank: mongoose.Types.ObjectId[];
   currentQuestionIndex: number;
@@ -95,6 +105,35 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
       ref: 'Question'
     }]
   },
+  // Snapshot of asked questions with user choice and solution text
+  questionsHistory: [{
+    question: {
+      type: String,
+      required: true
+    },
+    options: [{
+      type: String,
+      required: true
+    }],
+    userOptionChoice: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    correctOption: {
+      type: Number,
+      required: false,
+      min: 0
+    },
+    topics: [{
+      type: String,
+      required: false
+    }],
+    solution: {
+      type: String,
+      required: false
+    }
+  }],
   streak: {
     type: Number,
     default: 0,

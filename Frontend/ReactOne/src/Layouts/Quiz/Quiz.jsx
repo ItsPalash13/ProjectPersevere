@@ -52,6 +52,8 @@ import { StreakNotification } from './Achievements';
 import ConfettiFireworks from '../../components/magicui/ConfettiFireworks';
 import Results from './Results/Results';
 import AIFeedback from '../../components/AI Feedback/AIFeedback';
+import Solution from './Solution/Solution';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 
 
@@ -124,6 +126,7 @@ const Quiz = ({ socket }) => {
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [aiFeedback, setAIFeedback] = useState('');
+  const [showSolutions, setShowSolutions] = useState(false);
   
   // Next Level countdown states
   const [showNextLevelCountdown, setShowNextLevelCountdown] = useState(false);
@@ -1039,13 +1042,35 @@ const Quiz = ({ socket }) => {
               <ArrowBackIcon />
             </IconButton>
           </Tooltip>
+          {Array.isArray(quizResults?.questionsHistory) && quizResults.questionsHistory.length > 0 && (
+            <Tooltip title="View Solutions" placement="left">
+              <IconButton
+                aria-label="view solutions"
+                onClick={() => setShowSolutions(true)}
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  right: 12,
+                  top: 12,
+                  color: (theme) => theme.palette.mode === 'dark' ? '#E5E7EB' : '#374151',
+                  backgroundColor: 'transparent',
+                  borderRadius: 1.5,
+                  '&:hover': {
+                    backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'
+                  }
+                }}
+              >
+                <AssignmentIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
           <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
             Quiz Results
           </DialogTitle>
-          <DialogContent sx={{height:400}}>
+          <DialogContent>
             {renderResults()}
           </DialogContent>
-          <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2 }}>
+          <DialogActions sx={{ justifyContent: 'center', gap: 2, pb: 2}}>
             <StyledButton
               variant="outlined"
               onClick={handleTryAgain}
@@ -1062,6 +1087,13 @@ const Quiz = ({ socket }) => {
             )}            
           </DialogActions>
         </DialogMigrate>
+
+        {/* Solutions Dialog */}
+        <Solution 
+          open={showSolutions} 
+          onClose={() => setShowSolutions(false)} 
+          questionsHistory={quizResults?.questionsHistory || []}
+        />
 
         <Dialog 
           open={openDialog} 

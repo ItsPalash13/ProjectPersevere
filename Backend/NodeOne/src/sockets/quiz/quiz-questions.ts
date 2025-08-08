@@ -13,6 +13,41 @@ import Badge from '../../models/Badge';
 import axios from 'axios';
 import mongoose from 'mongoose';
 
+// Helper to push a snapshot entry into session.questionsHistory and persist
+const pushQuestionHistoryEntry = async (
+  session: any,
+  questionDoc: any,
+  userOptionChoice: number
+) => {
+  if (!questionDoc || !Array.isArray(questionDoc.options)) {
+    throw new Error('Invalid question document');
+  }
+  if (
+    typeof userOptionChoice !== 'number' ||
+    userOptionChoice < 0 ||
+    userOptionChoice >= questionDoc.options.length
+  ) {
+    throw new Error('Invalid user option choice');
+  }
+
+  if (!Array.isArray(session.questionsHistory)) {
+    session.questionsHistory = [];
+  }
+
+  session.questionsHistory.push({
+    question: questionDoc.ques,
+    options: questionDoc.options,
+    userOptionChoice,
+    correctOption: (questionDoc as any).correct,
+    topics: Array.isArray((questionDoc as any).topics)
+      ? (questionDoc as any).topics.map((t: any) => t.name)
+      : [],
+    solution: (questionDoc as any).solution
+  });
+
+  await session.save();
+};
+
 // Helper function to replenish question bank using MU-based strategy
 const replenishQuestionBankByMu = async (session: any, level: any) => {
   const replenishmentSize = Math.ceil(session.questionBank.length * 0.5); // 50% of current bank size
@@ -297,6 +332,13 @@ export const quizQuestionHandlers = (socket: Socket) => {
 
       const isCorrect = answer === question.correct;
       
+      // Persist question snapshot with user's choice
+      try {
+        await pushQuestionHistoryEntry(session, question, answer);
+      } catch (historyErr) {
+        logger.error('Failed to push question history entry:', historyErr);
+      }
+      
       // Update uniqueTopics in session
       if (question.topics && Array.isArray(question.topics)) {
         const topicIds = question.topics.map(topic => topic.id.toString());
@@ -518,6 +560,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
         socket.emit('quizFinished', { 
           message: response.data.message,
           attemptType: session.attemptType,
+          questionsHistory: session.questionsHistory || [],
                      ...(session.attemptType === 'time_rush' ? {
              timeRush: {
                currentXp: response.data.data.currentXp,
@@ -592,6 +635,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
         socket.emit('quizFinished', { 
           message: response.data.message,
           attemptType: session.attemptType,
+          questionsHistory: session.questionsHistory || [],
           ...(session.attemptType === 'time_rush' ? {
             timeRush: {
               currentXp: response.data.data.currentXp,

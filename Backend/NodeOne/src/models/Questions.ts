@@ -25,6 +25,9 @@ const QuestionSchema = new Schema<IQuestion>({
     min: 0,
     max: 3  // Since options are 0-based index
   },
+  solution: {
+    type: String
+  },
   chapterId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Chapter',

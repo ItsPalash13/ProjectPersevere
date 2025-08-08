@@ -27,8 +27,18 @@ Answering consecutively correct (streaks)
 
 Levels can be of 2 types
 ⏱️ Time Rush Mode
-"Beat the clock, hit the target, and go for glory."
+"Reach Target Xp in the least time possible with fixed no of questions(Stopwatch)"
 
 🎯 Precision Path Mode // Needs Revision
-"Every second counts. Reach the XP target in the given fixed number of questions."
+"Reach Target Xp in the least time possible with fixed no of questions(Timer)"
 
+Time Rush
+[ ] Fixed timer	
+[ ] 10 fixed questions pulled from your pool	
+[ ] XP per question = base + bonus (difficulty-weighted)	
+[ ] Streaks tracked in real-time	
+[ ] Bonus XP for streaks and speed
+[ ] Base XP to Unlock next level
+[ ] Level ends when either time ran out or questions ran out
+[ ] FinalXP calculated based on baseXp matched + Streaks + TotalXP(Total collected xps after right and wrong questions)
+[ ] Histogram and Percentile based on Mintime to reach basexp and Max FinalXP

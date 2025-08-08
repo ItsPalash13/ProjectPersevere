@@ -14,6 +14,7 @@ import {
   Timer as TimerIcon,
   Speed as SpeedIcon
 } from '@mui/icons-material';
+import { themeScrollbar } from '../../theme/colors';
 
 // Import avatar images
 import avatar23 from '../../assets/avatars/image 23.png';
@@ -32,7 +33,11 @@ const QuizLeaderboard = ({
   currentUserRank = null, 
   attemptType = 'time_rush',
   formatTime,
-  userPercentile = null
+  userPercentile = null,
+  scrollbarThumbColor,
+  scrollbarTrackColor,
+  scrollbarThumbHoverColor,
+  scrollbarWidth
 }) => {
   const scrollContainerRef = useRef(null);
 
@@ -165,6 +170,12 @@ const QuizLeaderboard = ({
     return attemptType === 'time_rush' ? <TimerIcon /> : <SpeedIcon />;
   };
 
+  // Scrollbar color defaults (theme-aware, low-contrast; can be overridden via props)
+  const getResolvedScrollbarThumb = (theme) => scrollbarThumbColor || themeScrollbar.thumb(theme);
+  const getResolvedScrollbarThumbHover = (theme) => scrollbarThumbHoverColor || themeScrollbar.thumbHover(theme);
+  const getResolvedScrollbarTrack = (theme) => scrollbarTrackColor || themeScrollbar.track(theme);
+  const getResolvedScrollbarWidth = (theme) => scrollbarWidth || themeScrollbar.width(theme);
+
   return (
     <Card sx={{
       backgroundColor: theme => theme.palette.mode === 'dark' 
@@ -205,24 +216,22 @@ const QuizLeaderboard = ({
             overflowY: 'auto',
             overflowX: 'hidden',
             paddingRight: '4px',
+            // Firefox
+            scrollbarWidth: 'thin',
+            scrollbarColor: (theme) => `${getResolvedScrollbarThumb(theme)} ${getResolvedScrollbarTrack(theme)}`,
+            // WebKit (Chrome, Edge, Safari)
             '&::-webkit-scrollbar': {
-              width: '6px',
+              width: (theme) => getResolvedScrollbarWidth(theme),
             },
             '&::-webkit-scrollbar-track': {
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255,255,255,0.1)' 
-                : 'rgba(0,0,0,0.1)',
+              background: (theme) => getResolvedScrollbarTrack(theme),
               borderRadius: '3px',
             },
             '&::-webkit-scrollbar-thumb': {
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255,255,255,0.3)' 
-                : 'rgba(0,0,0,0.3)',
+              background: (theme) => getResolvedScrollbarThumb(theme),
               borderRadius: '3px',
               '&:hover': {
-                background: theme => theme.palette.mode === 'dark' 
-                  ? 'rgba(255,255,255,0.5)' 
-                  : 'rgba(0,0,0,0.5)',
+                background: (theme) => getResolvedScrollbarThumbHover(theme),
               },
             },
           }}>

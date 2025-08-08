@@ -278,6 +278,29 @@ export const getThemeColor = (lightColor, darkColor) => (theme) =>
 export const getThemeGradient = (lightGradient, darkGradient) => (theme) => 
   theme.palette.mode === 'dark' ? darkGradient : lightGradient;
 
+// Low-contrast, theme-aware scrollbar colors
+colors.scrollbar = {
+  light: {
+    thumb: 'rgba(0, 0, 0, 0.18)',
+    thumbHover: 'rgba(0, 0, 0, 0.28)',
+    track: 'rgba(0, 0, 0, 0.06)',
+    width: '6px',
+  },
+  dark: {
+    thumb: 'rgba(255, 255, 255, 0.22)',
+    thumbHover: 'rgba(255, 255, 255, 0.32)',
+    track: 'rgba(255, 255, 255, 0.08)',
+    width: '6px',
+  },
+};
+
+export const themeScrollbar = {
+  thumb: getThemeColor(colors.scrollbar.light.thumb, colors.scrollbar.dark.thumb),
+  thumbHover: getThemeColor(colors.scrollbar.light.thumbHover, colors.scrollbar.dark.thumbHover),
+  track: getThemeColor(colors.scrollbar.light.track, colors.scrollbar.dark.track),
+  width: getThemeColor(colors.scrollbar.light.width, colors.scrollbar.dark.width),
+};
+
 // Commonly used theme-aware color combinations (Updated to new scheme)
 export const themeColors = {
   background: {

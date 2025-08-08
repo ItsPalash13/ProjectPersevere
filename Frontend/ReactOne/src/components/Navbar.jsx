@@ -228,7 +228,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                 )}
               </Box>
               
-              {/* Notifications Bell */}
+              {/* Notifications Bell 
               <Box sx={{ position: 'relative', mr: 1 }}>
                 <IconButton
                   sx={{
@@ -240,7 +240,6 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                 >
                   <NotificationsIcon fontSize="medium" />
                 </IconButton>
-                {/* Notification Badge */}
                 <Box
                   sx={{
                     position: 'absolute',
@@ -261,6 +260,7 @@ const Navbar = ({ darkMode, onDarkModeToggle, onSidebarToggle, showSidebarToggle
                   3
                 </Box>
               </Box>
+              */}
               
               <IconButton
                 onClick={handleAvatarClick}

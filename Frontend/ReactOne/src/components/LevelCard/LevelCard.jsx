@@ -13,20 +13,35 @@ import { levelsStyles } from '../../theme/levelsTheme';
 
 const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
   const isTimeRush = level.mode === 'time_rush';
+  const isActive = level?.isActive !== false; // default active if not provided
   const cardStyles = {
     ...levelsStyles.levelCard,
     ...(level.status ? levelsStyles.activeCard : levelsStyles.lockedCard),
-    cursor: 'pointer',
-    '&:hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    }
+    ...(isActive
+      ? {
+          cursor: 'pointer',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          },
+        }
+      : {
+          cursor: 'default',
+          opacity: 0.7,
+          '&:hover': {
+            transform: 'none',
+            boxShadow: 'none',
+          },
+        }),
   };
 
   return (
     <Card 
       sx={cardStyles}
-      onClick={() => onLevelDetails(level)}
+      onClick={() => {
+        if (!isActive) return;
+        onLevelDetails(level);
+      }}
     >
       {/* Chapter Image with Level Name Overlay */}
       <Box 
@@ -124,6 +139,25 @@ const LevelCard = ({ level, chapter, onLevelClick, onLevelDetails }) => {
         height: '120px', // Fixed height
         overflow: 'hidden',
       }}>
+        {!isActive && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 12,
+              right: '2%',
+              zIndex: 3,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              color: 'white',
+              borderRadius: '12px',
+              px: 1.5,
+              py: 0.5,
+            }}
+          >
+            <Typography variant="caption" sx={{ fontWeight: 600, opacity: 0.9 }}>
+              Coming Soon
+            </Typography>
+          </Box>
+        )}
         
         {/* Topics */}
         <Box sx={{

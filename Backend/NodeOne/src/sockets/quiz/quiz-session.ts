@@ -125,6 +125,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       socket.emit('quizFinished', { 
         message: response.data.message,
         attemptType: session.attemptType,
+        questionsHistory: session.questionsHistory || [],
         ...(session.attemptType === 'time_rush' ? {
           timeRush: {
             currentXp: response.data.data.currentXp,
@@ -231,6 +232,7 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
       socket.emit('quizFinished', { 
         message: response.data.message,
         attemptType: session.attemptType,
+        questionsHistory: session.questionsHistory || [],
         ...(session.attemptType === 'time_rush' ? {
           timeRush: {
             currentXp: response.data.data.currentXp,

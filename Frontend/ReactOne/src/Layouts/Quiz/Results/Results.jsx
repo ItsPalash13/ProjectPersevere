@@ -94,6 +94,7 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
             </Box>
           </Box>
         )}
+
       </Box>
 
       {/* Leaderboard Section */}
@@ -225,6 +226,7 @@ const Results = ({ quizResults, earnedBadges, formatTime, onNextLevel }) => {
           </CardContent>
         </Card>
       )}
+
     </Box>
   );
 };

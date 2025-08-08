@@ -15,7 +15,7 @@ import {
 import { authClient } from '../../lib/auth-client';
 import { useUpdateUserInfoMutation } from '../../features/api/userAPI';
 import { setSession } from '../../features/auth/authSlice';
-import { themeColors } from '../../theme/colors';
+import { themeColors, colors } from '../../theme/colors';
 
 const subjects = [
   { key: 'physics', name: 'Physics', icon: '⚛️' },
@@ -222,12 +222,42 @@ const Onboarding = () => {
                     onChange={(e) => setUserName(e.target.value)}
                     sx={{ width: 300 }}
                   />
-                  <Button type="submit" variant="contained" size="large">
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      backgroundColor: themeColors.ui.buttonPrimary,
+                      color: (theme) =>
+                        theme.palette.mode === 'dark'
+                          ? colors.ui.dark.textInverse
+                          : colors.ui.light.textInverse,
+                      '&:hover': {
+                        backgroundColor: themeColors.ui.buttonPrimary,
+                        filter: 'brightness(0.9)'
+                      }
+                    }}
+                  >
                     Proceed
                   </Button>
                 </Box>
               ) : (
-                <Button onClick={() => setStep(2)} variant="contained" size="large">
+                <Button
+                  onClick={() => setStep(2)}
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    backgroundColor: themeColors.ui.buttonPrimary,
+                    color: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? colors.ui.dark.textInverse
+                        : colors.ui.light.textInverse,
+                    '&:hover': {
+                      backgroundColor: themeColors.ui.buttonPrimary,
+                      filter: 'brightness(0.9)'
+                    }
+                  }}
+                >
                   Let's Go!
                 </Button>
               )}
@@ -258,7 +288,23 @@ const Onboarding = () => {
                   </Grid>
                 ))}
               </Grid>
-              <Button onClick={() => setStep(3)} variant="contained" size="large" sx={{ mt: 4 }}>
+              <Button
+                onClick={() => setStep(3)}
+                variant="contained"
+                size="large"
+                sx={{
+                  mt: 4,
+                  backgroundColor: themeColors.ui.buttonPrimary,
+                  color: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? colors.ui.dark.textInverse
+                      : colors.ui.light.textInverse,
+                  '&:hover': {
+                    backgroundColor: themeColors.ui.buttonPrimary,
+                    filter: 'brightness(0.9)'
+                  }
+                }}
+              >
                 Continue
               </Button>
             </Box>
@@ -289,7 +335,24 @@ const Onboarding = () => {
                   </Grid>
                 ))}
               </Grid>
-              <Button onClick={() => setStep(4)} variant="contained" size="large" sx={{ mt: 4 }} disabled={!weakestSubject}>
+              <Button
+                onClick={() => setStep(4)}
+                variant="contained"
+                size="large"
+                sx={{
+                  mt: 4,
+                  backgroundColor: themeColors.ui.buttonPrimary,
+                  color: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? colors.ui.dark.textInverse
+                      : colors.ui.light.textInverse,
+                  '&:hover': {
+                    backgroundColor: themeColors.ui.buttonPrimary,
+                    filter: 'brightness(0.9)'
+                  }
+                }}
+                disabled={!weakestSubject}
+              >
                 Continue
               </Button>
             </Box>
@@ -363,12 +426,26 @@ const Onboarding = () => {
                 </Box>
               </Box>
               
-              <Button onClick={handleFinish} variant="contained" size="large" sx={{ 
-                fontSize: '1.2rem', 
-                padding: '12px 32px',
-                borderRadius: '25px',
-                fontWeight: 'bold'
-              }}>
+              <Button
+                onClick={handleFinish}
+                variant="contained"
+                size="large"
+                sx={{
+                  fontSize: '1.2rem',
+                  padding: '12px 32px',
+                  borderRadius: '25px',
+                  fontWeight: 'bold',
+                  backgroundColor: themeColors.ui.buttonPrimary,
+                  color: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? colors.ui.dark.textInverse
+                      : colors.ui.light.textInverse,
+                  '&:hover': {
+                    backgroundColor: themeColors.ui.buttonPrimary,
+                    filter: 'brightness(0.9)'
+                  }
+                }}
+              >
                 🚀 Get Started!
               </Button>
             </Box>

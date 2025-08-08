@@ -18,7 +18,7 @@ import {
 import { ProgressBar } from 'react-progressbar-fancy';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Help as HelpIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Tour as TourIcon } from '@mui/icons-material';
 import Joyride, { STATUS, Step } from 'react-joyride';
 // @ts-ignore
 import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
@@ -449,7 +449,7 @@ const Levels: React.FC = () => {
           },
         }}
       >
-        <HelpIcon sx={{color: themeColors.text.primary}}/>
+        <TourIcon sx={{color: themeColors.text.primary}}/>
       </IconButton>
 
       {/* Health Error Snackbar */}

@@ -116,4 +116,38 @@ ${newHighScore ? 'If it\'s a new high score, make sure to celebrate that achieve
   });
 }
 
-export { getShortLevelFeedback, createAIChatCompletion, createAIClient };
+// New: Generate a concise solution/explanation for a question (max ~50 words)
+interface QuestionSolutionParams {
+  question: string;
+  options?: string[]; // Optional MCQ options
+  correctAnswer?: string; // Optional known correct answer text/label
+  topic?: string; // Optional topic or tag
+}
+
+async function getQuestionSolution({ question, options = [], correctAnswer, topic }: QuestionSolutionParams): Promise<string> {
+  const parts: string[] = [
+    `Question: ${question}`
+  ];
+  if (options.length > 0) {
+    parts.push(`Options: ${options.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join(' ')}`);
+  }
+  if (correctAnswer) {
+    parts.push(`Correct: ${correctAnswer}`);
+  }
+  if (topic) {
+    parts.push(`Topic: ${topic}`);
+  }
+
+  const userPrompt = `Provide a clear, step-by-step solution under 50 words for the following problem. Avoid fluff, no markdown, no preface; return only the explanation.\n\n${parts.join('\n')}`;
+
+  return await createAIChatCompletion({
+    messages: [
+      { role: "user", content: userPrompt }
+    ],
+    systemMessage: "You explain answers concisely. Reply with one short paragraph under 50 words. No bullets, no headings, no markdown.",
+    temperature: 0.3,
+    max_tokens: 90
+  });
+}
+
+export { getShortLevelFeedback, createAIChatCompletion, createAIClient, getQuestionSolution };
