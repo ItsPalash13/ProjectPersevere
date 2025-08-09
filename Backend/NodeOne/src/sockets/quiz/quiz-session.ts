@@ -153,7 +153,8 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         nextLevelAttemptType: response.data.data.nextLevelAttemptType,
         xpNeeded: response.data.data.xpNeeded,
         earnedBadges,
-        aiFeedback: response.data.data.aiFeedback
+        aiFeedback: response.data.data.aiFeedback,
+        topics: response.data.data.topics || []
       });
       socket.disconnect();
 
@@ -261,7 +262,8 @@ export const quizSessionHandlers = (socket: ExtendedSocket) => {
         xpNeeded: response.data.data.xpNeeded,
         earnedBadges,
         aiFeedback: response.data.data.aiFeedback,
-        isNewHighScore: response.data.data.isNewHighScore
+        isNewHighScore: response.data.data.isNewHighScore,
+        topics: response.data.data.topics || []
       });
 
     } catch (error) {

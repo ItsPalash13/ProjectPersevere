@@ -8,37 +8,20 @@ export const performanceApi = createApi({
   }),  
   tagTypes: ['Performance'],
   endpoints: (builder) => ({
-    getChapterTopicsPerformance: builder.query({
-      query: (chapterId) => ({
-        url: `/api/performance/chapter-topics/${chapterId}`,
+    getTopicsAccuracyLatest: builder.query({
+      query: ({ topicIds, chapterId }) => ({
+        url: topicIds && topicIds.length
+          ? `/api/performance/topics-accuracy-latest?topicIds=${topicIds.join(',')}`
+          : `/api/performance/topics-accuracy-latest?chapterId=${chapterId}`,
         method: 'GET',
       }),
       providesTags: ['Performance'],
     }),
-    getTopicDailyAccuracy: builder.query({
-      query: ({ chapterId, topicId }) => ({
-        url: `/api/performance/chapter-topic-daily-accuracy/${chapterId}/${topicId}`,
-        method: 'GET',
-      }),
-      providesTags: ['Performance'],
-    }),
-    getTopicSetDailyAccuracy: builder.query({
-      query: ({ chapterId, topicIds }) => ({
-        url: `/api/performance/chapter-topicset-daily-accuracy/${chapterId}?topicIds=${topicIds.join(',')}`,
-        method: 'GET',
-      }),
-      providesTags: ['Performance'],
-    }),
-    getTopicSetSessionAccuracy: builder.query({
-      query: ({ chapterId, topicIds }) => ({
-        url: `/api/performance/chapter-topicset-session-accuracy/${chapterId}?topicIds=${topicIds.join(',')}`,
-        method: 'GET',
-      }),
-      providesTags: ['Performance'],
-    }),
-    getUnitTopicsPerformance: builder.query({
-      query: (unitId) => ({
-        url: `/api/performance/unit-topics/${unitId}`,
+    getTopicsAccuracyHistory: builder.query({
+      query: ({ topicIds, chapterId, startDate, endDate }) => ({
+        url: topicIds && topicIds.length
+          ? `/api/performance/topics-accuracy-history?topicIds=${topicIds.join(',')}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`
+          : `/api/performance/topics-accuracy-history?chapterId=${chapterId}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`,
         method: 'GET',
       }),
       providesTags: ['Performance'],
@@ -47,9 +30,6 @@ export const performanceApi = createApi({
 });
 
 export const {
-  useGetChapterTopicsPerformanceQuery,
-  useGetTopicDailyAccuracyQuery,
-  useGetTopicSetDailyAccuracyQuery,
-  useGetTopicSetSessionAccuracyQuery,
-  useGetUnitTopicsPerformanceQuery,
+  useGetTopicsAccuracyLatestQuery,
+  useGetTopicsAccuracyHistoryQuery,
 } = performanceApi; 

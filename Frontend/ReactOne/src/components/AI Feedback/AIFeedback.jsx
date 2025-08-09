@@ -4,16 +4,12 @@ import {
   Card,
   CardContent,
   Typography,
-  Avatar,
-  IconButton
+  Avatar
 } from '@mui/material';
-import { 
-  Close as CloseIcon
-} from '@mui/icons-material';
 import { avatarImages } from '../../utils/avatarUtils';
 
 
-const AIFeedback = ({ feedback, onClose, isVisible }) => {
+const AIFeedback = ({ feedback, onClose, isVisible, anchor = 'right', offset = 20 }) => {
   const [displayedFeedback, setDisplayedFeedback] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAvatar, setSelectedAvatar] = useState(() => {
@@ -46,11 +42,13 @@ const AIFeedback = ({ feedback, onClose, isVisible }) => {
     return null;
   }
 
-    return (
+  const isLeft = anchor === 'left';
+
+  return (
     <Card sx={{
       position: 'fixed',
-      bottom: 20,
-      right: 20,
+      bottom: offset,
+      ...(isLeft ? { left: offset } : { right: offset }),
       width: 300,
       maxWidth: '90vw',
       backgroundColor: theme => theme.palette.mode === 'dark' 
@@ -78,30 +76,7 @@ const AIFeedback = ({ feedback, onClose, isVisible }) => {
       }
     }}>
       <CardContent sx={{ p: 2 }}>
-        {/* Close Button */}
-        <Box sx={{ 
-          position: 'absolute',
-          top: 0,
-          right: 0
-        }}>
-          <IconButton
-            onClick={onClose}
-            size="small"
-            sx={{
-              color: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.7)' 
-                : 'rgba(0, 0, 0, 0.7)',
-              '&:hover': {
-                color: theme => theme.palette.mode === 'dark' ? 'white' : 'black',
-                backgroundColor: theme => theme.palette.mode === 'dark' 
-                  ? 'rgba(255, 255, 255, 0.1)' 
-                  : 'rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Box>
+        {/* Close button removed per request */}
 
         {/* Feedback Content */}
         <Box sx={{ 

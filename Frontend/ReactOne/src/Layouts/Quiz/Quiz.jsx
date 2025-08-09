@@ -52,6 +52,7 @@ import { StreakNotification } from './Achievements';
 import ConfettiFireworks from '../../components/magicui/ConfettiFireworks';
 import Results from './Results/Results';
 import AIFeedback from '../../components/AI Feedback/AIFeedback';
+import AccuracySnackbars from './Topics/Accuracy';
 import Solution from './Solution/Solution';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 
@@ -126,6 +127,8 @@ const Quiz = ({ socket }) => {
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
   const [showAIFeedback, setShowAIFeedback] = useState(false);
   const [aiFeedback, setAIFeedback] = useState('');
+  const [topicAccVisible, setTopicAccVisible] = useState(false);
+  const [topicAccItems, setTopicAccItems] = useState([]);
   const [showSolutions, setShowSolutions] = useState(false);
   
   // Next Level countdown states
@@ -489,6 +492,12 @@ const Quiz = ({ socket }) => {
         setAIFeedback(data.aiFeedback);
         setShowAIFeedback(true);
       }
+
+      // Handle topic accuracy snackbars
+      if (Array.isArray(data.topics) && data.topics.length > 0) {
+        setTopicAccItems(data.topics);
+        setTopicAccVisible(true);
+      }
       
       // Trigger fireworks for new high scores
       if (data.isNewHighScore) {
@@ -651,6 +660,10 @@ const Quiz = ({ socket }) => {
         // Hide AI feedback
         setShowAIFeedback(false);
         setAIFeedback('');
+
+        // Hide topic accuracy snackbars
+        setTopicAccVisible(false);
+        setTopicAccItems([]);
         
         // Reset socket initialization flags
         initializedRef.current = false;
@@ -725,6 +738,10 @@ const Quiz = ({ socket }) => {
       // Hide AI feedback
       setShowAIFeedback(false);
       setAIFeedback('');
+
+      // Hide topic accuracy snackbars
+      setTopicAccVisible(false);
+      setTopicAccItems([]);
       
       // Reset socket initialization flags
       initializedRef.current = false;
@@ -1348,6 +1365,14 @@ const Quiz = ({ socket }) => {
           feedback={aiFeedback}
           isVisible={showAIFeedback}
           onClose={() => setShowAIFeedback(false)}
+          anchor="left"
+          offset={20}
+        />
+        <AccuracySnackbars
+          topics={topicAccItems}
+          isVisible={topicAccVisible}
+          onClose={() => setTopicAccVisible(false)}
+          bottomOffset={0}
         />
       </QuizContainer>
   );

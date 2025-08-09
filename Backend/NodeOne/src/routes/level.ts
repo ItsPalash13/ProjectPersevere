@@ -5,7 +5,6 @@
     import { UserChapterLevel } from '../models/UserChapterLevel';
     import { UserChapterUnit } from '../models/UserChapterUnit';
     import { UserLevelSession } from '../models/UserLevelSession';
-    import { UserLevelSessionTopicsLogs } from '../models/Performance/UserLevelSessionTopicsLogs';
     import { QuestionTs } from '../models/QuestionTs';
     import { Question } from '../models/Questions';
     import { UserProfile } from '../models/UserProfile';
@@ -15,6 +14,25 @@
     import { Topic } from '../models/Topic';
     import { processBadgesAfterQuiz } from '../utils/badgeprocessor';
     import { getShortLevelFeedback } from '../utils/gpt';
+    import { processUserLevelSession } from '../utils/performance';
+
+    // Helper: compute topics accuracy updates from the in-memory session
+    const computeTopicsAccuracyUpdates = async (session: any) => {
+      try {
+        const result = await processUserLevelSession(session);
+        return result.topics.map(t => ({
+          topicId: t.topicId,
+          topicName: t.topicName || null,
+          previousAcc: t.previousAccuracy,
+          updatedAcc: t.updatedAccuracy
+        }));
+      } catch (procErr) {
+        console.error('Performance processing failed:', (procErr as any)?.message || procErr);
+        return [] as Array<{ topicId: string; topicName: string | null; previousAcc: number | null; updatedAcc: number }>;
+      }
+    };
+
+
 
     // Function to initialize first level for a user in a chapter
     const initializeFirstLevel = async (userId: string, chapterId: string): Promise<void> => {
@@ -836,19 +854,7 @@
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           
-          await UserLevelSessionTopicsLogs.updateMany(
-            { 
-              userChapterLevelId: session.userChapterLevelId,
-              userLevelSessionId: userLevelSessionId,
-              createdAt: { 
-                $gte: today, 
-                $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) 
-              }
-            },
-            { 
-              $set: { status: 1 } 
-            }
-          );
+          // Model removed: no session topic logs to update
           
         } catch (sessionLogError) {
           console.error('Error updating session topic logs status:', sessionLogError);
@@ -1016,6 +1022,8 @@
             // Now process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
+            const topicsAccuracyUpdates = await computeTopicsAccuracyUpdates(session);
+
             // Delete the session
             await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -1037,6 +1045,7 @@
                 percentile,
                 rank,
                 leaderboard,
+                topics: topicsAccuracyUpdates,
                 aiFeedback
               }
             });
@@ -1109,6 +1118,8 @@
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
+            const topicsAccuracyUpdates = await computeTopicsAccuracyUpdates(session);
+
             // Delete the session
             await UserLevelSession.findByIdAndDelete(userLevelSessionId);
             console.log("Check ",newHighScore);
@@ -1131,6 +1142,7 @@
                 percentile,
                 rank,
                 leaderboard,
+                topics: topicsAccuracyUpdates,
                 aiFeedback
               }
             });
@@ -1296,6 +1308,8 @@
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
+            const topicsAccuracyUpdates = await computeTopicsAccuracyUpdates(session);
+
             // Delete the session
             await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -1317,6 +1331,7 @@
                 percentile,
                 rank,
                 leaderboard,
+                topics: topicsAccuracyUpdates,
                 aiFeedback
               }
             });
@@ -1390,6 +1405,8 @@
             // Before deleting the session, process badges
             await processBadgesAfterQuiz(userLevelSessionId);
 
+            const topicsAccuracyUpdates = await computeTopicsAccuracyUpdates(session);
+
             // Delete the session
             await UserLevelSession.findByIdAndDelete(userLevelSessionId);
 
@@ -1409,6 +1426,7 @@
                 percentile,
                 rank,
                 leaderboard,
+                topics: topicsAccuracyUpdates,
                 aiFeedback
               }
             });

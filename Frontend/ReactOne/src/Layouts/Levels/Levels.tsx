@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   Container, 
   Typography, 
@@ -18,7 +18,7 @@ import {
 import { ProgressBar } from 'react-progressbar-fancy';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Tour as TourIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Analytics as AnalyticsIcon, Tour as TourIcon, Timeline as TimelineIcon } from '@mui/icons-material';
 import Joyride, { STATUS, Step } from 'react-joyride';
 // @ts-ignore
 import { useGetChapterInfoQuery, useStartLevelMutation } from '../../features/api/levelAPI';
@@ -37,7 +37,7 @@ import LevelCard from '../../components/LevelCard/LevelCard';
 // @ts-ignore
 import LevelDetailsDialog from '../../components/LevelDetailsDialog';
 // @ts-ignore
-import Performance from '../../components/Performance';
+import Topics from '../Performance/Topics';
 // @ts-ignore
 import { colors, themeColors } from '../../theme/colors';
 // @ts-ignore
@@ -118,6 +118,7 @@ const Levels: React.FC = () => {
   const [countdown, setCountdown] = useState(3);
   const [selectedLevelId, setSelectedLevelId] = useState<string | null>(null);
   const [showPerformance, setShowPerformance] = useState(false);
+  const [showTopicsPerformance, setShowTopicsPerformance] = useState(false);
   const [showUnitPerformance, setShowUnitPerformance] = useState<string | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
   const [selectedLevelForDetails, setSelectedLevelForDetails] = useState<Level | null>(null);
@@ -353,6 +354,25 @@ const Levels: React.FC = () => {
   });
 
 
+  // Build chapter topics id->name map from levels (topics are populated on levels API)
+  const chapterTopicIdToName = useMemo(() => {
+    const map = new Map<string, string>();
+    levels.forEach((lvl) => {
+      const t = lvl.topics as any[];
+      if (Array.isArray(t)) {
+        t.forEach((topic: any) => {
+          if (topic && typeof topic === 'object' && topic._id && topic.topic) {
+            map.set(topic._id.toString(), topic.topic);
+          }
+        });
+      }
+    });
+    return Object.fromEntries(map);
+  }, [levels]);
+
+  const chapterTopicIds = useMemo(() => Object.keys(chapterTopicIdToName), [chapterTopicIdToName]);
+
+
 
   if (isLoading) {
     return (
@@ -549,9 +569,9 @@ const Levels: React.FC = () => {
                 <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
                   {chapter.name}
                 </Typography>
-                <Tooltip title="Performance Analytics">
+                <Tooltip title="Topics Accuracy">
                   <IconButton
-                    onClick={() => setShowPerformance(true)}
+                    onClick={() => setShowTopicsPerformance(true)}
                     size="small"
                     sx={{
                       color: theme => theme.palette.mode === 'dark'
@@ -560,7 +580,7 @@ const Levels: React.FC = () => {
                       ml: 0
                     }}
                   >
-                    <AnalyticsIcon fontSize="small" />
+                    <TimelineIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </Box>
@@ -643,20 +663,6 @@ const Levels: React.FC = () => {
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       {unit.name}
                   </Typography>
-                  <Tooltip title="Unit Analytics">
-                    <IconButton
-                        onClick={() => setShowUnitPerformance(unit._id)}
-                      size="small"
-                      sx={{
-                        color: theme => theme.palette.mode === 'dark'
-                          ? colors.ui.dark.buttonSecondary
-                          : colors.ui.light.buttonSecondary,
-                        ml: 0
-                      }}
-                    >
-                      <AnalyticsIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
                 </Box>
                 <Typography variant="body2" sx={{ mb: 1 }}>
                     {unit.description}
@@ -724,33 +730,35 @@ const Levels: React.FC = () => {
         )}
       </Container>
 
-      {/* Performance Analytics Dialog */}
+
+
+      {/* Topics Accuracy Dialog */}
       <Dialog
-        open={showPerformance}
-        onClose={() => setShowPerformance(false)}
-        maxWidth="lg"
+        open={showTopicsPerformance}
+        onClose={() => setShowTopicsPerformance(false)}
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
-            height: '90vh',
-            maxHeight: '90vh',
-            backgroundColor: themeColors.card.background,
+            height: '70vh',
+            maxHeight: '70vh',
+            backgroundColor: themeColors.background.paper,
             border: themeColors.card.border,
             boxShadow: themeColors.card.shadow,
           }
         }}
       >
         <DialogTitle sx={{ 
-          backgroundColor: themeColors.card.background,
+          backgroundColor: themeColors.background.paper,
           color: themeColors.text.primary,
           borderBottom: themeColors.card.border,
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="h6" sx={{ color: themeColors.text.primary }}>
-              Performance Analytics - {chapter?.name}
+              Topics Accuracy
             </Typography>
             <IconButton 
-              onClick={() => setShowPerformance(false)}
+              onClick={() => setShowTopicsPerformance(false)}
               sx={{ color: themeColors.text.secondary }}
             >
               <ArrowBackIcon />
@@ -758,64 +766,21 @@ const Levels: React.FC = () => {
           </Box>
         </DialogTitle>
         <DialogContent sx={{ 
-          backgroundColor: themeColors.card.background,
+          backgroundColor: themeColors.background.paper,
           color: themeColors.text.primary,
         }}>
-          {chapterId && (
-            <Performance
-              chapterId={chapterId}
-              onClose={() => setShowPerformance(false)}
-            />
-          )}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+            Shows your accuracy of topics, with recent answers weighed more than older ones.
+            </Typography>
+          </Box>
+          <Topics 
+            chapterId={chapterId as any}
+            topicIdToName={chapterTopicIdToName as any}
+          />
         </DialogContent>
       </Dialog>
 
-      {/* Unit Performance Analytics Dialog */}
-      <Dialog
-        open={!!showUnitPerformance}
-        onClose={() => setShowUnitPerformance(null)}
-        maxWidth="lg"
-        fullWidth
-        PaperProps={{
-          sx: {
-            height: '90vh',
-            maxHeight: '90vh',
-            backgroundColor: themeColors.card.background,
-            border: themeColors.card.border,
-            boxShadow: themeColors.card.shadow,
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          backgroundColor: themeColors.card.background,
-          color: themeColors.text.primary,
-          borderBottom: themeColors.card.border,
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ color: themeColors.text.primary }}>
-              Unit Analytics - {units.find(u => u._id === showUnitPerformance)?.name}
-            </Typography>
-            <IconButton 
-              onClick={() => setShowUnitPerformance(null)}
-              sx={{ color: themeColors.text.secondary }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ 
-          backgroundColor: themeColors.card.background,
-          color: themeColors.text.primary,
-        }}>
-          {showUnitPerformance && (
-            <Performance
-              unitId={showUnitPerformance}
-              onClose={() => setShowUnitPerformance(null)}
-              mode="unit"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Level Details Dialog */}
       <LevelDetailsDialog

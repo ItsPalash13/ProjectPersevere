@@ -5,7 +5,7 @@ import { Question } from '../../models/Questions';
 import { QuestionTs } from '../../models/QuestionTs';
 import { UserChapterLevel } from '../../models/UserChapterLevel';
 import { Level } from '../../models/Level';
-import { UserLevelSessionTopicsLogs } from '../../models/Performance/UserLevelSessionTopicsLogs';
+// Removed: UserLevelSessionTopicsLogs model
 import { getSkewNormalRandom } from '../../utils/math';
 
 import { UserProfile } from '../../models/UserProfile';
@@ -35,12 +35,16 @@ const pushQuestionHistoryEntry = async (
   }
 
   session.questionsHistory.push({
+    quesId: questionDoc._id,
     question: questionDoc.ques,
     options: questionDoc.options,
     userOptionChoice,
     correctOption: (questionDoc as any).correct,
     topics: Array.isArray((questionDoc as any).topics)
-      ? (questionDoc as any).topics.map((t: any) => t.name)
+      ? (questionDoc as any).topics.map((t: any) => ({
+          topicId: (t.id?._id ?? t.id ?? t._id),
+          topicName: (t.name ?? t.topic ?? '')
+        }))
       : [],
     solution: (questionDoc as any).solution
   });
@@ -313,7 +317,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
 
   // Handle answer submission
   // Processes user's answer and updates XP
-  socket.on('answer', async ({ userLevelSessionId, answer, currentTime, timeSpent }) => {
+socket.on('answer', async ({ userLevelSessionId, answer, currentTime }: { userLevelSessionId: string; answer: number; currentTime: number }) => {
     try {
       const session = await UserLevelSession.findById(userLevelSessionId);
       if (!session) {
@@ -352,45 +356,7 @@ export const quizQuestionHandlers = (socket: Socket) => {
 
       // Log time spent on this question
 
-      // Phase 1: Create/Update UserLevelSessionTopicsLogs
-      try {
-        const topicIds = question.topics.map(topic => topic.id);
-        
-        // Get today's date (start of day for consistency)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        await UserLevelSessionTopicsLogs.findOneAndUpdate(
-          { 
-            userChapterLevelId: session.userChapterLevelId,
-            userLevelSessionId,
-            topics: topicIds,
-            createdAt: { 
-              $gte: today, 
-              $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) 
-            }
-          },
-          {
-            $setOnInsert: {
-              status: 0,
-              createdAt: new Date()
-            },
-            $push: {
-              questionsAnswered: {
-                questionId: session.currentQuestion,
-                timeSpent,
-                userAnswer: answer,
-                isCorrect
-              }
-            }
-          },
-          { upsert: true }
-        );
-
-      } catch (sessionLogError) {
-        logger.error('Error updating session topics log:', sessionLogError);
-        // Don't break the quiz flow if session logging fails
-      }
+      // Model removed: skip session topics log update
       
       // Get question details for XP calculation
       const questionTs = await QuestionTs.findOne({ quesId: session.currentQuestion });
@@ -589,7 +555,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           xpNeeded: response.data.data.xpNeeded,
           earnedBadges,
           isNewHighScore: response.data.data.isNewHighScore,
-          aiFeedback: response.data.data.aiFeedback
+          aiFeedback: response.data.data.aiFeedback,
+          topics: response.data.data.topics || []
         });
         socket.disconnect();
       } else if (session.currentQuestionIndex >= session.questionBank.length && currentXp < requiredXp) {
@@ -664,7 +631,8 @@ export const quizQuestionHandlers = (socket: Socket) => {
           xpNeeded: response.data.data.xpNeeded,
           earnedBadges,
           isNewHighScore: response.data.data.isNewHighScore,
-          aiFeedback: response.data.data.aiFeedback
+          aiFeedback: response.data.data.aiFeedback,
+          topics: response.data.data.topics || []
         });
         socket.disconnect();
       } else{

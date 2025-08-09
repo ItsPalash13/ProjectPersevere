@@ -16,7 +16,9 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const Solution = ({ open, onClose, questionsHistory = [] }) => {
   return (
-    <Dialog open={!!open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={!!open} onClose={onClose} fullWidth maxWidth="md" sx={{
+      zIndex:99999
+    }}>
       <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="h6">Solutions</Typography>
         <IconButton aria-label="close" onClick={onClose} size="small">
@@ -42,7 +44,7 @@ const Solution = ({ open, onClose, questionsHistory = [] }) => {
                 {Array.isArray(entry.topics) && entry.topics.length > 0 && (
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                     {entry.topics.map((t, i) => (
-                      <Chip key={i} label={t} size="small" variant="outlined" />
+                      <Chip key={i} label={t?.topicName || t} size="small" variant="outlined" />
                     ))}
                   </Box>
                 )}

@@ -16,13 +16,28 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { ProgressBar } from 'react-progressbar-fancy';
 import { useTheme } from '@mui/material/styles';
+import { colors, themeColors } from '../theme/colors';
 
 const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => {
   const theme = useTheme();
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  
+  const formatTime = (value) => {
+    if (value == null || isNaN(value)) return '0.00s';
+    let totalMs;
+    if (typeof value === 'number') {
+      if (value >= 1000 && Number.isInteger(value)) {
+        totalMs = value; // milliseconds
+      } else if (!Number.isInteger(value)) {
+        totalMs = Math.round(value * 1000); // fractional seconds
+      } else {
+        totalMs = value * 1000; // integer seconds
+      }
+    } else {
+      const num = Number(value);
+      totalMs = Number.isFinite(num) ? (num >= 1000 ? num : num * 1000) : 0;
+    }
+    const secondsWithHundredths = (totalMs / 1000).toFixed(2);
+    return `${secondsWithHundredths}s`;
   };
 
   const isTimeRush = level?.mode === 'time_rush';
@@ -47,18 +62,45 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
         }
       }}
     >
-      <DialogTitle sx={{ pb: 1 }}>
+      <DialogTitle sx={{ pb: 1, backgroundColor: themeColors.background.paper }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
             {level?.name}
           </Typography>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button
+              variant="contained"
+              size="medium"
+              disabled={!level?.status}
+              onClick={handleStartLevel}
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2.5,
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                backgroundColor: '#4BC508',
+                color: '#FFFFFF',
+                textTransform: 'none',
+                '&:hover': {
+                  backgroundColor: '#43B007',
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: (th) => (th.palette.mode === 'dark' ? '#2A2A2A' : '#E0E0E0'),
+                  color: (th) => (th.palette.mode === 'dark' ? '#9CA3AF' : '#9CA3AF'),
+                }
+              }}
+            >
+              {level?.status ? 'Start' : '🔒 Locked'}
+            </Button>
+            <IconButton onClick={onClose} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ backgroundColor: themeColors.background.paper }}>
         <Box sx={{ mb: 3 }}>
           <Typography variant="body1" sx={{ mb: 2, color: 'text.secondary' }}>
             {level?.description}
@@ -307,30 +349,6 @@ const LevelDetailsDialog = ({ open, onClose, level, chapter, onLevelClick }) => 
           </Box>
 
           <Divider sx={{ my: 2 }} />
-
-          {/* Start Button */}
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              size="large"
-              disabled={!level?.status}
-              onClick={handleStartLevel}
-              sx={{
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
-                fontSize: '1.1rem',
-                backgroundColor: theme.palette.mode === 'dark' ? '#444' : 'primary.main',
-                color: theme.palette.mode === 'dark' ? 'white' : 'white',
-                '&:hover': {
-                  backgroundColor: theme.palette.mode === 'dark' ? '#555' : 'primary.dark',
-                }
-              }}
-            >
-              {level?.status ? 'Start Level' : '🔒 Locked'}
-            </Button>
-          </Box>
         </Box>
       </DialogContent>
     </Dialog>

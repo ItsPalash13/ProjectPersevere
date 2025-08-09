@@ -17,11 +17,15 @@ export interface IUserLevelSession extends Document {
 
   // Question details history captured during the session
   questionsHistory: Array<{
+    quesId: mongoose.Types.ObjectId;
     question: string;
     options: string[];
     userOptionChoice: number;
     correctOption: number;
-    topics?: string[];
+    topics?: Array<{
+      topicId: mongoose.Types.ObjectId | string;
+      topicName: string;
+    }>;
     solution?: string;
   }>;
 
@@ -107,6 +111,11 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
   },
   // Snapshot of asked questions with user choice and solution text
   questionsHistory: [{
+    quesId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Question',
+      required: true
+    },
     question: {
       type: String,
       required: true
@@ -126,8 +135,15 @@ export const UserLevelSessionSchema = new Schema<IUserLevelSession>({
       min: 0
     },
     topics: [{
-      type: String,
-      required: false
+      topicId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Topic',
+        required: true
+      },
+      topicName: {
+        type: String,
+        required: true
+      }
     }],
     solution: {
       type: String,
