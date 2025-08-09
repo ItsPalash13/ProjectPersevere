@@ -15,18 +15,9 @@ import {
   Speed as SpeedIcon
 } from '@mui/icons-material';
 import { themeScrollbar } from '../../theme/colors';
+import { getAvatarSrc as getAvatarSrcFromUtils } from '../../utils/avatarUtils';
 
-// Import avatar images
-import avatar23 from '../../assets/avatars/image 23.png';
-import avatar24 from '../../assets/avatars/image 24.png';
-import avatar29 from '../../assets/avatars/image 29.png';
-import avatar30 from '../../assets/avatars/image 30.png';
-import avatar54 from '../../assets/avatars/image 54.png';
-import avatar55 from '../../assets/avatars/image 55.png';
-import avatar73 from '../../assets/avatars/image 73.png';
-import avatar74 from '../../assets/avatars/image 74.png';
-import avatar104 from '../../assets/avatars/image 104.png';
-import avatar105 from '../../assets/avatars/image 105.png';
+// Avatar utilities are now sourced from `utils/avatarUtils`
 
 const QuizLeaderboard = ({ 
   leaderboardData = [], 
@@ -65,26 +56,11 @@ const QuizLeaderboard = ({
     }
   }, [leaderboardData, currentUserRank]);
 
-  // Avatar mapping
-  const avatarMap = {
-    'image 23.png': avatar23,
-    'image 24.png': avatar24,
-    'image 29.png': avatar29,
-    'image 30.png': avatar30,
-    'image 54.png': avatar54,
-    'image 55.png': avatar55,
-    'image 73.png': avatar73,
-    'image 74.png': avatar74,
-    'image 104.png': avatar104,
-    'image 105.png': avatar105
-  };
-
-  const getAvatarSrc = (avatarPath) => {
+  // Resolve avatar image source using shared utils by filename
+  const resolveAvatarSrc = (avatarPath) => {
     if (!avatarPath) return null;
-    
-    // Extract filename from path if it's a full path
     const filename = avatarPath.includes('/') ? avatarPath.split('/').pop() : avatarPath;
-    return avatarMap[filename] || null;
+    return getAvatarSrcFromUtils(filename) || null;
   };
 
   const getRankIcon = (rank) => {
@@ -114,7 +90,7 @@ const QuizLeaderboard = ({
   };
 
   const getAvatarDisplay = (user) => {
-    const avatarSrc = getAvatarSrc(user.avatar);
+    const avatarSrc = resolveAvatarSrc(user.avatar);
     
     if (avatarSrc) {
       return (
